@@ -1,4 +1,6 @@
 from collections import deque
+from statistics import mean
+import numpy as np
 
 class CandleHistory:
     def __init__(self, period1, period2, period3):
@@ -21,3 +23,10 @@ class CandleHistory:
     
     def __str__(self):
         return "History object containing data for last number of bars - {}, {}, {}".format(self.__period1, self.__period2, self.__period3)
+    
+    def stats(self):
+        open = []
+        for obj in self.__period1_deque:
+            open.append(obj.open)
+
+        return "Average open price is {}".format(np.percentile(open, 50))
