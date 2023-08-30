@@ -1,5 +1,6 @@
 from enum import Enum
 
+#Candle charicteristics to track
 class CandleType(Enum):
     LOWER_WICK=1
     HIGHER_WICK=2
@@ -10,9 +11,25 @@ class CandleType(Enum):
     NARROW_SPREAD=7
     HANGING_MAN=8
 
+#Relative size indicator for volume and spread
 class Size(Enum):
     VERY_SMALL=1
     SMALL=2
     MEDIUM=3
     LARGE=4
     VERY_LARGE=5
+
+#Which dequeue/lookback period to use
+class HistoryPeriod(Enum):
+    SHORT=1
+    MEDIUM=2
+    LONG=3
+
+#Which security data are we interested in
+class SecurityData(Enum):
+    VOLUME=1
+    OPEN=2
+    CLOSE=3
+    LOW=4
+    HIGH=5
+    SPREAD=6
