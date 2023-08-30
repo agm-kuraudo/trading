@@ -15,6 +15,9 @@ class Candle:
         
         self.__upbar = close > open
         self.__spread = abs(close - open)
+        self.__highLowSpread = high - low
+        self.__highOpenSpread = high - open
+        self.__LowCloseSpread = low - close
 
         self.__relativeVolume = self.setRelativeSize(self.__volume, Candle.relative_volume_boundarys)
         self.__relativeSpread = self.setRelativeSize(self.__spread, Candle.relative_spread_boundarys)
@@ -24,6 +27,42 @@ class Candle:
         
         if self.isHigherWick():
             self.__notes.append(CandleType.HIGHER_WICK)
+
+        if self.isShootingStar():
+            self.__notes.append(CandleType.SHOOTING_STAR)
+
+        if self.isHammer():
+            self.__notes.append(CandleType.SHOOTING_STAR)
+
+    def isShootingStar(self):
+        #Bar must be an upbar
+        if not self.upbar:
+            return False
+        #the gap between the high and open must be 2x as large as the "body"
+        if abs(self.highOpenSpread) < (self.__spread * 2):
+            return False
+        
+        #Small "tail" - bit of subjective guess work here
+        if abs(self.LowCloseSpread) > (abs(self.highOpenSpread) / 2):
+            return False
+               
+        return True
+
+    def isHammer(self):
+        #There needs to be a tail - so low - close should be negative
+        if self.LowCloseSpread > 0:
+            return False
+        
+        #The tail should be twice as long as the body
+        if abs(self.LowCloseSpread) < (self.spread * 2):
+            return False
+        
+        #I guess there shouldn't be a large high/close spread as well for this to be a hammer
+        if self.highOpenSpread > self.spread:
+            return False
+        
+        return True
+
 
     def isLowerWick(self):
         return self.__low < self.__close
@@ -49,6 +88,7 @@ class Candle:
         
         return return_value
 
+    #"To String" stuff
     def __str__(self) -> str:
         bartype = ""
         if self.__upbar == True:
@@ -57,6 +97,8 @@ class Candle:
             bartype = "Downbar"
         return "Candle is an {} opened at {} and closed at {}".format(bartype, self.__open, self.__close)
     
+    #Simple "Getters section"
+
     @property
     def open(self):
         return self.__open
@@ -80,6 +122,18 @@ class Candle:
     @property
     def spread(self):
         return self.__spread
+    
+    @property
+    def highLowSpread(self):
+        return self.__highLowSpread
+    
+    @property
+    def highOpenSpread(self):
+        return self.__highOpenSpread
+    
+    @property
+    def LowCloseSpread(self):
+        return self.__LowCloseSpread
     
     @property
     def notes(self):

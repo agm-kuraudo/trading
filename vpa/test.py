@@ -12,7 +12,7 @@ relative_spread_boundarys = [93.4,213.,377.5,721.,1016.8]
 relative_volume_boundarys = [223357.5,229034.,238311.,257165.5,265355.7]
 
 
-def dummyOnData(volume, open, high, low, close):
+def dummyOnData(time, volume, open, high, low, close):
 
 
 
@@ -24,7 +24,14 @@ def dummyOnData(volume, open, high, low, close):
     all_history.addCandle(this_candle)
 
     print(this_candle)
-    print(this_candle.relativeVolume)
+
+    if this_candle.isShootingStar():
+        print("SHOOTING STAR: " + time)
+
+    if this_candle.isHammer():
+        print("HAMMER: " + time)
+
+    #print(this_candle.relativeVolume)
     #print(all_history)
 
 
@@ -35,11 +42,13 @@ relative_path = "../test_data/"
 full_path = os.path.join(absolute_path, relative_path)
 
 myDF = pd.read_csv(full_path + "^gbpusd_price-history-08-29-2023.csv")
+myDF = myDF.sort_values("Time", axis=0)
+
 print(myDF)
 
 #Loop around each item in the data frame and call my dummy ondata method
 for index, row in myDF.iterrows():
-    dummyOnData(row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
+    dummyOnData(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
     
 print()
 print(all_history.getPercentiles(SecurityData.VOLUME, HistoryPeriod.SHORT))
