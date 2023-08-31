@@ -1,6 +1,7 @@
 from candle import Candle
 from candle_history import CandleHistory
 from vpa_enums import CandleType, Size, SecurityData, HistoryPeriod
+from signal import MySignal
 import pandas as pd
 import numpy as np
 import os
@@ -10,7 +11,7 @@ import os
 all_history = CandleHistory(3, 10, 50)
 relative_spread_boundarys = [93.4,213.,377.5,721.,1016.8]
 relative_volume_boundarys = [223357.5,229034.,238311.,257165.5,265355.7]
-
+mySignal = MySignal()
 
 def dummyOnData(time, volume, open, high, low, close):
 
@@ -19,20 +20,15 @@ def dummyOnData(time, volume, open, high, low, close):
     if (np.isnan(open)):
         return
     
-    this_candle = Candle(volume,open,high,low,close)
+    this_candle = Candle(time, volume,open,high,low,close)
 
     all_history.addCandle(this_candle)
 
-    print(this_candle)
+    signalDict = mySignal.calculateSignal(this_candle, all_history)
 
-    if this_candle.isShootingStar():
-        print("SHOOTING STAR: " + time)
+    if signalDict["STRENGTH"] > 10:
+        print("{}, {} Signal, Strength {}".format(this_candle.time, signalDict["Direction"], signalDict["STRENGTH"]))
 
-    if this_candle.isHammer():
-        print("HAMMER: " + time)
-
-    if this_candle.isLongLeggedDoji():
-        print("LONG LEGGED DOJI: " + time)
 
     #print(this_candle.relativeVolume)
     #print(all_history)

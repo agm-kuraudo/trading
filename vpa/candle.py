@@ -5,12 +5,15 @@ class Candle:
     relative_spread_boundarys = {"SHORT": [293.4,468.0,759.0,806.0,834.2], "MEDIUM": [126.7, 182.5, 557.5, 829.5, 1026.4], "LARGE": [93.4, 213.0, 377.5, 721.0, 1016.8]}
     relative_volume_boundarys = {"SHORT": [231718.,236627.5,244810.,253047.,257989.2], "MEDIUM": [223357.5,229034.,238311.,257165.5,265355.7], "LARGE": [226893.7,243349.,275653.,301675.,312982.6]}
 
-    def __init__(self, volume, open, high, low, close):
+    relative_highlow_spread_boundarys = {"SHORT": [293.4,468.0,759.0,806.0,834.2], "MEDIUM": [126.7, 182.5, 557.5, 829.5, 1026.4], "LARGE": [93.4, 213.0, 377.5, 721.0, 1016.8]}
+
+    def __init__(self, time, volume, open, high, low, close):
         self.__volume = volume
         self.__open = open
         self.__high = high
         self.__low = low
         self.__close = close
+        self.__time = time
         self.__notes = []
         
         self.__upbar = close > open
@@ -22,6 +25,10 @@ class Candle:
 
         self.__relativeVolume = self.setRelativeSize(self.__volume, Candle.relative_volume_boundarys)
         self.__relativeSpread = self.setRelativeSize(self.__spread, Candle.relative_spread_boundarys)
+        self.__relativeHighLowSpread = self.setRelativeSize(abs(self.__highLowSpread), Candle.relative_highlow_spread_boundarys)
+
+        self.__volumeAnomoly = self.setVolumeAnomolyFlags()
+        self.__spreadAnomoly = self.setSpreadAnomolyFlags()
 
         if self.isLowerWick():
             self.__notes.append(CandleType.LOWER_WICK)
@@ -37,6 +44,23 @@ class Candle:
 
         if self.isLongLeggedDoji():
             self.__notes.append(CandleType.LONG_LEGGED_DOJI)
+
+    def setVolumeAnomolyFlags(self):
+        return_value = []
+
+        for i in range(3):
+            return_value.append((self.relativeHighLowSpread[i].value -1) > self.relativeVolume[i].value)
+        
+        return return_value
+
+    def setSpreadAnomolyFlags(self):
+        return_value = []
+
+        for i in range(3):
+            return_value.append((self.relativeVolume[i].value -1) > self.relativeHighLowSpread[i].value)
+        
+        return return_value
+
 
     def isShootingStar(self):
         #Bar must be an upbar
@@ -172,3 +196,19 @@ class Candle:
     @property
     def relativeSpread(self):
         return self.__relativeSpread
+    
+    @property
+    def volumeAnomoly(self):
+        return self.__volumeAnomoly
+    
+    @property
+    def spreadAnomoly(self):
+        return self.__spreadAnomoly
+    
+    @property
+    def relativeHighLowSpread(self):
+        return self.__relativeHighLowSpread
+    
+    @property
+    def time(self):
+        return self.__time

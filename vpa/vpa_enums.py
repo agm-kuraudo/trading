@@ -7,9 +7,11 @@ class CandleType(Enum):
     SHOOTING_STAR=3
     HAMMER=4
     LONG_LEGGED_DOJI=5
-    WIDE_SPREAD=6
-    NARROW_SPREAD=7
-    HANGING_MAN=8
+    WIDE_SPREAD=6   #This is already covered by the relative spread elements
+    NARROW_SPREAD=7 #As above
+    HANGING_MAN=8   #This is just a hammer but in an uptrend.. can't ascertain on a single candle level
+    ANOMOLY_HIGH_VOLUME=9
+    ANOMOLY_HIGH_SPREAD=10
 
 #Relative size indicator for volume and spread
 class Size(Enum):
@@ -33,3 +35,4 @@ class SecurityData(Enum):
     LOW=4
     HIGH=5
     SPREAD=6
+    HIGH_LOW_SPREAD=7

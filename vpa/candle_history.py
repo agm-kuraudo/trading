@@ -23,14 +23,17 @@ class CandleHistory:
         if self.isReady(HistoryPeriod.SHORT):
             Candle.relative_spread_boundarys["SHORT"] = self.getPercentiles(SecurityData.SPREAD, HistoryPeriod.SHORT)
             Candle.relative_volume_boundarys["SHORT"] = self.getPercentiles(SecurityData.VOLUME, HistoryPeriod.SHORT)
+            Candle.relative_highlow_spread_boundarys["SHORT"] = self.getPercentiles(SecurityData.HIGH_LOW_SPREAD, HistoryPeriod.SHORT)
 
         if self.isReady(HistoryPeriod.MEDIUM):
             Candle.relative_spread_boundarys["MEDIUM"] = self.getPercentiles(SecurityData.SPREAD, HistoryPeriod.MEDIUM)
             Candle.relative_volume_boundarys["MEDIUM"] = self.getPercentiles(SecurityData.VOLUME, HistoryPeriod.MEDIUM)
+            Candle.relative_highlow_spread_boundarys["MEDIUM"] = self.getPercentiles(SecurityData.HIGH_LOW_SPREAD, HistoryPeriod.MEDIUM)
 
         if self.isReady(HistoryPeriod.LONG):
             Candle.relative_spread_boundarys["LARGE"] = self.getPercentiles(SecurityData.SPREAD, HistoryPeriod.LONG)
             Candle.relative_volume_boundarys["LARGE"] = self.getPercentiles(SecurityData.VOLUME, HistoryPeriod.LONG)
+            Candle.relative_highlow_spread_boundarys["LARGE"] = self.getPercentiles(SecurityData.HIGH_LOW_SPREAD, HistoryPeriod.LONG)
 
     def isReady(self, period):
         returnBool = False
@@ -86,6 +89,9 @@ class CandleHistory:
             case SecurityData.SPREAD:
                 for obj in myDeque:
                     myList.append(obj.spread)
+            case SecurityData.HIGH_LOW_SPREAD:
+                for obj in myDeque:
+                    myList.append(obj.highLowSpread)
             case _:
                 raise Exception("getPercentiles : SecurityData Exception")
     
