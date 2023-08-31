@@ -31,6 +31,9 @@ def dummyOnData(time, volume, open, high, low, close):
     if this_candle.isHammer():
         print("HAMMER: " + time)
 
+    if this_candle.isLongLeggedDoji():
+        print("LONG LEGGED DOJI: " + time)
+
     #print(this_candle.relativeVolume)
     #print(all_history)
 

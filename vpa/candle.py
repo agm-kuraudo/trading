@@ -17,7 +17,8 @@ class Candle:
         self.__spread = abs(close - open)
         self.__highLowSpread = high - low
         self.__highOpenSpread = high - open
-        self.__LowCloseSpread = low - close
+        self.__lowCloseSpread = low - close
+        self.__highCloseSpread = high - close
 
         self.__relativeVolume = self.setRelativeSize(self.__volume, Candle.relative_volume_boundarys)
         self.__relativeSpread = self.setRelativeSize(self.__spread, Candle.relative_spread_boundarys)
@@ -34,6 +35,9 @@ class Candle:
         if self.isHammer():
             self.__notes.append(CandleType.SHOOTING_STAR)
 
+        if self.isLongLeggedDoji():
+            self.__notes.append(CandleType.LONG_LEGGED_DOJI)
+
     def isShootingStar(self):
         #Bar must be an upbar
         if not self.upbar:
@@ -43,18 +47,18 @@ class Candle:
             return False
         
         #Small "tail" - bit of subjective guess work here
-        if abs(self.LowCloseSpread) > (abs(self.highOpenSpread) / 2):
+        if abs(self.lowCloseSpread) > (abs(self.highOpenSpread) / 2):
             return False
                
         return True
 
     def isHammer(self):
         #There needs to be a tail - so low - close should be negative
-        if self.LowCloseSpread > 0:
+        if self.lowCloseSpread > 0:
             return False
         
         #The tail should be twice as long as the body
-        if abs(self.LowCloseSpread) < (self.spread * 2):
+        if abs(self.lowCloseSpread) < (self.spread * 2):
             return False
         
         #I guess there shouldn't be a large high/close spread as well for this to be a hammer
@@ -63,6 +67,24 @@ class Candle:
         
         return True
 
+    def isLongLeggedDoji(self):
+        #There needs to be a tail - so low - close should be negative - TODO: This is repeated code
+        if self.lowCloseSpread > 0:
+            return False
+        
+        #There needs to be a upbit, so high close spread should be positive
+        if self.highCloseSpread <= 0:
+            False
+
+        #the gap between the high and close must be 2x as large as the "body"
+        if abs(self.highCloseSpread) < (self.__spread * 2):
+            return False
+        
+        #The tail should be twice as long as the body TODO: This is repeated code
+        if abs(self.lowCloseSpread) < (self.spread * 2):
+            return False
+        
+        return True
 
     def isLowerWick(self):
         return self.__low < self.__close
@@ -132,8 +154,12 @@ class Candle:
         return self.__highOpenSpread
     
     @property
-    def LowCloseSpread(self):
-        return self.__LowCloseSpread
+    def lowCloseSpread(self):
+        return self.__lowCloseSpread
+    
+    @property
+    def highCloseSpread(self):
+        return self.__highCloseSpread
     
     @property
     def notes(self):
