@@ -33,22 +33,39 @@ class Candle:
             bar_type = "up_bar"
         else:
             bar_type = "down_bar"
-        return "Candle is an {} opened at {} and closed at {}".format(bar_type, self.__open, self.__close)
+        return "Candle is an {} opened at {} and closed at {}. Spread was {}. Volume was {}".format(bar_type,
+                                                                                                    self.__open,
+                                                                                                    self.__close,
+                                                                                                    self.spread,
+                                                                                                    self.volume)
+
 
     @property
     def spread(self):
         return self.__spread
+
+    @property
+    def volume(self):
+        return self.__volume
+
 
 class DummyQCTrader:
     # Set up the short, medium and long term intervals to use.  A bit arbitrary, Eventually can test and tweak
     PERIOD_ONE_LENGTH = 5
     PERIOD_TWO_LENGTH = 10
     PERIOD_THREE_LENGTH = 20
-    PERCENTILE_START = 10
-    PERCENTILE_INCREMENTS = 10
+    PERCENTILE_START = 5
+    PERCENTILE_INCREMENTS = 5
 
     def __init__(self):
         # We create three "deques" based on those time frames
+
+        self.all_periods = [DummyQCTrader.PERIOD_ONE_LENGTH,
+                            DummyQCTrader.PERIOD_TWO_LENGTH,
+                            DummyQCTrader.PERIOD_THREE_LENGTH]
+        self.spread_percentiles = [0, 0, 0]
+        self.volume_percentiles = [0, 0, 0]
+
         self.deque_dictionary = {
             "period_one": deque(maxlen=DummyQCTrader.PERIOD_ONE_LENGTH),
             "period_two": deque(maxlen=DummyQCTrader.PERIOD_TWO_LENGTH),
@@ -65,33 +82,54 @@ class DummyQCTrader:
         this_candle = Candle(time, volume, candle_open, high, low, close)
         print(this_candle)
 
-        ## TODO: All this below should be in a function which returns the percentile figure so we can call if for each
-        # time period without duplicate code
+        # TODO: Figure out how to loop through both these things and work out percentages without duplicate code
+        for period, key in self.all_periods, self.deque_dictionary.keys():
+            print(period, key)
 
-        # If we have Deque period 1 ready lets work out where the volume and spread fall as a percentile
-        # remember we are expecting this on data method to be called frequently - this won't be true on the first
-        # iterations
-        if len(self.deque_dictionary["period_one"]) == DummyQCTrader.PERIOD_ONE_LENGTH:
-            # Get the spread for each candle in the period and save to a list
-            spreads = []
-            for item in self.deque_dictionary["period_one"]:
-                spreads.append(item.spread)
-            # Calculate all the percentiles from 10% upwards in increments
-            current_percentiles = np.percentile(spreads, [range(DummyQCTrader.PERCENTILE_START, 100, DummyQCTrader.PERCENTILE_INCREMENTS)])
-            print(current_percentiles)
+        self.spread_percentile_period1 = self.get_percentile_stats(
+                        prop="spread",
+                        period_key="period_one",
+                        period_length=DummyQCTrader.PERIOD_ONE_LENGTH,
+                        this_candle=this_candle)
 
-            # Loop round and see where the latest figure falls in the percentile list
-            start_check = DummyQCTrader.PERCENTILE_START
-            for data in current_percentiles[0]:
-                if this_candle.spread < data:
-                    print(f"This candle spread is {this_candle.spread} which falls below the {start_check} percentile")
-                    break
-                start_check += DummyQCTrader.PERCENTILE_INCREMENTS
+        print(f"P1 spread percentile {self.spread_percentile_period1}")
+
+        self.volume_percentile_period1 = self.get_percentile_stats(
+                        prop="volume",
+                        period_key="period_one",
+                        period_length=DummyQCTrader.PERIOD_ONE_LENGTH,
+                        this_candle=this_candle)
+
+        print(f"P1 volume percentile {self.volume_percentile_period1}")
+
 
         # Add the new candle to each deque.
         for key in self.deque_dictionary.keys():
             self.deque_dictionary[key].append(this_candle)
 
+    def get_percentile_stats(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
+        # If we have Deque period ready lets work out where the volume and spread fall as a percentile
+        # remember we are expecting this on data method to be called frequently - this won't be true on the first
+        # iterations
+        if len(self.deque_dictionary[period_key]) == period_length:
+            # Get the spread for each candle in the period and save to a list
+            stats_list = []
+            for item in self.deque_dictionary[period_key]:
+                stats_list.append(getattr(item, prop))
+            # Calculate all the percentiles from 10% upwards in increments
+            current_percentiles = np.percentile(stats_list, [
+                range(DummyQCTrader.PERCENTILE_START, 100, DummyQCTrader.PERCENTILE_INCREMENTS)])
+            print(current_percentiles)
+
+            # Loop round and see where the latest figure falls in the percentile list
+            upper_percentile = DummyQCTrader.PERCENTILE_START
+            for data in current_percentiles[0]:
+                if getattr(this_candle, prop) < data:
+                    print(
+                        f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile")
+                    break
+                upper_percentile += DummyQCTrader.PERCENTILE_INCREMENTS
+            return upper_percentile
 
 
 # Get our test data from CSV file...
@@ -107,9 +145,6 @@ myDF = myDF.sort_values("Time", axis=0)
 print(myDF)
 
 myTrader = DummyQCTrader()
-
-
-
 
 # Loop around each item in the data frame and call my dummy on data method
 for index, row in myDF.iterrows():
