@@ -8,6 +8,9 @@ import numpy as np
 class Candle:
     # Candle is initalised with all the properties that are provided by a a Candlestick - volume, open, high, low, close
     def __init__(self, time, volume, candle_open, high, low, close):
+        self.__volume_percentiles = {}
+        self.__spread_percentiles = {}
+        self.__anomaly = {}
         self.__volume = volume
         self.__open = candle_open
         self.__high = high
@@ -39,7 +42,6 @@ class Candle:
                                                                                                     self.spread,
                                                                                                     self.volume)
 
-
     @property
     def spread(self):
         return self.__spread
@@ -47,6 +49,30 @@ class Candle:
     @property
     def volume(self):
         return self.__volume
+
+    @property
+    def spread_percentiles(self):
+        return self.__spread_percentiles
+
+    @spread_percentiles.setter
+    def spread_percentiles(self, value):
+        self.__spread_percentiles = value
+
+    @property
+    def volume_percentiles(self):
+        return self.__volume_percentiles
+
+    @volume_percentiles.setter
+    def volume_percentiles(self, value):
+        self.__volume_percentiles = value
+        if self.__spread_percentiles is not None:
+            for key in self.__volume_percentiles.keys():
+                # print(key)
+                # print(self.__volume_percentiles[key])
+                # print(self.__spread_percentiles[key])
+                self.__anomaly[key] = self.__volume_percentiles[key] - self.spread_percentiles[key]
+                print(f"Anomaly: {self.__anomaly[key]}")
+
 
 
 class DummyQCTrader:
@@ -63,8 +89,8 @@ class DummyQCTrader:
         self.all_periods = [DummyQCTrader.PERIOD_ONE_LENGTH,
                             DummyQCTrader.PERIOD_TWO_LENGTH,
                             DummyQCTrader.PERIOD_THREE_LENGTH]
-        self.spread_percentiles = [0, 0, 0]
-        self.volume_percentiles = [0, 0, 0]
+        self.spread_percentiles = {}
+        self.volume_percentiles = {}
 
         self.deque_dictionary = {
             "period_one": deque(maxlen=DummyQCTrader.PERIOD_ONE_LENGTH),
@@ -82,26 +108,28 @@ class DummyQCTrader:
         this_candle = Candle(time, volume, candle_open, high, low, close)
         print(this_candle)
 
-        # TODO: Figure out how to loop through both these things and work out percentages without duplicate code
-        for period, key in self.all_periods, self.deque_dictionary.keys():
-            print(period, key)
+        if len(self.deque_dictionary["period_three"]) == DummyQCTrader.PERIOD_THREE_LENGTH:
+            for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
+                print(period, key)
 
-        self.spread_percentile_period1 = self.get_percentile_stats(
-                        prop="spread",
-                        period_key="period_one",
-                        period_length=DummyQCTrader.PERIOD_ONE_LENGTH,
-                        this_candle=this_candle)
+                self.spread_percentiles[key] = self.get_percentile_stats(
+                    prop="spread",
+                    period_key=key,
+                    period_length=period,
+                    this_candle=this_candle)
 
-        print(f"P1 spread percentile {self.spread_percentile_period1}")
+                print(f"{period} spread percentile {self.spread_percentiles[key]}")
 
-        self.volume_percentile_period1 = self.get_percentile_stats(
-                        prop="volume",
-                        period_key="period_one",
-                        period_length=DummyQCTrader.PERIOD_ONE_LENGTH,
-                        this_candle=this_candle)
+                self.volume_percentiles[key] = self.get_percentile_stats(
+                    prop="volume",
+                    period_key=key,
+                    period_length=period,
+                    this_candle=this_candle)
 
-        print(f"P1 volume percentile {self.volume_percentile_period1}")
+                print(f"{period} volume percentile {self.volume_percentiles[key]}")
 
+                this_candle.spread_percentiles = self.spread_percentiles
+                this_candle.volume_percentiles = self.volume_percentiles
 
         # Add the new candle to each deque.
         for key in self.deque_dictionary.keys():
