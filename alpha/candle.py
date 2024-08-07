@@ -6,7 +6,9 @@ import numpy as np
 
 
 class Candle:
-    # Candle is initalised with all the properties that are provided by a a Candlestick - volume, open, high, low, close
+    DEBUG = False
+
+    # Candle is initialised with all the properties that are provided by a Candlestick - volume, open, high, low, close
     def __init__(self, time, volume, candle_open, high, low, close):
         self.__volume_percentiles = {}
         self.__spread_percentiles = {}
@@ -23,7 +25,7 @@ class Candle:
         self.__notes = []
 
         # The following section are properties that can easily be calculated from the provided properties
-        # such as the spread and whether its a an up or down candle.
+        # such as the spread and whether it's an up or down candle.
         self.__up_bar = close > candle_open
         self.__spread = abs(close - candle_open)
         self.__high_low_spread = high - low
@@ -31,16 +33,51 @@ class Candle:
         self.__low_close_spread = low - close
         self.__high_close_spread = high - close
 
+        self.__upper_wick = high - close
+        self.__lower_wick = close - low
+
+        self.__shooting_star = False
+        self.__hammer = False
+        self.__lld = False
+
+        # If the upper wick is two times bigger than the spread and the lower wick - shooting star candle
+        if self.__spread * 2 < self.__upper_wick < self.__lower_wick * 2:
+            self.__shooting_star = True
+
+        # If the lower wick is two times bigger than the spread and the upper wick - Hammer candle
+        if self.__spread * 2 < self.__lower_wick < self.__upper_wick * 2:
+            self.__hammer = True
+
+        # If both the lower wick and the higher wick are double the spread - long-legged Doji
+        if self.__upper_wick > self.__spread * 2 and self.__lower_wick > self.__spread * 2:
+            self.__lld = True
+
     def __str__(self) -> str:
         if self.__up_bar:
             bar_type = "up_bar"
         else:
             bar_type = "down_bar"
-        return "Candle is an {} opened at {} and closed at {}. Spread was {}. Volume was {}".format(bar_type,
-                                                                                                    self.__open,
-                                                                                                    self.__close,
-                                                                                                    self.spread,
-                                                                                                    self.volume)
+
+        patterns = ""
+        if self.__shooting_star:
+            patterns += ":Shooting Star:"
+        if self.__hammer:
+            patterns += ":Hammer:"
+        if self.__lld:
+            patterns += ":Long Legged Doji:"
+
+        return ("Candle is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
+                "Upper Wick was {}. Lower Wick was {}. Pattern was {}").format(
+            bar_type,
+            self.__open,
+            self.__close,
+            self.__high,
+            self.__low,
+            self.spread,
+            self.volume,
+            self.__upper_wick,
+            self.__lower_wick,
+            patterns)
 
     @property
     def spread(self):
@@ -71,11 +108,12 @@ class Candle:
                 # print(self.__volume_percentiles[key])
                 # print(self.__spread_percentiles[key])
                 self.__anomaly[key] = self.__volume_percentiles[key] - self.spread_percentiles[key]
-                print(f"Anomaly: {self.__anomaly[key]}")
-
+                if Candle.DEBUG:
+                    print(f"Anomaly: {self.__anomaly[key]}")
 
 
 class DummyQCTrader:
+    DEBUG = False
     # Set up the short, medium and long term intervals to use.  A bit arbitrary, Eventually can test and tweak
     PERIOD_ONE_LENGTH = 5
     PERIOD_TWO_LENGTH = 10
@@ -110,7 +148,8 @@ class DummyQCTrader:
 
         if len(self.deque_dictionary["period_three"]) == DummyQCTrader.PERIOD_THREE_LENGTH:
             for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
-                print(period, key)
+                if DummyQCTrader.DEBUG:
+                    print(period, key)
 
                 self.spread_percentiles[key] = self.get_percentile_stats(
                     prop="spread",
@@ -118,7 +157,8 @@ class DummyQCTrader:
                     period_length=period,
                     this_candle=this_candle)
 
-                print(f"{period} spread percentile {self.spread_percentiles[key]}")
+                if DummyQCTrader.DEBUG:
+                    print(f"{period} spread percentile {self.spread_percentiles[key]}")
 
                 self.volume_percentiles[key] = self.get_percentile_stats(
                     prop="volume",
@@ -126,7 +166,8 @@ class DummyQCTrader:
                     period_length=period,
                     this_candle=this_candle)
 
-                print(f"{period} volume percentile {self.volume_percentiles[key]}")
+                if DummyQCTrader.DEBUG:
+                    print(f"{period} volume percentile {self.volume_percentiles[key]}")
 
                 this_candle.spread_percentiles = self.spread_percentiles
                 this_candle.volume_percentiles = self.volume_percentiles
@@ -147,14 +188,16 @@ class DummyQCTrader:
             # Calculate all the percentiles from 10% upwards in increments
             current_percentiles = np.percentile(stats_list, [
                 range(DummyQCTrader.PERCENTILE_START, 100, DummyQCTrader.PERCENTILE_INCREMENTS)])
-            print(current_percentiles)
+            if DummyQCTrader.DEBUG:
+                print(current_percentiles)
 
             # Loop round and see where the latest figure falls in the percentile list
             upper_percentile = DummyQCTrader.PERCENTILE_START
             for data in current_percentiles[0]:
                 if getattr(this_candle, prop) < data:
-                    print(
-                        f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile")
+                    if DummyQCTrader.DEBUG:
+                        print(
+                            f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile")
                     break
                 upper_percentile += DummyQCTrader.PERCENTILE_INCREMENTS
             return upper_percentile
