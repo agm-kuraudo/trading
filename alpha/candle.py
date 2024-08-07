@@ -51,6 +51,9 @@ class Candle:
         # If both the lower wick and the higher wick are double the spread - long-legged Doji
         if self.__upper_wick > self.__spread * 2 and self.__lower_wick > self.__spread * 2:
             self.__lld = True
+            # If it's a lld then probably shouldn't also be marked as a Hammer or Shooting star!
+            self.__shooting_star = False
+            self.__hammer = False
 
     def __str__(self) -> str:
         if self.__up_bar:
