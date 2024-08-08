@@ -8,6 +8,12 @@ import numpy as np
 class Candle:
     DEBUG = False
 
+    CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD = 2
+    CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK = 2
+    CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_SPREAD = 2
+    CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_UPPER_WICK = 2
+    CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD = 2
+
     # Candle is initialised with all the properties that are provided by a Candlestick - volume, open, high, low, close
     def __init__(self, time, volume, candle_open, high, low, close):
         self.__volume_percentiles = {}
@@ -41,15 +47,20 @@ class Candle:
         self.__lld = False
 
         # If the upper wick is two times bigger than the spread and the lower wick - shooting star candle
-        if self.__spread * 2 < self.__upper_wick < self.__lower_wick * 2:
+        if (self.__upper_wick > (self.__spread * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD)
+                and self.__upper_wick > (self.__lower_wick *
+                                         Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK)):
             self.__shooting_star = True
 
         # If the lower wick is two times bigger than the spread and the upper wick - Hammer candle
-        if self.__spread * 2 < self.__lower_wick < self.__upper_wick * 2:
+        if (self.__lower_wick > (self.__spread * Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_SPREAD)
+                and self.__lower_wick > (self.__upper_wick *
+                                         Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_UPPER_WICK)):
             self.__hammer = True
 
         # If both the lower wick and the higher wick are double the spread - long-legged Doji
-        if self.__upper_wick > self.__spread * 2 and self.__lower_wick > self.__spread * 2:
+        if (self.__upper_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD
+                and self.__lower_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD):
             self.__lld = True
             # If it's a lld then probably shouldn't also be marked as a Hammer or Shooting star!
             self.__shooting_star = False
