@@ -81,7 +81,7 @@ class Candle:
             patterns += ":Long Legged Doji:"
 
         return ("Candle is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
-                "Upper Wick was {}. Lower Wick was {}. Pattern was {}").format(
+                "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  Spread Percentiles: {}, Volume Percentiles: {}").format(
             bar_type,
             self.__open,
             self.__close,
@@ -91,7 +91,13 @@ class Candle:
             self.volume,
             self.__upper_wick,
             self.__lower_wick,
-            patterns)
+            patterns,
+            self.__spread_percentiles.get("period_one"),
+            self.__volume_percentiles.get("period_one"))
+
+    @property
+    def up_bar(self):
+        return self.__up_bar
 
     @property
     def spread(self):
@@ -158,8 +164,6 @@ class DummyQCTrader:
 
         # Create a new Candle object with the supplied properties
         this_candle = Candle(time, volume, candle_open, high, low, close)
-        print(this_candle)
-
         if len(self.deque_dictionary["period_three"]) == DummyQCTrader.PERIOD_THREE_LENGTH:
             for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
                 if DummyQCTrader.DEBUG:
@@ -190,6 +194,30 @@ class DummyQCTrader:
         for key in self.deque_dictionary.keys():
             self.deque_dictionary[key].append(this_candle)
 
+        print(this_candle)
+
+        bar_check_results_period_one = self.multiple_bar_check("period_one")
+
+        momentum = False
+
+        if bar_check_results_period_one:
+
+            if bar_check_results_period_one["up_bars"] >= 4:
+                print("Bullish Market")
+                momentum = True
+            elif bar_check_results_period_one["up_bars"] <= 1:
+                print("Bearish Market")
+                momentum = True
+
+            if momentum == True and bar_check_results_period_one["high_spread_count"] >= 3 and \
+                    bar_check_results_period_one["high_volume_count"] >= 3 and bar_check_results_period_one[
+                "anomaly_count"] <= 1:
+                print("Backed by spread and volume")
+            else:
+                print("Not backed by spread and volume")
+
+        #print(this_candle.spread_percentiles.keys())
+
     def get_percentile_stats(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
         # If we have Deque period ready lets work out where the volume and spread fall as a percentile
         # remember we are expecting this on data method to be called frequently - this won't be true on the first
@@ -217,6 +245,52 @@ class DummyQCTrader:
             return upper_percentile
 
 
+    def multiple_bar_check(self, period_key="period_one", high_spread_threshold=55, high_volume_threshold=55, anomaly_threshold=20) -> dict:
+
+        if period_key == "period_one":
+            check_period = DummyQCTrader.PERIOD_ONE_LENGTH
+        elif period_key == "period_two":
+            check_period = DummyQCTrader.PERIOD_TWO_LENGTH
+        elif period_key == "period_three":
+            check_period = DummyQCTrader.PERIOD_THREE_LENGTH
+        else:
+            print("invalid period key provided")
+            return {}
+
+        if len(self.deque_dictionary[period_key]) != check_period:
+            print("Not ready for this check yet")
+            return {}
+
+        high_spread_count = 0
+        high_volume_count = 0
+        up_counts = 0
+        anomaly_count = 0
+
+        for individual_candle in self.deque_dictionary[period_key]:
+            if DummyQCTrader.DEBUG:
+                print(type(individual_candle))
+                print(individual_candle.spread_percentiles.keys())
+
+            if individual_candle.spread_percentiles.get(period_key) is None:
+                print("No keys in dictionary")
+                return {}
+
+            if individual_candle.up_bar:
+                up_counts += 1
+            if individual_candle.spread_percentiles.get(period_key) > high_spread_threshold:
+                high_spread_count += 1
+            if individual_candle.volume_percentiles.get(period_key) > high_volume_threshold:
+                high_volume_count += 1
+
+            if abs(individual_candle.spread_percentiles.get(period_key) -
+                   individual_candle.volume_percentiles.get(period_key)) > anomaly_threshold:
+                anomaly_count += 1
+        print(f"Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
+        return {"up_bars": up_counts,
+                "high_spread_count": high_spread_count,
+                "high_volume_count": high_volume_count,
+                "anomaly_count": anomaly_count}
+
 # Get our test data from CSV file...
 # this would come from live quant data eventually
 
@@ -234,3 +308,7 @@ myTrader = DummyQCTrader()
 # Loop around each item in the data frame and call my dummy on data method
 for index, row in myDF.iterrows():
     myTrader.dummy_on_data(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
+
+
+
+
