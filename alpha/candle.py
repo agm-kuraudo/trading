@@ -80,8 +80,9 @@ class Candle:
         if self.__lld:
             patterns += ":Long Legged Doji:"
 
-        return ("Candle is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
+        return ("Candle {} is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
                 "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  Spread Percentiles: {}, Volume Percentiles: {}").format(
+            self.__time,
             bar_type,
             self.__open,
             self.__close,
@@ -141,6 +142,34 @@ class DummyQCTrader:
     PERCENTILE_START = 5
     PERCENTILE_INCREMENTS = 5
 
+    # Set up for multiple bar signal checks
+    trading_parameters = {
+        "period_one": {
+            "High_Spread_Threshold": 55,
+            "High_Volume_Threshold": 55,
+            "Anomaly_Threshold": 20,
+            "Signal_Bar_Count": 4,
+            "High_Spread_Count": 3,
+            "High_Volume_Count": 3
+        },
+        "period_two": {
+            "High_Spread_Threshold": 55,
+            "High_Volume_Threshold": 55,
+            "Anomaly_Threshold": 20,
+            "Signal_Bar_Count": 7,
+            "High_Spread_Count": 6,
+            "High_Volume_Count": 6
+        },
+        "period_three": {
+            "High_Spread_Threshold": 55,
+            "High_Volume_Threshold": 55,
+            "Anomaly_Threshold": 20,
+            "Signal_Bar_Count": 16,
+            "High_Spread_Count": 12,
+            "High_Volume_Count": 12
+        }
+    }
+
     def __init__(self):
         # We create three "deques" based on those time frames
 
@@ -196,27 +225,59 @@ class DummyQCTrader:
 
         print(this_candle)
 
-        bar_check_results_period_one = self.multiple_bar_check("period_one")
+        period_one_signal = self.multiple_bar_signal("period_one", self.multiple_bar_check("period_one"))
+
+        if period_one_signal == 1:
+            print("PERIOD_ONE_SIGNAL - BULL")
+        elif period_one_signal == -1:
+            print("PERIOD_ONE_SIGNAL - BEAR")
+
+        period_two_signal = self.multiple_bar_signal("period_two", self.multiple_bar_check("period_two"))
+
+        if period_two_signal == 1:
+            print("PERIOD_TWO_SIGNAL - BULL")
+        elif period_two_signal == -1:
+            print("PERIOD_THREE_SIGNAL - BEAR")
+
+        period_three_signal = self.multiple_bar_signal("period_three", self.multiple_bar_check("period_three"))
+
+        if period_three_signal == 1:
+            print("PERIOD_THREE_SIGNAL - BULL")
+        elif period_three_signal == -1:
+            print("PERIOD_THREE_SIGNAL - BEAR")
+
+    def multiple_bar_signal(self, period_key, bar_check_results) -> int:
 
         momentum = False
+        return_code = 0
 
-        if bar_check_results_period_one:
+        if bar_check_results:
 
-            if bar_check_results_period_one["up_bars"] >= 4:
-                print("Bullish Market")
+            if bar_check_results["up_bars"] >= DummyQCTrader.trading_parameters[period_key]["Signal_Bar_Count"]:
+                if DummyQCTrader.DEBUG:
+                    print("Bullish Market")
                 momentum = True
-            elif bar_check_results_period_one["up_bars"] <= 1:
-                print("Bearish Market")
+                return_code = 1
+            elif bar_check_results["up_bars"] <= (
+                    DummyQCTrader.PERIOD_ONE_LENGTH - DummyQCTrader.trading_parameters[period_key]["Signal_Bar_Count"]):
+                if DummyQCTrader.DEBUG:
+                    print("Bearish Market")
                 momentum = True
+                return_code = -1
 
-            if momentum == True and bar_check_results_period_one["high_spread_count"] >= 3 and \
-                    bar_check_results_period_one["high_volume_count"] >= 3 and bar_check_results_period_one[
-                "anomaly_count"] <= 1:
-                print("Backed by spread and volume")
+            if not momentum:
+                return 0
+
+            if bar_check_results["high_spread_count"] >= DummyQCTrader.trading_parameters[period_key]["High_Spread_Count"] and \
+                    bar_check_results["high_volume_count"] >= DummyQCTrader.trading_parameters[period_key]["High_Volume_Count"] and \
+                    bar_check_results["anomaly_count"] <= DummyQCTrader.trading_parameters[period_key]["Anomaly_Threshold"]:
+                if DummyQCTrader.DEBUG:
+                    print("Backed by volume")
+                return return_code
             else:
-                print("Not backed by spread and volume")
-
-        #print(this_candle.spread_percentiles.keys())
+                if DummyQCTrader.DEBUG:
+                    print("Not Backed by volume")
+                return 0
 
     def get_percentile_stats(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
         # If we have Deque period ready lets work out where the volume and spread fall as a percentile
@@ -244,8 +305,8 @@ class DummyQCTrader:
                 upper_percentile += DummyQCTrader.PERCENTILE_INCREMENTS
             return upper_percentile
 
-
-    def multiple_bar_check(self, period_key="period_one", high_spread_threshold=55, high_volume_threshold=55, anomaly_threshold=20) -> dict:
+    def multiple_bar_check(self, period_key="period_one", high_spread_threshold=55, high_volume_threshold=55,
+                           anomaly_threshold=20) -> dict:
 
         if period_key == "period_one":
             check_period = DummyQCTrader.PERIOD_ONE_LENGTH
@@ -285,11 +346,13 @@ class DummyQCTrader:
             if abs(individual_candle.spread_percentiles.get(period_key) -
                    individual_candle.volume_percentiles.get(period_key)) > anomaly_threshold:
                 anomaly_count += 1
-        print(f"Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
+        print(
+            f"Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
         return {"up_bars": up_counts,
                 "high_spread_count": high_spread_count,
                 "high_volume_count": high_volume_count,
                 "anomaly_count": anomaly_count}
+
 
 # Get our test data from CSV file...
 # this would come from live quant data eventually
@@ -308,7 +371,3 @@ myTrader = DummyQCTrader()
 # Loop around each item in the data frame and call my dummy on data method
 for index, row in myDF.iterrows():
     myTrader.dummy_on_data(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
-
-
-
-
