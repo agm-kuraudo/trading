@@ -1,8 +1,67 @@
 import os
+import statistics
 from collections import deque
 
 import pandas as pd
 import numpy as np
+
+def calculate_true_range(candle1, candle2):
+    # True Range (TR) is the greatest of the following:
+    # - Current High minus Current Low
+    # - Absolute value of Current High minus Previous Close
+    # - Absolute value of Current Low minus Previous Close
+    return max(candle2.high - candle2.low, abs(candle2.high - candle1.close), abs(candle2.low - candle1.close))
+
+def calculate_dm_plus(candle1, candle2):
+    # Positive Directional Movement (DM+) is calculated as:
+    # - Current High minus Previous High if it is greater than Current Low minus Previous Low
+    # - Otherwise, it is zero
+    return max(candle2.high - candle1.high, 0) if (candle2.high - candle1.high) > (candle1.low - candle2.low) else 0
+
+def calculate_dm_minus(candle1, candle2):
+    # Negative Directional Movement (DM-) is calculated as:
+    # - Previous Low minus Current Low if it is greater than Current High minus Previous High
+    # - Otherwise, it is zero
+    return max(candle1.low - candle2.low, 0) if (candle1.low - candle2.low) > (candle2.high - candle1.high) else 0
+
+
+def calculate_adx(candles, period=14):
+    if len(candles) < period + 1:
+        raise ValueError(f"Not enough data to calculate ADX. At least {period + 1} periods are required.")
+
+    tr_list = []
+    dm_plus_list = []
+    dm_minus_list = []
+
+    # Calculate True Range (TR), DM+, and DM- for each pair of candles
+    for i in range(1, len(candles)):
+        tr_list.append(calculate_true_range(candles[i-1], candles[i]))
+        dm_plus_list.append(calculate_dm_plus(candles[i-1], candles[i]))
+        dm_minus_list.append(calculate_dm_minus(candles[i-1], candles[i]))
+
+    # Smooth the TR, DM+, and DM- values using a moving average
+    tr_smooth = [sum(tr_list[:period])]
+    dm_plus_smooth = [sum(dm_plus_list[:period])]
+    dm_minus_smooth = [sum(dm_minus_list[:period])]
+
+    for i in range(period, len(tr_list)):
+        tr_smooth.append(tr_smooth[-1] - (tr_smooth[-1] / period) + tr_list[i])
+        dm_plus_smooth.append(dm_plus_smooth[-1] - (dm_plus_smooth[-1] / period) + dm_plus_list[i])
+        dm_minus_smooth.append(dm_minus_smooth[-1] - (dm_minus_smooth[-1] / period) + dm_minus_list[i])
+
+    # Calculate the Directional Indicators (DI+ and DI-)
+    di_plus = [100 * (dm_plus_smooth[i] / tr_smooth[i]) for i in range(len(tr_smooth))]
+    di_minus = [100 * (dm_minus_smooth[i] / tr_smooth[i]) for i in range(len(tr_smooth))]
+
+    # Calculate the Directional Movement Index (DX)
+    dx = [100 * abs(di_plus[i] - di_minus[i]) / (di_plus[i] + di_minus[i]) for i in range(len(di_plus))]
+
+    # Calculate the Average Directional Index (ADX)
+    adx = [sum(dx[:period]) / period]
+    for i in range(period, len(dx)):
+        adx.append((adx[-1] * (period - 1) + dx[i]) / period)
+
+    return [adx[0], statistics.fmean(tr_smooth), statistics.fmean(dm_plus_smooth), statistics.fmean(dm_minus_smooth)]
 
 
 class Candle:
@@ -96,6 +155,28 @@ class Candle:
             self.__spread_percentiles.get("period_one"),
             self.__volume_percentiles.get("period_one"))
 
+
+    @property
+    def volume(self):
+        return self.__volume
+
+    @property
+    def high(self):
+        return self.__high
+
+    @property
+    def low(self):
+        return self.__low
+
+    @property
+    def open(self):
+        return self.__open
+
+    @property
+    def close(self):
+        return self.__close
+
+
     @property
     def up_bar(self):
         return self.__up_bar
@@ -103,10 +184,6 @@ class Candle:
     @property
     def spread(self):
         return self.__spread
-
-    @property
-    def volume(self):
-        return self.__volume
 
     @property
     def spread_percentiles(self):
@@ -191,9 +268,15 @@ class DummyQCTrader:
         if np.isnan(candle_open):
             return
 
+        adx_values = None
+
         # Create a new Candle object with the supplied properties
         this_candle = Candle(time, volume, candle_open, high, low, close)
         if len(self.deque_dictionary["period_three"]) == DummyQCTrader.PERIOD_THREE_LENGTH:
+
+            adx_values = calculate_adx(self.deque_dictionary["period_three"])
+            print(adx_values)
+
             for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
                 if DummyQCTrader.DEBUG:
                     print(period, key)
@@ -218,6 +301,7 @@ class DummyQCTrader:
 
                 this_candle.spread_percentiles = self.spread_percentiles
                 this_candle.volume_percentiles = self.volume_percentiles
+
 
         # Add the new candle to each deque.
         for key in self.deque_dictionary.keys():
@@ -245,6 +329,14 @@ class DummyQCTrader:
             print("PERIOD_THREE_SIGNAL - BULL")
         elif period_three_signal == -1:
             print("PERIOD_THREE_SIGNAL - BEAR")
+
+        if adx_values is not None:
+            if adx_values[0] > 25:
+                print("TRENDING ABOVE 25")
+            if adx_values[2] > adx_values[3]:
+                print(f"TRENDING UP: {adx_values[2] / adx_values[3]}" )
+            if adx_values[3] > adx_values[2]:
+                print(f"TRENDING DOWN: {adx_values[3] / adx_values[2]}" )
 
     def multiple_bar_signal(self, period_key, bar_check_results) -> int:
 
@@ -352,6 +444,8 @@ class DummyQCTrader:
                 "high_spread_count": high_spread_count,
                 "high_volume_count": high_volume_count,
                 "anomaly_count": anomaly_count}
+
+
 
 
 # Get our test data from CSV file...
