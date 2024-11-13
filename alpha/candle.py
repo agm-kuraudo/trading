@@ -455,8 +455,23 @@ absolute_path = os.path.dirname(__file__)
 relative_path = "../test_data/"
 full_path = os.path.join(absolute_path, relative_path)
 
-myDF = pd.read_csv(full_path + "^gbpusd_price-history-08-29-2023.csv")
-myDF = myDF.sort_values("Time", axis=0)
+# myDF = pd.read_csv(full_path + "^gbpusd_price-history-08-29-2023.csv")
+# myDF = myDF.sort_values("Time", axis=0)
+#
+# print(myDF)
+#
+# myTrader = DummyQCTrader()
+#
+# # Loop around each item in the data frame and call my dummy on data method
+# for index, row in myDF.iterrows():
+#     print(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
+#     myTrader.dummy_on_data(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
+#     exit()
+
+
+
+myDF = pd.read_csv(full_path + "spy_data.csv")
+myDF = myDF.sort_values("Date", axis=0)
 
 print(myDF)
 
@@ -464,4 +479,5 @@ myTrader = DummyQCTrader()
 
 # Loop around each item in the data frame and call my dummy on data method
 for index, row in myDF.iterrows():
-    myTrader.dummy_on_data(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
+    myTrader.dummy_on_data(row['Date'], row['Volume'], row['Open'], row['High'], row['Low'], row['Adj Close'])
+
