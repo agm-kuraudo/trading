@@ -64,6 +64,46 @@ def calculate_adx(candles, period=14):
     return [adx[0], statistics.fmean(tr_smooth), statistics.fmean(dm_plus_smooth), statistics.fmean(dm_minus_smooth)]
 
 
+def identify_accumulation(period_three, period_one):
+    print("HEREHEREHERE")
+
+    volume_stats_list = []
+    price_stats_list = []
+    for item in period_three:
+        volume_stats_list.append(getattr(item, "volume"))
+        price_stats_list.append(getattr(item, "close"))
+
+    print(volume_stats_list)
+    period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
+
+    print(price_stats_list)
+    period_three_price_percentiles = np.percentile(price_stats_list, [10, 20])
+
+    print(period_three_volume_percentiles)
+    print(period_three_price_percentiles)
+
+    high_volume_count = 0
+    for item in period_one:
+        print(getattr(item, "volume"))
+        if getattr(item, "volume") > period_three_volume_percentiles[0]:
+            high_volume_count+=1
+    # Calculate all the percentiles from 10% upwards in increments
+    print(high_volume_count)
+
+    near_lows = True
+
+    if period_one[-1].close < period_three_price_percentiles[1]:
+        print("Price is near recent lows")
+        near_lows = True
+    else:
+        print("Price is not near recent low")
+        near_lows = False
+
+    if high_volume_count >= 3 and near_lows:
+        return True
+    else:
+        return False
+
 class Candle:
     DEBUG = False
 
@@ -214,8 +254,8 @@ class DummyQCTrader:
     DEBUG = False
     # Set up the short, medium and long term intervals to use.  A bit arbitrary, Eventually can test and tweak
     PERIOD_ONE_LENGTH = 5
-    PERIOD_TWO_LENGTH = 10
-    PERIOD_THREE_LENGTH = 20
+    PERIOD_TWO_LENGTH = 25
+    PERIOD_THREE_LENGTH = 50
     PERCENTILE_START = 5
     PERCENTILE_INCREMENTS = 5
 
@@ -333,10 +373,17 @@ class DummyQCTrader:
         if adx_values is not None:
             if adx_values[0] > 25:
                 print("TRENDING ABOVE 25")
+            else:
+                #Not trending, check for accumulation phase
+                print("NOT TRENDING - CHECKING FOR ACCUMULATION")
+                if identify_accumulation(self.deque_dictionary["period_three"], self.deque_dictionary["period_one"]):
+                    print("ACCUMULATION IDENTIFIED")
+
             if adx_values[2] > adx_values[3]:
                 print(f"TRENDING UP: {adx_values[2] / adx_values[3]}" )
             if adx_values[3] > adx_values[2]:
                 print(f"TRENDING DOWN: {adx_values[3] / adx_values[2]}" )
+
 
     def multiple_bar_signal(self, period_key, bar_check_results) -> int:
 
@@ -439,7 +486,7 @@ class DummyQCTrader:
                    individual_candle.volume_percentiles.get(period_key)) > anomaly_threshold:
                 anomaly_count += 1
         print(
-            f"Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
+            f"{period_key}. Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
         return {"up_bars": up_counts,
                 "high_spread_count": high_spread_count,
                 "high_volume_count": high_volume_count,
