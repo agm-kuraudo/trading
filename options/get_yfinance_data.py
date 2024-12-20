@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 
 
 
-data = yf.download('SPY', start='2023-01-02', end='2024-11-12')
+data = yf.download('SPY', start='2023-01-01', end='2024-12-11', interval='1h')
 
-data.to_csv("spy_data.csv")
+data.to_csv("../test_data/SPY_hourly_data.csv")
 
 # Plot the close price
 plt.figure(figsize=(15, 7))

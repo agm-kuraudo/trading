@@ -64,8 +64,7 @@ def calculate_adx(candles, period=14):
     return [adx[0], statistics.fmean(tr_smooth), statistics.fmean(dm_plus_smooth), statistics.fmean(dm_minus_smooth)]
 
 
-def identify_accumulation(period_three, period_one):
-    print("HEREHEREHERE")
+def identify_acc_or_dist(period_three, period_one):
 
     volume_stats_list = []
     price_stats_list = []
@@ -77,7 +76,7 @@ def identify_accumulation(period_three, period_one):
     period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
 
     print(price_stats_list)
-    period_three_price_percentiles = np.percentile(price_stats_list, [10, 20])
+    period_three_price_percentiles = np.percentile(price_stats_list, [10, 20, 80])
 
     print(period_three_volume_percentiles)
     print(period_three_price_percentiles)
@@ -91,6 +90,7 @@ def identify_accumulation(period_three, period_one):
     print(high_volume_count)
 
     near_lows = True
+    near_highs = True
 
     if period_one[-1].close < period_three_price_percentiles[1]:
         print("Price is near recent lows")
@@ -99,10 +99,20 @@ def identify_accumulation(period_three, period_one):
         print("Price is not near recent low")
         near_lows = False
 
-    if high_volume_count >= 3 and near_lows:
-        return True
+    if period_one[-1].close > period_three_price_percentiles[2]:
+        print("Price is near recent highs")
+        near_highs = True
     else:
-        return False
+        print("Price is not near recent highs")
+        near_highs = False
+
+
+    if high_volume_count >= 3 and near_lows:
+        return True, "Acc"
+    elif high_volume_count >= 3 and near_highs:
+        return True, "Dist"
+    else:
+        return False, ""
 
 class Candle:
     DEBUG = False
@@ -376,8 +386,11 @@ class DummyQCTrader:
             else:
                 #Not trending, check for accumulation phase
                 print("NOT TRENDING - CHECKING FOR ACCUMULATION")
-                if identify_accumulation(self.deque_dictionary["period_three"], self.deque_dictionary["period_one"]):
-                    print("ACCUMULATION IDENTIFIED")
+
+                return_val, acc_or_dist = identify_acc_or_dist(self.deque_dictionary["period_three"], self.deque_dictionary["period_one"])
+
+                if return_val:
+                    print(f"{acc_or_dist} IDENTIFIED #####")
 
             if adx_values[2] > adx_values[3]:
                 print(f"TRENDING UP: {adx_values[2] / adx_values[3]}" )
