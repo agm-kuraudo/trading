@@ -1,4 +1,5 @@
 *.pyc
 *.png
 alpha/data
+alpha/log
 test_data
