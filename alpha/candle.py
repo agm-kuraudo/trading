@@ -1,7 +1,7 @@
 import os
 import statistics
 from collections import deque
-
+from datetime import datetime
 import pandas as pd
 import numpy as np
 
@@ -65,47 +65,41 @@ def calculate_adx(candles, period=14):
 
 
 def identify_acc_or_dist(period_three, period_one):
-
     volume_stats_list = []
     price_stats_list = []
     for item in period_three:
         volume_stats_list.append(getattr(item, "volume"))
         price_stats_list.append(getattr(item, "close"))
 
-    print(volume_stats_list)
+    logger.log(f"Volume stats list: {volume_stats_list}", level="DEBUG")
     period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
 
-    print(price_stats_list)
+    logger.log(f"Price stats list: {price_stats_list}", level="DEBUG")
     period_three_price_percentiles = np.percentile(price_stats_list, [10, 20, 80])
 
-    print(period_three_volume_percentiles)
-    print(period_three_price_percentiles)
+    logger.log(f"Period three volume percentiles: {period_three_volume_percentiles}", level="DEBUG")
+    logger.log(f"Period three price percentiles: {period_three_price_percentiles}", level="DEBUG")
 
     high_volume_count = 0
     for item in period_one:
-        print(getattr(item, "volume"))
+        logger.log(f"Volume: {getattr(item, 'volume')}", level="DEBUG")
         if getattr(item, "volume") > period_three_volume_percentiles[0]:
-            high_volume_count+=1
-    # Calculate all the percentiles from 10% upwards in increments
-    print(high_volume_count)
+            high_volume_count += 1
 
-    near_lows = True
-    near_highs = True
+    logger.log(f"High volume count: {high_volume_count}", level="DEBUG")
 
-    if period_one[-1].close < period_three_price_percentiles[1]:
-        print("Price is near recent lows")
-        near_lows = True
+    near_lows = period_one[-1].close < period_three_price_percentiles[1]
+    near_highs = period_one[-1].close > period_three_price_percentiles[2]
+
+    if near_lows:
+        logger.log("Price is near recent lows", level="INFO")
     else:
-        print("Price is not near recent low")
-        near_lows = False
+        logger.log("Price is not near recent low", level="INFO")
 
-    if period_one[-1].close > period_three_price_percentiles[2]:
-        print("Price is near recent highs")
-        near_highs = True
+    if near_highs:
+        logger.log("Price is near recent highs", level="INFO")
     else:
-        print("Price is not near recent highs")
-        near_highs = False
-
+        logger.log("Price is not near recent highs", level="INFO")
 
     if high_volume_count >= 3 and near_lows:
         return True, "Acc"
@@ -247,18 +241,18 @@ class Candle:
     def volume_percentiles(self):
         return self.__volume_percentiles
 
+    @property
+    def time(self):
+        return self.__time
+
     @volume_percentiles.setter
     def volume_percentiles(self, value):
         self.__volume_percentiles = value
         if self.__spread_percentiles is not None:
             for key in self.__volume_percentiles.keys():
-                # print(key)
-                # print(self.__volume_percentiles[key])
-                # print(self.__spread_percentiles[key])
                 self.__anomaly[key] = self.__volume_percentiles[key] - self.spread_percentiles[key]
                 if Candle.DEBUG:
-                    print(f"Anomaly: {self.__anomaly[key]}")
-
+                    logger.log(f"Anomaly: {self.__anomaly[key]}")
 
 class DummyQCTrader:
     DEBUG = False
@@ -298,11 +292,12 @@ class DummyQCTrader:
     }
 
     def __init__(self):
-        # We create three "deques" based on those time frames
-
         self.all_periods = [DummyQCTrader.PERIOD_ONE_LENGTH,
                             DummyQCTrader.PERIOD_TWO_LENGTH,
                             DummyQCTrader.PERIOD_THREE_LENGTH]
+
+        logger.log(f"DummyQC Class initialised - all_periods: {self.all_periods}", level="DEBUG")
+
         self.spread_percentiles = {}
         self.volume_percentiles = {}
 
@@ -314,22 +309,29 @@ class DummyQCTrader:
 
     # This is a dummy version of what will be the OnData method in QC
     def dummy_on_data(self, time, volume, candle_open, high, low, close):
+
+        logger.log(f"dummy_on_data called with data: {time} {volume} {candle_open} {high} {low} {close}", level="DEBUG")
+
         # Make sure we have valid candle data - should always be the case
         if np.isnan(candle_open):
+            logger.log(f"Invalid candle data provided: {time} {volume} {candle_open} {high} {low} {close}",
+                       level="ERROR")
             return
 
         adx_values = None
 
         # Create a new Candle object with the supplied properties
         this_candle = Candle(time, volume, candle_open, high, low, close)
+        logger.log(f"New candle created: {this_candle}", level="INFO")
+        logger.log(f"Length of deque_dictionary period_three: {len(self.deque_dictionary["period_three"])}", level="DEBUG")
+
         if len(self.deque_dictionary["period_three"]) == DummyQCTrader.PERIOD_THREE_LENGTH:
 
             adx_values = calculate_adx(self.deque_dictionary["period_three"])
-            print(adx_values)
+            logger.log(f"adx_values: {adx_values}")
 
             for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
-                if DummyQCTrader.DEBUG:
-                    print(period, key)
+                logger.log(f"Now looking at period: {period}, key: {key}")
 
                 self.spread_percentiles[key] = self.get_percentile_stats(
                     prop="spread",
@@ -337,8 +339,7 @@ class DummyQCTrader:
                     period_length=period,
                     this_candle=this_candle)
 
-                if DummyQCTrader.DEBUG:
-                    print(f"{period} spread percentile {self.spread_percentiles[key]}")
+                logger.log(f"{key} spread percentile {self.spread_percentiles[key]}")
 
                 self.volume_percentiles[key] = self.get_percentile_stats(
                     prop="volume",
@@ -346,120 +347,93 @@ class DummyQCTrader:
                     period_length=period,
                     this_candle=this_candle)
 
-                if DummyQCTrader.DEBUG:
-                    print(f"{period} volume percentile {self.volume_percentiles[key]}")
+                logger.log(f"{key} volume percentile {self.volume_percentiles[key]}")
 
                 this_candle.spread_percentiles = self.spread_percentiles
                 this_candle.volume_percentiles = self.volume_percentiles
 
+                logger.log(f"This candle spread percentiles: {this_candle.spread_percentiles}")
+                logger.log(f"This candle volume percentiles: {this_candle.volume_percentiles}")
 
-        # Add the new candle to each deque.
+        # Add the new candle to each deque and check signals
         for key in self.deque_dictionary.keys():
             self.deque_dictionary[key].append(this_candle)
 
-        print(this_candle)
+            signal = self.multiple_bar_signal(key, self.multiple_bar_check(key))
+            logger.log(f"{key}_signal: {signal}", level="DEBUG")
 
-        period_one_signal = self.multiple_bar_signal("period_one", self.multiple_bar_check("period_one"))
-
-        if period_one_signal == 1:
-            print("PERIOD_ONE_SIGNAL - BULL")
-        elif period_one_signal == -1:
-            print("PERIOD_ONE_SIGNAL - BEAR")
-
-        period_two_signal = self.multiple_bar_signal("period_two", self.multiple_bar_check("period_two"))
-
-        if period_two_signal == 1:
-            print("PERIOD_TWO_SIGNAL - BULL")
-        elif period_two_signal == -1:
-            print("PERIOD_THREE_SIGNAL - BEAR")
-
-        period_three_signal = self.multiple_bar_signal("period_three", self.multiple_bar_check("period_three"))
-
-        if period_three_signal == 1:
-            print("PERIOD_THREE_SIGNAL - BULL")
-        elif period_three_signal == -1:
-            print("PERIOD_THREE_SIGNAL - BEAR")
+            if signal == 1:
+                logger.log(f"{key.upper()}_SIGNAL - BULL", level="INFO")
+            elif signal == -1:
+                logger.log(f"{key.upper()}_SIGNAL - BEAR", level="INFO")
 
         if adx_values is not None:
             if adx_values[0] > 25:
-                print("TRENDING ABOVE 25")
+                logger.log("TRENDING ABOVE 25", level="INFO")
             else:
                 #Not trending, check for accumulation phase
-                print("NOT TRENDING - CHECKING FOR ACCUMULATION")
+                logger.log("NOT TRENDING - CHECKING FOR ACCUMULATION", level="DEBUG")
 
                 return_val, acc_or_dist = identify_acc_or_dist(self.deque_dictionary["period_three"], self.deque_dictionary["period_one"])
 
                 if return_val:
-                    print(f"{acc_or_dist} IDENTIFIED #####")
+                    logger.log(f"{acc_or_dist} IDENTIFIED #####", level="INFO")
+                    logger.log(f"{this_candle.spread_percentiles} {this_candle.volume_percentiles}", level="DEBUG")
 
             if adx_values[2] > adx_values[3]:
-                print(f"TRENDING UP: {adx_values[2] / adx_values[3]}" )
+                logger.log(f"TRENDING UP: {adx_values[2] / adx_values[3]}", level="DEBUG" )
             if adx_values[3] > adx_values[2]:
-                print(f"TRENDING DOWN: {adx_values[3] / adx_values[2]}" )
-
+                logger.log(f"TRENDING DOWN: {adx_values[3] / adx_values[2]}", level="DEBUG" )
 
     def multiple_bar_signal(self, period_key, bar_check_results) -> int:
-
         momentum = False
         return_code = 0
 
         if bar_check_results:
-
             if bar_check_results["up_bars"] >= DummyQCTrader.trading_parameters[period_key]["Signal_Bar_Count"]:
-                if DummyQCTrader.DEBUG:
-                    print("Bullish Market")
+                logger.log("Bullish Market", level="DEBUG")
                 momentum = True
                 return_code = 1
             elif bar_check_results["up_bars"] <= (
                     DummyQCTrader.PERIOD_ONE_LENGTH - DummyQCTrader.trading_parameters[period_key]["Signal_Bar_Count"]):
-                if DummyQCTrader.DEBUG:
-                    print("Bearish Market")
+                logger.log("Bearish Market", level="DEBUG")
                 momentum = True
                 return_code = -1
 
             if not momentum:
                 return 0
 
-            if bar_check_results["high_spread_count"] >= DummyQCTrader.trading_parameters[period_key]["High_Spread_Count"] and \
-                    bar_check_results["high_volume_count"] >= DummyQCTrader.trading_parameters[period_key]["High_Volume_Count"] and \
-                    bar_check_results["anomaly_count"] <= DummyQCTrader.trading_parameters[period_key]["Anomaly_Threshold"]:
-                if DummyQCTrader.DEBUG:
-                    print("Backed by volume")
+            if bar_check_results["high_spread_count"] >= DummyQCTrader.trading_parameters[period_key][
+                "High_Spread_Count"] and \
+                    bar_check_results["high_volume_count"] >= DummyQCTrader.trading_parameters[period_key][
+                "High_Volume_Count"] and \
+                    bar_check_results["anomaly_count"] <= DummyQCTrader.trading_parameters[period_key][
+                "Anomaly_Threshold"]:
+                logger.log("Backed by volume", level="DEBUG")
                 return return_code
             else:
-                if DummyQCTrader.DEBUG:
-                    print("Not Backed by volume")
+                logger.log("Not Backed by volume", level="DEBUG")
                 return 0
 
     def get_percentile_stats(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
-        # If we have Deque period ready lets work out where the volume and spread fall as a percentile
-        # remember we are expecting this on data method to be called frequently - this won't be true on the first
-        # iterations
         if len(self.deque_dictionary[period_key]) == period_length:
-            # Get the spread for each candle in the period and save to a list
-            stats_list = []
-            for item in self.deque_dictionary[period_key]:
-                stats_list.append(getattr(item, prop))
-            # Calculate all the percentiles from 10% upwards in increments
-            current_percentiles = np.percentile(stats_list, [
-                range(DummyQCTrader.PERCENTILE_START, 100, DummyQCTrader.PERCENTILE_INCREMENTS)])
-            if DummyQCTrader.DEBUG:
-                print(current_percentiles)
+            stats_list = [getattr(item, prop) for item in self.deque_dictionary[period_key]]
+            current_percentiles = np.percentile(stats_list, range(DummyQCTrader.PERCENTILE_START, 100,
+                                                                  DummyQCTrader.PERCENTILE_INCREMENTS))
+            logger.log(f"Current percentiles: {current_percentiles}", level="DEBUG")
 
-            # Loop round and see where the latest figure falls in the percentile list
             upper_percentile = DummyQCTrader.PERCENTILE_START
-            for data in current_percentiles[0]:
+            for data in current_percentiles:
                 if getattr(this_candle, prop) < data:
-                    if DummyQCTrader.DEBUG:
-                        print(
-                            f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile")
+                    logger.log(
+                        f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile",
+                        level="DEBUG")
                     break
                 upper_percentile += DummyQCTrader.PERCENTILE_INCREMENTS
             return upper_percentile
 
     def multiple_bar_check(self, period_key="period_one", high_spread_threshold=55, high_volume_threshold=55,
                            anomaly_threshold=20) -> dict:
-
         if period_key == "period_one":
             check_period = DummyQCTrader.PERIOD_ONE_LENGTH
         elif period_key == "period_two":
@@ -467,12 +441,14 @@ class DummyQCTrader:
         elif period_key == "period_three":
             check_period = DummyQCTrader.PERIOD_THREE_LENGTH
         else:
-            print("invalid period key provided")
+            logger.log("Invalid period key provided", level="ERROR")
             return {}
 
         if len(self.deque_dictionary[period_key]) != check_period:
-            print("Not ready for this check yet")
+            logger.log(f"Not ready for this check yet {period_key}", level="DEBUG")
             return {}
+        else:
+            logger.log(f"Ready for this check {period_key}", level="DEBUG")
 
         high_spread_count = 0
         high_volume_count = 0
@@ -480,64 +456,94 @@ class DummyQCTrader:
         anomaly_count = 0
 
         for individual_candle in self.deque_dictionary[period_key]:
-            if DummyQCTrader.DEBUG:
-                print(type(individual_candle))
-                print(individual_candle.spread_percentiles.keys())
-
             if individual_candle.spread_percentiles.get(period_key) is None:
-                print("No keys in dictionary")
+                logger.log("No keys in dictionary", level="ERROR")
                 return {}
+
+            logger.log(
+                f"Checking candle {individual_candle.time} - spread: {individual_candle.spread_percentiles.get(period_key)} volume: {individual_candle.volume_percentiles.get(period_key)}",
+                level="DEBUG")
 
             if individual_candle.up_bar:
                 up_counts += 1
+                logger.log(f"Up bar - count now: {up_counts}", level="DEBUG")
+            else:
+                logger.log("Not an up bar", level="DEBUG")
             if individual_candle.spread_percentiles.get(period_key) > high_spread_threshold:
                 high_spread_count += 1
+                logger.log(f"High spread count now: {high_spread_count}", level="DEBUG")
+            else:
+                logger.log("Not a high spread", level="DEBUG")
             if individual_candle.volume_percentiles.get(period_key) > high_volume_threshold:
                 high_volume_count += 1
-
-            if abs(individual_candle.spread_percentiles.get(period_key) -
-                   individual_candle.volume_percentiles.get(period_key)) > anomaly_threshold:
+                logger.log(f"High volume count now: {high_volume_count}", level="DEBUG")
+            else:
+                logger.log("Not a high volume", level="DEBUG")
+            if abs(individual_candle.spread_percentiles.get(period_key) - individual_candle.volume_percentiles.get(
+                    period_key)) > anomaly_threshold:
                 anomaly_count += 1
-        print(
-            f"{period_key}. Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}")
-        return {"up_bars": up_counts,
-                "high_spread_count": high_spread_count,
-                "high_volume_count": high_volume_count,
+                logger.log(f"Anomaly count now: {anomaly_count}", level="DEBUG")
+            else:
+                logger.log("Not an anomaly", level="DEBUG")
+
+        logger.log(
+            f"{period_key}. Up bars: {up_counts}. High Spreads: {high_spread_count}. High Volumes: {high_volume_count}, Anomalies: {anomaly_count}",
+            level="INFO")
+        return {"up_bars": up_counts, "high_spread_count": high_spread_count, "high_volume_count": high_volume_count,
                 "anomaly_count": anomaly_count}
 
 
+class DebugLog:
+    LEVELS = {"DEBUG": 10, "INFO": 20, "WARN": 30, "ERROR": 40}
 
+    def __init__(self, level="DEBUG"):
+        self.level = self.LEVELS.get(level, 10)
+        absolute_path = os.path.dirname(__file__)
+        relative_path = "log/"
+        full_path = os.path.join(absolute_path, relative_path)
 
-# Get our test data from CSV file...
-# this would come from live quant data eventually
+        # Get the current date and time
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"debug_log_{current_time}.txt"
 
-absolute_path = os.path.dirname(__file__)
-relative_path = "../test_data/"
-full_path = os.path.join(absolute_path, relative_path)
+        self.log_file = open(os.path.join(full_path, log_filename), "w")
+        print("Writing log messages to: ", self.log_file.name)
 
-# myDF = pd.read_csv(full_path + "^gbpusd_price-history-08-29-2023.csv")
-# myDF = myDF.sort_values("Time", axis=0)
-#
-# print(myDF)
-#
-# myTrader = DummyQCTrader()
-#
-# # Loop around each item in the data frame and call my dummy on data method
-# for index, row in myDF.iterrows():
-#     print(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
-#     myTrader.dummy_on_data(row['Time'], row['Volume'], row['Open'], row['High'], row['Low'], row['Last'])
-#     exit()
+    def log(self, message, level="DEBUG"):
+        if self.LEVELS.get(level, 10) >= self.level:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_message = f"{timestamp} - {level} - {message}"
+            self.log_file.write(log_message + "\n")
+            self.log_file.flush()
+            print(log_message)
 
+    def __del__(self):
+        self.log_file.close()
 
+if __name__ == "__main__":
 
-myDF = pd.read_csv(full_path + "spy_data.csv")
-myDF = myDF.sort_values("Date", axis=0)
+    MAX_ROWS = 100
+    logger = DebugLog(level="DEBUG")
 
-print(myDF)
+    logger.log("This code should only be running if candle.py has been called directly", level="INFO")
+    # Get our test data from CSV file...
+    # this would come from live quant data eventually
+    absolute_path = os.path.dirname(__file__)
+    logger.log(f"absolute_path: {absolute_path}", level="DEBUG")
+    relative_path = "data/"
+    full_path = os.path.join(absolute_path, relative_path)
+    logger.log(f"full_path: {full_path}", level="DEBUG")
 
-myTrader = DummyQCTrader()
+    myDF = pd.read_csv(full_path + "spy_data.csv")
+    myDF = myDF.sort_values("Date", axis=0)
 
-# Loop around each item in the data frame and call my dummy on data method
-for index, row in myDF.iterrows():
-    myTrader.dummy_on_data(row['Date'], row['Volume'], row['Open'], row['High'], row['Low'], row['Adj Close'])
+    logger.log(f"myDF: {myDF}", level="DEBUG")
+
+    myTrader = DummyQCTrader()
+    # Loop around each item in the data frame and call my dummy on data method
+    for index, row in myDF.iterrows():
+        logger.log(f"processing row: {index}", level="DEBUG")
+        myTrader.dummy_on_data(row['Date'], row['Volume'], row['Open'], row['High'], row['Low'], row['Adj Close'])
+        if MAX_ROWS > 0 and index >= MAX_ROWS:
+            break
 
