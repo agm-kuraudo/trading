@@ -39,6 +39,10 @@ def calculate_adx(candles, period=14):
         dm_plus_list.append(calculate_dm_plus(candles[i-1], candles[i]))
         dm_minus_list.append(calculate_dm_minus(candles[i-1], candles[i]))
 
+    # print(tr_list[:5])  # Print the first 5 TR values
+    # print(dm_plus_list[:5])  # Print the first 5 DM+ values
+    # print(dm_minus_list[:5])  # Print the first 5 DM- values
+
     # Smooth the TR, DM+, and DM- values using a moving average
     tr_smooth = [sum(tr_list[:period])]
     dm_plus_smooth = [sum(dm_plus_list[:period])]
@@ -49,17 +53,28 @@ def calculate_adx(candles, period=14):
         dm_plus_smooth.append(dm_plus_smooth[-1] - (dm_plus_smooth[-1] / period) + dm_plus_list[i])
         dm_minus_smooth.append(dm_minus_smooth[-1] - (dm_minus_smooth[-1] / period) + dm_minus_list[i])
 
+    # print(tr_smooth[:5])  # Print the first 5 smoothed TR values
+    # print(dm_plus_smooth[:5])  # Print the first 5 smoothed DM+ values
+    # print(dm_minus_smooth[:5])  # Print the first 5 smoothed DM- values
+
     # Calculate the Directional Indicators (DI+ and DI-)
     di_plus = [100 * (dm_plus_smooth[i] / tr_smooth[i]) for i in range(len(tr_smooth))]
     di_minus = [100 * (dm_minus_smooth[i] / tr_smooth[i]) for i in range(len(tr_smooth))]
 
+    # print(di_plus[:5])  # Print the first 5 DI+ values
+    # print(di_minus[:5])  # Print the first 5 DI- values
+
     # Calculate the Directional Movement Index (DX)
     dx = [100 * abs(di_plus[i] - di_minus[i]) / (di_plus[i] + di_minus[i]) for i in range(len(di_plus))]
+
+    # print(dx[:5])  # Print the first 5 DX values
 
     # Calculate the Average Directional Index (ADX)
     adx = [sum(dx[:period]) / period]
     for i in range(period, len(dx)):
         adx.append((adx[-1] * (period - 1) + dx[i]) / period)
+
+    # print(adx[:5])  # Print the first 5 ADX values
 
     return [adx[0], statistics.fmean(tr_smooth), statistics.fmean(dm_plus_smooth), statistics.fmean(dm_minus_smooth)]
 
@@ -296,7 +311,10 @@ class DummyQCTrader:
                             DummyQCTrader.PERIOD_TWO_LENGTH,
                             DummyQCTrader.PERIOD_THREE_LENGTH]
 
-        logger.log(f"DummyQC Class initialised - all_periods: {self.all_periods}", level="DEBUG")
+        try:
+            logger.log(f"DummyQC Class initialised - all_periods: {self.all_periods}", level="DEBUG")
+        except NameError as e:
+            print(f"DummyQC Class initialised - all_periods: {self.all_periods}")
 
         self.spread_percentiles = {}
         self.volume_percentiles = {}
@@ -420,17 +438,26 @@ class DummyQCTrader:
             stats_list = [getattr(item, prop) for item in self.deque_dictionary[period_key]]
             current_percentiles = np.percentile(stats_list, range(DummyQCTrader.PERCENTILE_START, 100,
                                                                   DummyQCTrader.PERCENTILE_INCREMENTS))
-            logger.log(f"Current percentiles: {current_percentiles}", level="DEBUG")
+            try:
+                logger.log(f"Current percentiles: {current_percentiles}", level="DEBUG")
+            except NameError as e:
+                print(f"Current percentiles: {current_percentiles}")
 
             upper_percentile = DummyQCTrader.PERCENTILE_START
             for data in current_percentiles:
                 if getattr(this_candle, prop) < data:
-                    logger.log(
-                        f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile",
-                        level="DEBUG")
+                    try:
+                        logger.log(
+                            f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile",
+                            level="DEBUG")
+                    except NameError as e:
+                        print(f"This candle {prop} is {getattr(this_candle, prop)} which falls below the {upper_percentile} percentile")
                     break
                 upper_percentile += DummyQCTrader.PERCENTILE_INCREMENTS
             return upper_percentile
+        else:
+            print(f"Not ready for this check yet {len(self.deque_dictionary[period_key])} {period_length}")
+            return 0
 
     def multiple_bar_check(self, period_key="period_one", high_spread_threshold=55, high_volume_threshold=55,
                            anomaly_threshold=20) -> dict:
@@ -457,7 +484,7 @@ class DummyQCTrader:
 
         for individual_candle in self.deque_dictionary[period_key]:
             if individual_candle.spread_percentiles.get(period_key) is None:
-                logger.log("No keys in dictionary", level="ERROR")
+                logger.log(f"No keys in dictionary for {individual_candle}", level="ERROR")
                 return {}
 
             logger.log(
