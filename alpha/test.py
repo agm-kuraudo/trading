@@ -120,6 +120,8 @@ class TestAlphaLogic(unittest.TestCase):
         my_trader = DummyQCTrader()
         my_trader.deque_dictionary = self.deque_dictionary
 
+        #Step 6: Work out percentiles
+
         periods = [
             ("period_one", 5, 30),
             ("period_two", 25, 10),
@@ -127,7 +129,7 @@ class TestAlphaLogic(unittest.TestCase):
         ]
 
         for period_key, period_length, expected_percentile in periods:
-            percentile = my_trader.get_percentile_stats(
+            percentile = my_trader.get_percentile_stats_legacy_version(
                 prop="spread",
                 period_key=period_key,
                 period_length=period_length,
@@ -137,6 +139,11 @@ class TestAlphaLogic(unittest.TestCase):
                              f"Candle should fall in {expected_percentile}th percentile of spread values of {period_key}")
             this_candle.spread_percentiles[period_key] = percentile
 
+        #Step 7: I think this step is missing in my application. but we need to go back to populate all of our candles in the deque
+
+        for old_candle in self.deque_dictionary["period_one"]:
+            old_candle.spread_percentiles = this_candle.spread_percentiles
+
 
 
 def suite():
@@ -145,7 +152,7 @@ def suite():
     suite.addTest(TestAlphaLogic('test_columns_present'))
     suite.addTest(TestAlphaLogic('test_create_candle'))
     suite.addTest(TestAlphaLogic('test_deque_and_adx'))
-    suite.addTest(TestAlphaLogic('test_calculate_adx'))
+    suite.addTest(TestAlphaLogic('test_spread_volume_percentiles'))
     return suite
 
 if __name__ == '__main__':

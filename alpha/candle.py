@@ -199,7 +199,7 @@ class Candle:
             patterns += ":Long Legged Doji:"
 
         return ("Candle {} is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
-                "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  Spread Percentiles: {}, Volume Percentiles: {}").format(
+                "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  Spread Percentiles: {}:{}:{}, Volume Percentiles: {}:{}:{}").format(
             self.__time,
             bar_type,
             self.__open,
@@ -212,7 +212,11 @@ class Candle:
             self.__lower_wick,
             patterns,
             self.__spread_percentiles.get("period_one"),
-            self.__volume_percentiles.get("period_one"))
+            self.__spread_percentiles.get("period_two"),
+            self.__spread_percentiles.get("period_three"),
+            self.__volume_percentiles.get("period_one"),
+            self.__volume_percentiles.get("period_two"),
+            self.__volume_percentiles.get("period_three"))
 
 
     @property
@@ -306,7 +310,7 @@ class DummyQCTrader:
         }
     }
 
-    def __init__(self):
+    def __init__(self, logger=None):
         self.all_periods = [DummyQCTrader.PERIOD_ONE_LENGTH,
                             DummyQCTrader.PERIOD_TWO_LENGTH,
                             DummyQCTrader.PERIOD_THREE_LENGTH]
@@ -351,7 +355,7 @@ class DummyQCTrader:
             for period, key in zip(self.all_periods, self.deque_dictionary.keys()):
                 logger.log(f"Now looking at period: {period}, key: {key}")
 
-                self.spread_percentiles[key] = self.get_percentile_stats(
+                self.spread_percentiles[key] = self.get_percentile_stats_legacy_version(
                     prop="spread",
                     period_key=key,
                     period_length=period,
@@ -359,7 +363,7 @@ class DummyQCTrader:
 
                 logger.log(f"{key} spread percentile {self.spread_percentiles[key]}")
 
-                self.volume_percentiles[key] = self.get_percentile_stats(
+                self.volume_percentiles[key] = self.get_percentile_stats_legacy_version(
                     prop="volume",
                     period_key=key,
                     period_length=period,
@@ -433,7 +437,7 @@ class DummyQCTrader:
                 logger.log("Not Backed by volume", level="DEBUG")
                 return 0
 
-    def get_percentile_stats(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
+    def get_percentile_stats_legacy_version(self, prop: str, period_key: str, period_length: int, this_candle: Candle) -> int:
         if len(self.deque_dictionary[period_key]) == period_length:
             stats_list = [getattr(item, prop) for item in self.deque_dictionary[period_key]]
             current_percentiles = np.percentile(stats_list, range(DummyQCTrader.PERCENTILE_START, 100,
