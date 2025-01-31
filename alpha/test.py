@@ -2,8 +2,8 @@ import unittest
 import os
 from collections import deque
 import pandas as pd
-from alpha.candle import Candle, calculate_adx, DummyQCTrader
-
+from alpha.candle import Candle, calculate_adx, DummyQCTrader, identify_acc_or_dist
+from collections import namedtuple
 
 class TestAlphaLogic(unittest.TestCase):
     PERIOD_ONE_LENGTH = 5
@@ -95,54 +95,89 @@ class TestAlphaLogic(unittest.TestCase):
         #Step 5: Calculate the ADX based on the last 50 candles with period of 14
         self.assertEqual(calculate_adx(self.deque_dictionary["period_three"]), [40.48136255393826, 175.39975020822467, 27.52034622638257, 19.060191841982864], "ADX calculation failed.")
 
-    def test_spread_volume_percentiles(self):
+    def test_bar_counting_logic(self):
+        candle1 = Candle("2023-01-03 00:00:00+00:00", 3, 1., 2., 0.5, 2.)
+        candle2 = Candle("2023-01-03 00:00:00+00:00", 3, 1., 2., 0.5, 2.)
+        candle3 = Candle("2023-01-03 00:00:00+00:00", 3, 1., 2., 0.5, 2.)
+        candle4 = Candle("2023-01-03 00:00:00+00:00", 3, 1., 2., 0.5, 2.)
+        candle5 = Candle("2023-01-03 00:00:00+00:00", 3, 1., 2., 0.5, 2.)
 
-        #Firstly build up our deques again for this test and calculate the ADX
-        this_candle = None
+        for candle in [candle1, candle2, candle3, candle4, candle5]:
+            candle.spread_percentiles["period_one"] = 50
+            candle.volume_percentiles["period_one"] = 50
 
-        for index, row in self.my_data_frame.iterrows():
-            this_candle = Candle(
-                row['Date'],
-                row['Volume'],
-                row['Open'],
-                row['High'],
-                row['Low'],
-                row['Adj Close']
-            )
-            for key in self.deque_dictionary.keys():
-                self.deque_dictionary[key].append(this_candle)
-            if index == 52:
-                break
-        adx_values = calculate_adx(self.deque_dictionary["period_three"])
+        my_deque = deque([candle1, candle2, candle3, candle4, candle5], maxlen=5)
 
-        print(f"{this_candle}")
+        high_spread_threshold = 55
+        high_volume_threshold = 55
+        anomaly_threshold = 20
 
-        my_trader = DummyQCTrader()
-        my_trader.deque_dictionary = self.deque_dictionary
+        up_bar_count = sum(1 for candle in my_deque if candle.up_bar)
+        high_spread_count = sum(
+            1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold)
+        high_volume_count = sum(
+            1 for candle in my_deque if candle.volume_percentiles["period_one"] > high_volume_threshold)
+        anomaly_count = sum(1 for candle in my_deque if
+                            abs(candle.spread_percentiles["period_one"] - candle.volume_percentiles["period_one"]) >
+                            anomaly_threshold)
 
-        #Step 6: Work out percentiles
+        self.assertEqual(up_bar_count, 5, "Up bar count incorrect")
+        self.assertEqual(high_spread_count, 0, "High spread count incorrect")
+        self.assertEqual(high_volume_count, 0, "High volume count incorrect")
+        self.assertEqual(anomaly_count, 0, "Anomaly count incorrect")
 
-        periods = [
-            ("period_one", 5, 30),
-            ("period_two", 25, 10),
-            ("period_three", 50, 20)
+        # Test with spread threshold below 50
+        high_spread_threshold = 45
+        high_spread_count = sum(
+            1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold)
+
+        self.assertEqual(high_spread_count, 5, "High spread count incorrect with threshold below 50")
+
+    def test_acc_dist_function(self):
+        # Create a mock class to simulate the data structure
+        self.MockData = namedtuple('MockData', ['volume', 'close'])
+        # Mock data for period_three
+        self.period_three = [
+            self.MockData(volume=100, close=10),
+            self.MockData(volume=150, close=15),
+            self.MockData(volume=200, close=20),
+            self.MockData(volume=250, close=25),
+            self.MockData(volume=300, close=30)
         ]
 
-        for period_key, period_length, expected_percentile in periods:
-            percentile = my_trader.get_percentile_stats_legacy_version(
-                prop="spread",
-                period_key=period_key,
-                period_length=period_length,
-                this_candle=this_candle
-            )
-            self.assertEqual(percentile, expected_percentile,
-                             f"Candle should fall in {expected_percentile}th percentile of spread values of {period_key}")
-            this_candle.spread_percentiles[period_key] = percentile
+        # Mock data for period_one
+        self.period_one_acc = [
+            self.MockData(volume=240, close=12),  # Volume > 230 (65th percentile)
+            self.MockData(volume=250, close=11),  # Volume > 230 (65th percentile)
+            self.MockData(volume=260, close=10),  # Volume > 230 (65th percentile)
+            self.MockData(volume=270, close=9),  # Volume > 230 (65th percentile)
+            self.MockData(volume=280, close=8)  # Volume > 230 (65th percentile)
+        ]
 
-        #Step 7: I think this step is missing in my application. but we need to go back to populate all of our candles in the deque
+        self.period_one_dist = [
+            self.MockData(volume=240, close=28),  # Volume > 230 (65th percentile)
+            self.MockData(volume=250, close=29),  # Volume > 230 (65th percentile)
+            self.MockData(volume=260, close=30),  # Volume > 230 (65th percentile)
+            self.MockData(volume=270, close=31),  # Volume > 230 (65th percentile)
+            self.MockData(volume=280, close=32)  # Volume > 230 (65th percentile)
+        ]
 
-        for old_candle in self.deque_dictionary["period_one"]:
-            old_candle.spread_percentiles = this_candle.spread_percentiles
+        self.period_one_neutral = [
+            self.MockData(volume=60, close=18),
+            self.MockData(volume=70, close=19),
+            self.MockData(volume=80, close=20),
+            self.MockData(volume=90, close=21),
+            self.MockData(volume=100, close=22)
+        ]
+
+        result = identify_acc_or_dist(self.period_three, self.period_one_acc)
+        self.assertEqual(result, (True, "Acc"), "ACC Expected")
+
+        result = identify_acc_or_dist(self.period_three, self.period_one_dist)
+        self.assertEqual(result, (True, "Dist"), "Dist Expected")
+
+        result = identify_acc_or_dist(self.period_three, self.period_one_neutral)
+        self.assertEqual(result, (False, ""), "Neutral Expected")
 
 
 
@@ -152,7 +187,7 @@ def suite():
     suite.addTest(TestAlphaLogic('test_columns_present'))
     suite.addTest(TestAlphaLogic('test_create_candle'))
     suite.addTest(TestAlphaLogic('test_deque_and_adx'))
-    suite.addTest(TestAlphaLogic('test_spread_volume_percentiles'))
+    suite.addTest(TestAlphaLogic('test_bar_counting_logic'))
     return suite
 
 if __name__ == '__main__':

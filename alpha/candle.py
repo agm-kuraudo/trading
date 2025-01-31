@@ -86,35 +86,23 @@ def identify_acc_or_dist(period_three, period_one):
         volume_stats_list.append(getattr(item, "volume"))
         price_stats_list.append(getattr(item, "close"))
 
-    logger.log(f"Volume stats list: {volume_stats_list}", level="DEBUG")
     period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
-
-    logger.log(f"Price stats list: {price_stats_list}", level="DEBUG")
     period_three_price_percentiles = np.percentile(price_stats_list, [10, 20, 80])
 
-    logger.log(f"Period three volume percentiles: {period_three_volume_percentiles}", level="DEBUG")
-    logger.log(f"Period three price percentiles: {period_three_price_percentiles}", level="DEBUG")
+    # print(f"Volume Percentiles (65th, 90th): {period_three_volume_percentiles}")
+    # print(f"Price Percentiles (10th, 20th, 80th): {period_three_price_percentiles}")
 
     high_volume_count = 0
     for item in period_one:
-        logger.log(f"Volume: {getattr(item, 'volume')}", level="DEBUG")
+#        logger.log(f"Volume: {getattr(item, 'volume')}", level="DEBUG")
         if getattr(item, "volume") > period_three_volume_percentiles[0]:
             high_volume_count += 1
 
-    logger.log(f"High volume count: {high_volume_count}", level="DEBUG")
-
+    # print(f"High Volume Count: {high_volume_count}")
     near_lows = period_one[-1].close < period_three_price_percentiles[1]
     near_highs = period_one[-1].close > period_three_price_percentiles[2]
 
-    if near_lows:
-        logger.log("Price is near recent lows", level="INFO")
-    else:
-        logger.log("Price is not near recent low", level="INFO")
-
-    if near_highs:
-        logger.log("Price is near recent highs", level="INFO")
-    else:
-        logger.log("Price is not near recent highs", level="INFO")
+    # print(f"Near Lows: {near_lows}, Near Highs: {near_highs}")
 
     if high_volume_count >= 3 and near_lows:
         return True, "Acc"
@@ -143,7 +131,7 @@ class Candle:
         self.__low = low
         self.__close = close
 
-        # Nothing is currently done with the time element but it may be useful
+        # Nothing is currently done with the time element, but it may be useful
         self.__time = time
         # Nothing done with notes yet either but may be useful for debugging purposes in future
         self.__notes = []
