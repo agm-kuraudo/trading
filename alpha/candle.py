@@ -206,6 +206,23 @@ class Candle:
             self.__volume_percentiles.get("period_two"),
             self.__volume_percentiles.get("period_three"))
 
+    def is_candle_pattern(self):
+        if self.__shooting_star or self.__hammer or self.__lld:
+            return True
+        else:
+            return False
+
+    @property
+    def shooting_star(self):
+        return self.__shooting_star
+
+    @property
+    def hammer(self):
+        return self.__hammer
+
+    @property
+    def lld(self):
+        return self.__lld
 
     @property
     def volume(self):

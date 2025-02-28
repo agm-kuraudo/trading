@@ -14,7 +14,7 @@ rolling_window_complete_msg_display=True
 logger = DebugLog(level="INFO")
 
 #This defines how many rows/days we are going to run through
-MAX_ROWS = 52
+MAX_ROWS = 5002
 
 #This sets up our rolling windows over short, medium and long period
 deque_dictionary = {
@@ -82,7 +82,8 @@ if use_real_data:
 
     print(myDF.iloc[0].to_dict())
 
-    myDF.columns = ['Date', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume']
+    # myDF.columns = ['Date', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume']
+    myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
 else:
     absolute_path = os.path.dirname(__file__)
     logger.log(f"absolute_path: {absolute_path}", level="DEBUG")
@@ -223,8 +224,16 @@ for index, row in myDF.iterrows():
                 logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
 
     #Step 9: Try to identify if the market is near accumulation of distribution points
-    return_val, acc_or_dist = identify_acc_or_dist(deque_dictionary["period_three"],
+    acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(deque_dictionary["period_three"],
                                                    deque_dictionary["period_one"])
 
-    if return_val:
+    if acc_or_dist_bool:
         logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
+
+        if this_candle.spread_percentiles['period_one'] > 65 or this_candle.is_candle_pattern():
+            logger.log(f"Potential Test IDENTIFIED ##########", level="DEBUG")
+            if this_candle.volume_percentiles['period_one'] < 50:
+                logger.log(f"Potential TEST PASS IDENTIFIED ##########", level="INFO")
+            else:
+                logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
+
