@@ -22,7 +22,7 @@ def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, 
 
     print(myDF.iloc[0].to_dict())
 
-    myDF.columns = ['Date', 'Adj Close', 'Close', 'High', 'Low', 'Open', 'Volume']
+    myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
     return myDF
 
 def return_sample_data():
