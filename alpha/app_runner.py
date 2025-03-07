@@ -237,3 +237,8 @@ for index, row in myDF.iterrows():
             else:
                 logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
 
+                #If we have limited upside for high volumes this could indicate a possible selling or buying clim
+        if this_candle.spread_percentiles['period_two'] < 40 and this_candle.volume_percentiles['period_two'] > 60:
+            logger.log(f"Potential Climax IDENTIFIED ##########", level="INFO")
+
+
