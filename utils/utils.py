@@ -68,12 +68,13 @@ def calculate_volatility(data, trading_days):
     return data['LogDiff'].std() * np.sqrt(trading_days)
 
 def calculate_binomial_parameters(volatility, trading_days_left, trading_days, pricing_steps, interest_rate, dividend_yield):
+    epsilon = 1e-10  # Small value to avoid division by zero
     delta_t = trading_days_left / (trading_days * pricing_steps)
     up_branch_move = np.exp(volatility * np.sqrt(delta_t))
-    down_branch_move = 1 / up_branch_move
+    down_branch_move = 1 / (up_branch_move + epsilon)  # Add epsilon to avoid division by zero
     factor_step_discount = np.exp(-interest_rate * delta_t)
     interest_rate_cost_of_step = np.exp((interest_rate - dividend_yield) * delta_t)
-    up_branch_probability = (interest_rate_cost_of_step - down_branch_move) / (up_branch_move - down_branch_move)
+    up_branch_probability = (interest_rate_cost_of_step - down_branch_move) / (up_branch_move - down_branch_move + epsilon)  # Add epsilon to avoid division by zero
     down_branch_probability = 1 - up_branch_probability
     return up_branch_move, down_branch_move, factor_step_discount, up_branch_probability, down_branch_probability
 
@@ -98,6 +99,8 @@ def price_option(stock_price_tree, option_value_tree, pricing_steps, up_branch_p
 def implied_volatility(option_price, option_type, current_stock_price, strike_price, time_to_expiration, interest_rate,
                        dividend_yield, pricing_steps, option_style, TRADING_DAYS):
     def objective_function(volatility):
+        if volatility < 1e-10:  # Avoid extremely small volatility values
+            return np.inf
         up_branch_move, down_branch_move, factor_step_discount, up_branch_probability, down_branch_probability = calculate_binomial_parameters(
             volatility, time_to_expiration * TRADING_DAYS, TRADING_DAYS, pricing_steps, interest_rate, dividend_yield)
 
@@ -123,8 +126,9 @@ def implied_volatility(option_price, option_type, current_stock_price, strike_pr
                                                option_style)
         return calculated_option_price - option_price
 
-    initial_guess = 0.2
-    implied_vol = newton(objective_function, initial_guess)
+    initial_guess = 0.4  # Adjusted initial guess
+    tolerance = 1e-6  # Adjusted tolerance
+    implied_vol = newton(objective_function, initial_guess, tol=tolerance)
     return implied_vol
 
 def get_asset_data(use_real_data, ticker, start_days_ago, end_days_ago):
