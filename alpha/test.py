@@ -2,7 +2,7 @@ import unittest
 import os
 from collections import deque
 import pandas as pd
-from alpha.candle import Candle, calculate_adx, DummyQCTrader, identify_acc_or_dist
+from alpha.candle import Candle, calculate_adx, identify_acc_or_dist
 from collections import namedtuple
 
 class TestAlphaLogic(unittest.TestCase):
