@@ -79,7 +79,7 @@ class MarketAnalyzer:
             trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"]
 
             direction = "BUY" if trade_signal > 0 else "SELL"
-            self.logger.log(f"trade_signal: {direction} : {trade_signal}", level="INFO")
+            self.logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
 
     def update_percentiles(self):
@@ -127,16 +127,16 @@ class MarketAnalyzer:
                     # Adjust score by 2.5 if up bar, otherwise subtract 2.5
                     single_candle_signal_score += 2.5 if this_candle.up_bar else -2.5
 
-        # Log the results
-        self.logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
-        self.logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
-
         if this_candle.shooting_star:
             single_candle_signals.append("Shooting Star")
             single_candle_signal_score -= 3
         elif this_candle.hammer:
             single_candle_signals.append("Hammer")
             single_candle_signal_score += 3
+
+        # Log the results
+        self.logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
+        self.logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
 
         all_signals["single_candle_signals"] = single_candle_signals
         all_signals["single_candle_signal_score"] = single_candle_signal_score
