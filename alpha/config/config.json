@@ -1,0 +1,37 @@
+{
+  "use_real_data": true,
+  "rolling_window_complete_msg_display": true,
+  "MAX_ROWS": 5002,
+  "PERIOD_ONE_LENGTH": 5,
+  "PERIOD_TWO_LENGTH": 25,
+  "PERIOD_THREE_LENGTH": 50,
+  "PERCENTILE_START": 5,
+  "PERCENTILE_INCREMENTS": 5,
+  "ticker_symbol": "SPY",
+  "trading_parameters": {
+    "period_one": {
+      "High_Spread_Threshold": 55,
+      "High_Volume_Threshold": 55,
+      "Anomaly_Threshold": 20,
+      "Signal_Bar_Count": 4,
+      "High_Spread_Count": 3,
+      "High_Volume_Count": 3
+    },
+    "period_two": {
+      "High_Spread_Threshold": 55,
+      "High_Volume_Threshold": 55,
+      "Anomaly_Threshold": 20,
+      "Signal_Bar_Count": 7,
+      "High_Spread_Count": 6,
+      "High_Volume_Count": 6
+    },
+    "period_three": {
+      "High_Spread_Threshold": 55,
+      "High_Volume_Threshold": 55,
+      "Anomaly_Threshold": 20,
+      "Signal_Bar_Count": 16,
+      "High_Spread_Count": 12,
+      "High_Volume_Count": 12
+    }
+  }
+}
