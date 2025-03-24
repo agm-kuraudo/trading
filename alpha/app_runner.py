@@ -211,6 +211,7 @@ class MarketAnalyzer:
         multiple_bar_signal_score = 0
 
         # Check for bull and bear signals for each period, and adjust the score accordingly
+        #TODO: The volume backed element should also be appended to multiple_bar_signals
         for period in self.deque_dictionary.keys():
             if signals[f"{period}_bull"]:
                 multiple_bar_signals.append(f"Bull Signal ({period})")
