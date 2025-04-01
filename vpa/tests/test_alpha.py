@@ -2,7 +2,7 @@ import unittest
 import os
 from collections import deque
 import pandas as pd
-from alpha.candle import Candle, calculate_adx, identify_acc_or_dist
+from vpa.app import Candle, calculate_adx, identify_acc_or_dist
 from collections import namedtuple
 
 class TestAlphaLogic(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestAlphaLogic(unittest.TestCase):
         }
 
         absolute_path = os.path.dirname(__file__)
-        relative_path = "data/"
+        relative_path = "../data/"
         full_path = os.path.join(absolute_path, relative_path)
 
         self.my_data_frame = pd.read_csv(full_path + "spy_data.csv")

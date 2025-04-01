@@ -1,6 +1,7 @@
 *.pyc
 *.png
-alpha/data
-alpha/log
+vpa/data
+vpa/log
 test_data
 tmp
+options/data

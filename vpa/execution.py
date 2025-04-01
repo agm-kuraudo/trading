@@ -26,14 +26,14 @@ def trade_size(cash, risk_per_trade_theory, risk_per_trade_exposure_max, share_p
 
     return trade_size_result
 
+if __name__ == "__main__":
+    # Example usage
+    cash = 30000
+    risk_per_trade_theory = 0.01  # 1% of cash
+    risk_per_trade_exposure_max = 0.9  # 10% of cash
+    share_price = 50
+    stop_price_distance = 6
 
-# Example usage
-cash = 30000
-risk_per_trade_theory = 0.01  # 1% of cash
-risk_per_trade_exposure_max = 0.9  # 10% of cash
-share_price = 50
-stop_price_distance = 6
-
-trade_size_result = trade_size(cash, risk_per_trade_theory, risk_per_trade_exposure_max, share_price,
-                               stop_price_distance, debug=True)
-print(f"Trade size: {trade_size_result} shares")
+    trade_size_result = trade_size(cash, risk_per_trade_theory, risk_per_trade_exposure_max, share_price,
+                                   stop_price_distance, debug=True)
+    print(f"Trade size: {trade_size_result} shares")

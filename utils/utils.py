@@ -30,7 +30,7 @@ def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, 
 
 def return_sample_data():
     absolute_path = os.path.dirname(__file__)
-    relative_path = "../alpha/data/"
+    relative_path = "../vpa/data/"
     full_path = os.path.join(absolute_path, relative_path)
 
     myDF = pd.read_csv(full_path + "spy_data.csv")

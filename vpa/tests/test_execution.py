@@ -1,5 +1,5 @@
 import unittest
-from alpha.execution import trade_size
+from vpa.execution import trade_size
 
 
 class TestTradeSize(unittest.TestCase):

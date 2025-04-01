@@ -6,35 +6,36 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import datetime
-from alpha.candle import DebugLog, Candle, calculate_adx, identify_acc_or_dist
+from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
 
 class MarketAnalyzer:
     def __init__(self, config_path):
         # Load configuration from JSON file
+        self.__config = None
         self.load_config(config_path)
-        self.logger = DebugLog(level="INFO")
+        self.__logger = DebugLog(level="INFO")
         # Set up rolling windows for different periods
-        self.deque_dictionary = {
-            "period_one": deque(maxlen=self.config["PERIOD_ONE_LENGTH"]),
-            "period_two": deque(maxlen=self.config["PERIOD_TWO_LENGTH"]),
-            "period_three": deque(maxlen=self.config["PERIOD_THREE_LENGTH"])
+        self.__deque_dictionary = {
+            "period_one": deque(maxlen=self.__config["PERIOD_ONE_LENGTH"]),
+            "period_two": deque(maxlen=self.__config["PERIOD_TWO_LENGTH"]),
+            "period_three": deque(maxlen=self.__config["PERIOD_THREE_LENGTH"])
         }
         # Template variable for storing the current percentile numbers for "spread" and "volume"
-        self.percentiles_store = {"spread": {}, "volume": {}}
-        self.rolling_window_complete_msg_display = self.config["rolling_window_complete_msg_display"]
+        self.__percentiles_store = {"spread": {}, "volume": {}}
+        self.__rolling_window_complete_msg_display = self.__config["rolling_window_complete_msg_display"]
         # Load data from Yahoo Finance or CSV file
         self.load_data()
 
     def load_config(self, config_path):
         # Load configuration from JSON file
         with open(config_path, 'r') as file:
-            self.config = json.load(file)
+            self.__config = json.load(file)
 
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
-        if self.config["use_real_data"]:
+        if self.__config["use_real_data"]:
             # Define the ticker symbol
-            ticker_symbol = self.config["ticker_symbol"]
+            ticker_symbol = self.__config["ticker_symbol"]
             # Get the current date
             end_date = datetime.datetime.now().date()
             # Get the date one year ago from today
@@ -49,60 +50,60 @@ class MarketAnalyzer:
             full_path = os.path.join(absolute_path, relative_path)
             self.myDF = pd.read_csv(full_path + "spy_data.csv")
         self.myDF = self.myDF.sort_values("Date", axis=0)
-        self.logger.log(f"Data loaded: {self.myDF.shape} rows", level="INFO")
+        self.__logger.log(f"Data loaded: {self.myDF.shape} rows", level="INFO")
 
     def process_data(self):
         # Step 2: Loop around each item in the data frame
         for index, row in self.myDF.iterrows():
-            if not self.config["use_real_data"] and 0 < self.config["MAX_ROWS"] <= index:
+            if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
                 break
-            self.logger.log(f"Processing row: {index}", level="DEBUG")
+            self.__logger.log(f"Processing row: {index}", level="DEBUG")
             # Step 3: Create a new Candle object with the supplied properties for each new row
             this_candle = Candle(row['Date'], row['Volume'], row['Open'], row['High'], row['Low'], row['Close'])
-            self.logger.log(f"New candle created: {this_candle}", level="DEBUG")
+            self.__logger.log(f"New candle created: {this_candle}", level="DEBUG")
             # Step 3.1: The candle is added to each of our rolling windows
-            for key in self.deque_dictionary.keys():
-                self.deque_dictionary[key].append(this_candle)
+            for key in self.__deque_dictionary.keys():
+                self.__deque_dictionary[key].append(this_candle)
             # Step 4: We keep going without further action until we have enough data for all our rolling windows
-            if len(self.deque_dictionary["period_three"]) < self.config["PERIOD_THREE_LENGTH"]:
+            if len(self.__deque_dictionary["period_three"]) < self.__config["PERIOD_THREE_LENGTH"]:
                 continue
-            elif len(self.deque_dictionary["period_three"]) == self.config["PERIOD_THREE_LENGTH"]:
-                if self.rolling_window_complete_msg_display:
-                    self.logger.log("We now have enough data for all our rolling windows", level="INFO")
-                    self.rolling_window_complete_msg_display = False
+            elif len(self.__deque_dictionary["period_three"]) == self.__config["PERIOD_THREE_LENGTH"]:
+                if self.__rolling_window_complete_msg_display:
+                    self.__logger.log("We now have enough data for all our rolling windows", level="INFO")
+                    self.__rolling_window_complete_msg_display = False
             # Step 5: Update the spread and volumetric percentiles to understand relative size and strength of each Candle
             self.update_percentiles()
             # Step 6: Detect signals based on the updated data
             signals = self.detect_signals(this_candle)
-            self.logger.log(f"signals: {signals}", level="INFO")
+            self.__logger.log(f"signals: {signals}", level="INFO")
 
             trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"]
 
             direction = "BUY" if trade_signal > 0 else "SELL"
-            self.logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
+            self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
 
     def update_percentiles(self):
         # Step 5.1: Working out the Percentiles for each Period for the spread and volume
         props = ["spread", "volume"]
         for prop in props:
-            for key in self.deque_dictionary.keys():
-                stats_list = [getattr(item, prop) for item in self.deque_dictionary[key]]
-                self.percentiles_store[prop][key] = np.percentile(stats_list, range(self.config["PERCENTILE_START"], 100, self.config["PERCENTILE_INCREMENTS"]))
-                self.logger.log(f"{prop} percentiles for {key}: {self.percentiles_store[prop][key]}", level="DEBUG")
+            for key in self.__deque_dictionary.keys():
+                stats_list = [getattr(item, prop) for item in self.__deque_dictionary[key]]
+                self.__percentiles_store[prop][key] = np.percentile(stats_list, range(self.__config["PERCENTILE_START"], 100, self.__config["PERCENTILE_INCREMENTS"]))
+                self.__logger.log(f"{prop} percentiles for {key}: {self.__percentiles_store[prop][key]}", level="DEBUG")
         # Step 5.2: Update all Candles in our rolling windows with their relevant percentiles
-        for key in self.deque_dictionary.keys():
-            for candle in self.deque_dictionary[key]:
+        for key in self.__deque_dictionary.keys():
+            for candle in self.__deque_dictionary[key]:
                 for prop in props:
-                    upper_percentile = self.config["PERCENTILE_START"]
-                    for step in self.percentiles_store[prop][key]:
+                    upper_percentile = self.__config["PERCENTILE_START"]
+                    for step in self.__percentiles_store[prop][key]:
                         if getattr(candle, prop) <= step:
-                            upper_percentile += self.config["PERCENTILE_INCREMENTS"]
+                            upper_percentile += self.__config["PERCENTILE_INCREMENTS"]
                     if prop == "spread":
                         candle.spread_percentiles[key] = upper_percentile
                     elif prop == "volume":
                         candle.volume_percentiles[key] = upper_percentile
-                self.logger.log(f"Updated candle: {candle}", level="DEBUG")
+                self.__logger.log(f"Updated candle: {candle}", level="DEBUG")
 
     def detect_signals(self, this_candle):
 
@@ -116,7 +117,7 @@ class MarketAnalyzer:
         single_candle_signal_score += 1 if this_candle.up_bar else -1
 
         # Check for wide spread and high volume for each period, and adjust the score accordingly
-        for period in self.deque_dictionary.keys():
+        for period in self.__deque_dictionary.keys():
             if this_candle.spread_percentiles[period] > 70:
                 single_candle_signals.append(f"Wide Spread ({period})")
                 # Adjust score by 2.5 if up bar, otherwise subtract 2.5
@@ -135,8 +136,8 @@ class MarketAnalyzer:
             single_candle_signal_score += 3
 
         # Log the results
-        self.logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
-        self.logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
+        self.__logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
+        self.__logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
 
         all_signals["single_candle_signals"] = single_candle_signals
         all_signals["single_candle_signal_score"] = single_candle_signal_score
@@ -145,26 +146,26 @@ class MarketAnalyzer:
         trend_signal_score = 0
 
         # Step 6: Understand if the market is trending and if so, in what direction
-        adx_values = calculate_adx(self.deque_dictionary["period_three"])
-        self.logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
+        adx_values = calculate_adx(self.__deque_dictionary["period_three"])
+        self.__logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
         trending = adx_values[0] > 25
         trending_up = adx_values[2] > adx_values[3]
         trending_down = adx_values[3] > adx_values[2]
         if trending:
-            self.logger.log("Market is trending", level="INFO")
-            trend_signals.append("Maret is trending")
+            self.__logger.log("Market is trending", level="INFO")
+            trend_signals.append("Market is trending")
             if trending_up:
-                self.logger.log("Market is trending up", level="INFO")
+                self.__logger.log("Market is trending up", level="INFO")
                 trend_signals.append("Trending Up")
                 trend_signal_score += 5
             if trending_down:
-                self.logger.log("Market is trending down", level="INFO")
+                self.__logger.log("Market is trending down", level="INFO")
                 trend_signals.append("Trending Down")
                 trend_signal_score -= 5
 
         # Log the results
-        self.logger.log(f"Trend Signals: {trend_signals}", level="INFO")
-        self.logger.log(f"Trend Signal Score: {trend_signal_score}", level="INFO")
+        self.__logger.log(f"Trend Signals: {trend_signals}", level="INFO")
+        self.__logger.log(f"Trend Signal Score: {trend_signal_score}", level="INFO")
 
         all_signals["trend_signals"] = trend_signals
         all_signals["trend_signal_score"] = trend_signal_score
@@ -182,29 +183,29 @@ class MarketAnalyzer:
             "period_three_bear": False,
             "period_three_volume_backed": False,
         }
-        for key in self.deque_dictionary.keys():
-            up_bar_count = sum(1 for candle in self.deque_dictionary[key] if candle.up_bar)
-            high_spread_count = sum(1 for candle in self.deque_dictionary[key] if candle.spread_percentiles[key] > self.config["trading_parameters"][key]["High_Spread_Threshold"])
-            high_volume_count = sum(1 for candle in self.deque_dictionary[key] if candle.volume_percentiles[key] > self.config["trading_parameters"][key]["High_Volume_Threshold"])
-            anomaly_count = sum(1 for candle in self.deque_dictionary[key] if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key]) > self.config["trading_parameters"][key]["Anomaly_Threshold"])
+        for key in self.__deque_dictionary.keys():
+            up_bar_count = sum(1 for candle in self.__deque_dictionary[key] if candle.up_bar)
+            high_spread_count = sum(1 for candle in self.__deque_dictionary[key] if candle.spread_percentiles[key] > self.__config["trading_parameters"][key]["High_Spread_Threshold"])
+            high_volume_count = sum(1 for candle in self.__deque_dictionary[key] if candle.volume_percentiles[key] > self.__config["trading_parameters"][key]["High_Volume_Threshold"])
+            anomaly_count = sum(1 for candle in self.__deque_dictionary[key] if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key]) > self.__config["trading_parameters"][key]["Anomaly_Threshold"])
             bar_counts[key] = {
                 "up_bars": up_bar_count,
                 "high_spread_count": high_spread_count,
                 "high_volume_count": high_volume_count,
                 "anomaly_count": anomaly_count
             }
-            self.logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
+            self.__logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
             # Step 8: Decide whether a signal is being generated on each time period
-            if up_bar_count >= self.config["trading_parameters"][key]["Signal_Bar_Count"]:
+            if up_bar_count >= self.__config["trading_parameters"][key]["Signal_Bar_Count"]:
                 signals[f"{key}_bull"] = True
-                self.logger.log(f"{key} Bullish Signal", level="INFO")
-            elif up_bar_count <= (self.config["PERIOD_ONE_LENGTH"] - self.config["trading_parameters"][key]["Signal_Bar_Count"]):
+                self.__logger.log(f"{key} Bullish Signal", level="INFO")
+            elif up_bar_count <= (self.__config["PERIOD_ONE_LENGTH"] - self.__config["trading_parameters"][key]["Signal_Bar_Count"]):
                 signals[f"{key}_bear"] = True
-                self.logger.log(f"{key} Bearish Signal", level="INFO")
+                self.__logger.log(f"{key} Bearish Signal", level="INFO")
             if signals[f"{key}_bear"] or signals[f"{key}_bull"]:
-                if high_spread_count >= self.config["trading_parameters"][key]["High_Spread_Count"] and high_volume_count >= self.config["trading_parameters"][key]["High_Volume_Count"] and anomaly_count <= self.config["trading_parameters"][key]["Anomaly_Threshold"]:
+                if high_spread_count >= self.__config["trading_parameters"][key]["High_Spread_Count"] and high_volume_count >= self.__config["trading_parameters"][key]["High_Volume_Count"] and anomaly_count <= self.__config["trading_parameters"][key]["Anomaly_Threshold"]:
                     signals[f"{key}_volume_backed"] = True
-                    self.logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
+                    self.__logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
 
         # Initialize multiple bar signals and score
         multiple_bar_signals = []
@@ -212,7 +213,7 @@ class MarketAnalyzer:
 
         # Check for bull and bear signals for each period, and adjust the score accordingly
         #TODO: The volume backed element should also be appended to multiple_bar_signals
-        for period in self.deque_dictionary.keys():
+        for period in self.__deque_dictionary.keys():
             if signals[f"{period}_bull"]:
                 multiple_bar_signals.append(f"Bull Signal ({period})")
                 # Adjust score by 2.5, doubled if volume backed
@@ -223,8 +224,8 @@ class MarketAnalyzer:
                 multiple_bar_signal_score -= 5 if signals[f"{period}_volume_backed"] else 2.5
 
         # Log the results
-        self.logger.log(f"Multiple Bar Signals: {multiple_bar_signals}", level="INFO")
-        self.logger.log(f"Multiple Bar Signal Score: {multiple_bar_signal_score}", level="INFO")
+        self.__logger.log(f"Multiple Bar Signals: {multiple_bar_signals}", level="INFO")
+        self.__logger.log(f"Multiple Bar Signal Score: {multiple_bar_signal_score}", level="INFO")
 
         all_signals["multiple_bar_signals"] = multiple_bar_signals
         all_signals["multiple_bar_signal_score"] = multiple_bar_signal_score
@@ -235,30 +236,30 @@ class MarketAnalyzer:
         acc_dist_signal_score = 0
 
         # Step 9: Identify if the market is near accumulation or distribution points
-        acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(self.deque_dictionary["period_three"], self.deque_dictionary["period_one"])
+        acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(self.__deque_dictionary["period_three"], self.__deque_dictionary["period_one"])
         if acc_or_dist_bool:
             acc_dist_signals.append(f"Possible {acc_or_dist}")
             acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
-            self.logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
+            self.__logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
             if this_candle.spread_percentiles['period_one'] > 65 or this_candle.is_candle_pattern():
-                self.logger.log(f"Potential Test IDENTIFIED ##########", level="DEBUG")
+                self.__logger.log(f"Potential Test IDENTIFIED ##########", level="DEBUG")
                 if this_candle.volume_percentiles['period_one'] < 50:
                     acc_dist_signals.append("Test Pass")
                     acc_dist_signal_score += 5 if acc_or_dist == "Acc" else -5
-                    self.logger.log(f"Potential TEST PASS IDENTIFIED ##########", level="INFO")
+                    self.__logger.log(f"Potential TEST PASS IDENTIFIED ##########", level="INFO")
                 else:
                     acc_dist_signals.append("Test Fail")
                     # Test fail makes the signal weaker
                     acc_dist_signal_score -= 2 if acc_or_dist == "Acc" else 2
-                    self.logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
+                    self.__logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
             if this_candle.spread_percentiles['period_two'] < 40 and this_candle.volume_percentiles['period_two'] > 60:
                 acc_dist_signals.append("Climax")
                 acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
-                self.logger.log(f"Potential Climax IDENTIFIED ##########", level="INFO")
+                self.__logger.log(f"Potential Climax IDENTIFIED ##########", level="INFO")
 
         # Log the results
-        self.logger.log(f"Accumulation/Distribution Signals: {acc_dist_signals}", level="INFO")
-        self.logger.log(f"Accumulation/Distribution Signal Score: {acc_dist_signal_score}", level="INFO")
+        self.__logger.log(f"Accumulation/Distribution Signals: {acc_dist_signals}", level="INFO")
+        self.__logger.log(f"Accumulation/Distribution Signal Score: {acc_dist_signal_score}", level="INFO")
 
         all_signals["acc_dist_signals"] = acc_dist_signals
         all_signals["acc_dist_signal_score"] = acc_dist_signal_score
