@@ -11,4 +11,4 @@ python app_runner.py
 
 cd /usr/local/trading/vpa/log/
 last_updated_file=$(ls -t | head -n 1)
-cp "$last_updated_file" /home/mypi/shared
+cp "$last_updated_file" /usr/local/my_share
