@@ -6,3 +6,4 @@ test_data
 tmp
 options/data
 /options/charts/
+venv
