@@ -285,10 +285,10 @@ class DebugLog:
         full_path = os.path.join(absolute_path, relative_path)
 
         # Get the current date and time
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_time = datetime.now().strftime("%Y%m%d")
         log_filename = f"debug_log_{current_time}.txt"
 
-        self.log_file = open(os.path.join(full_path, log_filename), "w")
+        self.log_file = open(os.path.join(full_path, log_filename), "a")
         print("Writing log messages to: ", self.log_file.name)
 
     def log(self, message, level="DEBUG"):

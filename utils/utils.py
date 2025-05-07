@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
 from scipy.optimize import newton
-
+import warnings
 
 def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, end_days_ago: int = 0) -> pd.DataFrame:
 
@@ -14,16 +14,19 @@ def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, 
     # Get the date one year ago from today
     start_date = end_date - timedelta(days=start_days_ago)
 
+    # Suppress specific warning
+    warnings.filterwarnings("ignore", message="The default value of auto_adjust will be changed to True")
+
     # Fetch the data for the last year
-    myDF = yf.download(ticker, start=start_date, end=end_date)
+    myDF = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
 
     myDF = myDF.reset_index()
 
     myDF.columns = myDF.columns.get_level_values(0)
 
-    print(myDF.shape)
-
-    print(myDF.iloc[0].to_dict())
+    # print(myDF.shape)
+    #
+    # print(myDF.iloc[0].to_dict())
 
     myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
     return myDF

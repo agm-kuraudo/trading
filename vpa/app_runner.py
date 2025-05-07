@@ -9,11 +9,12 @@ import datetime
 from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
 
 class MarketAnalyzer:
-    def __init__(self, config_path):
-        # Load configuration from JSON file
+    def __init__(self, config_path, ticker_symbol=None, log_level="INFO"):
+        # Load configuration from the JSON file
+        self.__ticker_symbol = ticker_symbol
         self.__config = None
         self.load_config(config_path)
-        self.__logger = DebugLog(level="INFO")
+        self.__logger = DebugLog(level=log_level)
         # Set up rolling windows for different periods
         self.__deque_dictionary = {
             "period_one": deque(maxlen=self.__config["PERIOD_ONE_LENGTH"]),
@@ -34,14 +35,19 @@ class MarketAnalyzer:
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
         if self.__config["use_real_data"]:
+
             # Define the ticker symbol
-            ticker_symbol = self.__config["ticker_symbol"]
+
+            if self.__ticker_symbol is None:
+                ticker_symbol = self.__config["ticker_symbol"]
+            else:
+                ticker_symbol = self.__ticker_symbol
             # Get the current date
             end_date = datetime.datetime.now().date()
             # Get the date one year ago from today
             start_date = end_date - datetime.timedelta(days=100)
             # Fetch the data for the last year
-            self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date)
+            self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
             self.myDF = self.myDF.reset_index()
             self.myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
         else:
@@ -54,6 +60,9 @@ class MarketAnalyzer:
 
     def process_data(self):
         # Step 2: Loop around each item in the data frame
+
+        trade_signal = 0
+
         for index, row in self.myDF.iterrows():
             if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
                 break
@@ -81,6 +90,8 @@ class MarketAnalyzer:
 
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
+
+        return trade_signal
 
 
     def update_percentiles(self):
@@ -266,5 +277,5 @@ class MarketAnalyzer:
         return all_signals
 
 if __name__ == "__main__":
-    analyzer = MarketAnalyzer(config_path="config/config.json")
+    analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
     analyzer.process_data()
