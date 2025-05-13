@@ -21,7 +21,7 @@
       "High_Spread_Threshold": 55,
       "High_Volume_Threshold": 55,
       "Anomaly_Threshold": 20,
-      "Signal_Bar_Count": 7,
+      "Signal_Bar_Count": 13,
       "High_Spread_Count": 6,
       "High_Volume_Count": 6
     },
@@ -29,7 +29,7 @@
       "High_Spread_Threshold": 55,
       "High_Volume_Threshold": 55,
       "Anomaly_Threshold": 20,
-      "Signal_Bar_Count": 16,
+      "Signal_Bar_Count": 26,
       "High_Spread_Count": 12,
       "High_Volume_Count": 12
     }

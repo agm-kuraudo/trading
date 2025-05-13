@@ -8,6 +8,7 @@ import yfinance as yf
 import datetime
 from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
 
+
 class MarketAnalyzer:
     def __init__(self, config_path, ticker_symbol=None, log_level="INFO"):
         # Load configuration from the JSON file
@@ -63,6 +64,9 @@ class MarketAnalyzer:
 
         trade_signal = 0
 
+        # Get the last index
+        last_index = self.myDF.index[-1]
+
         for index, row in self.myDF.iterrows():
             if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
                 break
@@ -82,12 +86,24 @@ class MarketAnalyzer:
                     self.__rolling_window_complete_msg_display = False
             # Step 5: Update the spread and volumetric percentiles to understand relative size and strength of each Candle
             self.update_percentiles()
+
+            if index == last_index:
+                self.__logger.log("==================================================================================", level="INFO")
+                self.__logger.log(self.myDF.head(5), level="DEBUG")
+                self.__logger.log(self.myDF.tail(5), level="DEBUG")
+
+                for key in self.__deque_dictionary.keys():
+                    initial_close = self.__deque_dictionary[key][0].close
+                    final_close = self.__deque_dictionary[key][-1].close
+                    percentage_change = ((final_close - initial_close) / initial_close) * 100
+                    self.__logger.log(f"{key} initial close: {initial_close}", level="DEBUG")
+                    self.__logger.log(f"{key} final close: {final_close}", level="DEBUG")
+                    self.__logger.log(f"{key} change: {percentage_change:.2f}%", level="INFO")
+
             # Step 6: Detect signals based on the updated data
             signals = self.detect_signals(this_candle)
             self.__logger.log(f"signals: {signals}", level="INFO")
-
             trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"]
-
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
@@ -159,6 +175,7 @@ class MarketAnalyzer:
         # Step 6: Understand if the market is trending and if so, in what direction
         adx_values = calculate_adx(self.__deque_dictionary["period_three"])
         self.__logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
+        self.__logger.log(f"ADX - over 25 is trending.  Average True Range - Higher is more volatile.  DM+ swings upward. DM- Swings downwards", level="INFO")
         trending = adx_values[0] > 25
         trending_up = adx_values[2] > adx_values[3]
         trending_down = adx_values[3] > adx_values[2]
@@ -278,4 +295,10 @@ class MarketAnalyzer:
 
 if __name__ == "__main__":
     analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
-    analyzer.process_data()
+    trade_signal = analyzer.process_data()
+    if trade_signal > 15:
+        print("BUY Recommendation")
+    elif trade_signal < -15:
+        print("SELL Recommendation")
+    else:
+        print("DO NOT TRADE")
