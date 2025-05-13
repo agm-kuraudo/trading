@@ -240,16 +240,16 @@ class MarketAnalyzer:
         multiple_bar_signal_score = 0
 
         # Check for bull and bear signals for each period, and adjust the score accordingly
-        #TODO: The volume backed element should also be appended to multiple_bar_signals
         for period in self.__deque_dictionary.keys():
-            if signals[f"{period}_bull"]:
-                multiple_bar_signals.append(f"Bull Signal ({period})")
-                # Adjust score by 2.5, doubled if volume backed
-                multiple_bar_signal_score += 5 if signals[f"{period}_volume_backed"] else 2.5
-            if signals[f"{period}_bear"]:
-                multiple_bar_signals.append(f"Bear Signal ({period})")
-                # Adjust score by -2.5, doubled if volume backed
-                multiple_bar_signal_score -= 5 if signals[f"{period}_volume_backed"] else 2.5
+            for signal_type in ["bull", "bear"]:
+                if signals[f"{period}_{signal_type}"]:
+                    multiple_bar_signals.append(f"{signal_type.capitalize()} Signal ({period})")
+                    score_adjustment = 2.5 if signal_type == "bull" else -2.5
+                    if signals[f"{period}_volume_backed"]:
+                        multiple_bar_signal_score += score_adjustment * 2
+                        multiple_bar_signals.append(f"Volume Backed ({period})")
+                    else:
+                        multiple_bar_signal_score += score_adjustment
 
         # Log the results
         self.__logger.log(f"Multiple Bar Signals: {multiple_bar_signals}", level="INFO")
@@ -296,9 +296,9 @@ class MarketAnalyzer:
 if __name__ == "__main__":
     analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
     trade_signal = analyzer.process_data()
-    if trade_signal > 15:
+    if trade_signal >= 15:
         print("BUY Recommendation")
-    elif trade_signal < -15:
+    elif trade_signal <= -15:
         print("SELL Recommendation")
     else:
         print("DO NOT TRADE")
