@@ -1,7 +1,10 @@
 import requests
 
 # Initial POST request to get the tokens
-url = 'https://demo-api.ig.com/gateway/deal/session'
+url_login = 'https://demo-api.ig.com/gateway/deal/session'
+#https://demo-api.ig.com/gateway/deal/markets?searchTerm=GBP
+url_market_search = "https://demo-api.ig.com/gateway/deal/markets?searchTerm="
+
 payload = {
     "identifier": "MY_LIVE",
     "password": "AlphaTest1",
@@ -15,7 +18,7 @@ headers = {
     'Version': '2'
 }
 
-response = requests.post(url, json=payload, headers=headers)
+response = requests.post(url_login, json=payload, headers=headers)
 
 if response.status_code == 200:
     print('Request was successful!')
@@ -60,11 +63,11 @@ future_headers = {
 
 #Search for GBP/USD and get the EPIC
 
-# future_response = requests.get(future_url, headers=future_headers)
-#
-# if future_response.status_code == 200:
-#     print('Future request was successful!')
-#     print(future_response.json())  # Assuming the response is in JSON format
-# else:
-#     print('An error occurred:', future_response.status_code)
-#     print(future_response.text)
+future_response = requests.get(url_market_search + "SPY", headers=future_headers)
+
+if future_response.status_code == 200:
+     print('Future request was successful!')
+     print(future_response.json())  # Assuming the response is in JSON format
+else:
+     print('An error occurred:', future_response.status_code)
+     print(future_response.text)
