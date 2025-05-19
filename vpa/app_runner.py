@@ -8,9 +8,9 @@ import yfinance as yf
 import datetime
 from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
 
-
+#Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
 class MarketAnalyzer:
-    def __init__(self, config_path, ticker_symbol=None, log_level="INFO"):
+    def __init__(self, config_path, ticker_symbol=None, log_level="INFO", fixed_df=None):
         # Load configuration from the JSON file
         self.__ticker_symbol = ticker_symbol
         self.__config = None
@@ -25,8 +25,13 @@ class MarketAnalyzer:
         # Template variable for storing the current percentile numbers for "spread" and "volume"
         self.__percentiles_store = {"spread": {}, "volume": {}}
         self.__rolling_window_complete_msg_display = self.__config["rolling_window_complete_msg_display"]
-        # Load data from Yahoo Finance or CSV file
-        self.load_data()
+
+        if fixed_df is None:
+            # Load data from Yahoo Finance or CSV file
+            self.load_data()
+        else:
+            # Use the provided dataframe
+            self.myDF = fixed_df
 
     def load_config(self, config_path):
         # Load configuration from JSON file
