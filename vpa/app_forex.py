@@ -1,7 +1,7 @@
 from vpa.app_runner import MarketAnalyzer
 import pandas as pd
 
-my_df = pd.read_csv("data/GBPUSD_H1_CutDown.csv", sep="\t", index_col=False)
+my_df = pd.read_csv("data/GBPUSD_D1_CutDown.csv", sep="\t", index_col=False)
 
 print(my_df.head(5))
 my_df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
