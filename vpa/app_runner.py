@@ -1,15 +1,12 @@
 import os
 import json
-import statistics
 from collections import deque
-import pandas as pd
 import numpy as np
 import yfinance as yf
 import datetime
 from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from matplotlib.dates import DateFormatter
+import pandas as pd
+import mplfinance as mpf
 
 #Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
 class MarketAnalyzer:
@@ -302,30 +299,40 @@ class MarketAnalyzer:
         return all_signals
 
     def graph_intervals(self):
+        for period, candles in self.__deque_dictionary.items():
+            if not candles:
+                continue
 
-        for period in self.__deque_dictionary.keys():
-            fig, ax = plt.subplots()
+            # Convert to DataFrame
+            data = {
+                'Date': [candle.time for candle in candles],
+                'Open': [candle.open for candle in candles],
+                'High': [candle.high for candle in candles],
+                'Low': [candle.low for candle in candles],
+                'Close': [candle.close for candle in candles],
+            }
+            df = pd.DataFrame(data)
+            df.set_index('Date', inplace=True)
 
-            for candle in self.__deque_dictionary[period]:
-                color = 'green' if candle.close >= candle.open else 'red'
-                ax.plot([candle.time, candle.time], [candle.low, candle.high], color='black')  # Wick
-                ax.plot([candle.time, candle.time], [candle.open, candle.close], color=color, linewidth=6)  # Body
+            # Save chart to file
+            chart_filename = f"log/{self.__ticker_symbol}_{period}_candlestick.png"
+            mpf.plot(
+                df,
+                type='candle',
+                style='charles',
+                title=f'{self.__ticker_symbol} - {period} - Candlestick Chart',
+                ylabel='Price',
+                volume=False,
+                tight_layout=True,
+                datetime_format='%Y-%m-%d',
+                xrotation=90,
+                savefig=chart_filename
+            )
 
-
-            # Set x-ticks only for dates with data
-            dates = [candle.time for candle in self.__deque_dictionary[period]]
-            ax.set_xticks(dates)
-            ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-
-            # Rotate and resize x-axis labels
-            plt.xticks(rotation=90, fontsize=8)
-
-            ax.set_xlabel('Time')
-            ax.set_ylabel('Price')
-            ax.set_title(f'{self.__ticker_symbol} - {period} - Candlestick Chart')
-            plt.grid()
-            plt.tight_layout()  # Adjust layout to prevent clipping
-            plt.show()
+            # Save raw data to CSV
+            csv_filename = f"log/{self.__ticker_symbol}_{period}_data.csv"
+            # Save raw data to CSV with 2 decimal places
+            df.round(1).to_csv(csv_filename)
 
 if __name__ == "__main__":
     analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
