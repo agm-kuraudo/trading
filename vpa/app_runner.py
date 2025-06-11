@@ -7,6 +7,9 @@ import numpy as np
 import yfinance as yf
 import datetime
 from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from matplotlib.dates import DateFormatter
 
 #Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
 class MarketAnalyzer:
@@ -27,7 +30,7 @@ class MarketAnalyzer:
         self.__rolling_window_complete_msg_display = self.__config["rolling_window_complete_msg_display"]
 
         if fixed_df is None:
-            # Load data from Yahoo Finance or CSV file
+            # Load data from the Yahoo Finance module or CSV file
             self.load_data()
         else:
             # Use the provided dataframe
@@ -298,9 +301,38 @@ class MarketAnalyzer:
         all_signals["acc_dist_signal_score"] = acc_dist_signal_score
         return all_signals
 
+    def graph_intervals(self):
+
+        for period in self.__deque_dictionary.keys():
+            fig, ax = plt.subplots()
+
+            for candle in self.__deque_dictionary[period]:
+                color = 'green' if candle.close >= candle.open else 'red'
+                ax.plot([candle.time, candle.time], [candle.low, candle.high], color='black')  # Wick
+                ax.plot([candle.time, candle.time], [candle.open, candle.close], color=color, linewidth=6)  # Body
+
+
+            # Set x-ticks only for dates with data
+            dates = [candle.time for candle in self.__deque_dictionary[period]]
+            ax.set_xticks(dates)
+            ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+
+            # Rotate and resize x-axis labels
+            plt.xticks(rotation=90, fontsize=8)
+
+            ax.set_xlabel('Time')
+            ax.set_ylabel('Price')
+            ax.set_title(f'{self.__ticker_symbol} - {period} - Candlestick Chart')
+            plt.grid()
+            plt.tight_layout()  # Adjust layout to prevent clipping
+            plt.show()
+
 if __name__ == "__main__":
     analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
     trade_signal = analyzer.process_data()
+
+    analyzer.graph_intervals()
+
     if trade_signal >= 15:
         print("BUY Recommendation")
     elif trade_signal <= -15:

@@ -136,7 +136,7 @@ class Candle:
         # Nothing done with notes yet either but may be useful for debugging purposes in future
         self.__notes = []
 
-        # The following section are properties that can easily be calculated from the provided properties
+        # The following section is properties that can easily be calculated from the provided properties
         # such as the spread and whether it's an up or down candle.
         self.__up_bar = close > candle_open
         self.__spread = abs(close - candle_open)
