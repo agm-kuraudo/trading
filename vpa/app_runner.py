@@ -80,7 +80,7 @@ class MarketAnalyzer:
             self.__logger.log(f"Processing row: {index}", level="DEBUG")
             # Step 3: Create a new Candle object with the supplied properties for each new row
 
-            if previous_close is not None:
+            if previous_close != 0:
                 open_price = previous_close
             else:
                 open_price = row['Open']
