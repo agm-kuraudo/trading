@@ -72,12 +72,26 @@ class MarketAnalyzer:
         # Get the last index
         last_index = self.myDF.index[-1]
 
+        previous_close = 0
+
         for index, row in self.myDF.iterrows():
             if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
                 break
             self.__logger.log(f"Processing row: {index}", level="DEBUG")
             # Step 3: Create a new Candle object with the supplied properties for each new row
-            this_candle = Candle(row['Date'], row['Volume'], row['Open'], row['High'], row['Low'], row['Close'])
+
+            if previous_close is not None:
+                open_price = previous_close
+            else:
+                open_price = row['Open']
+
+            # Adjust high and low if needed
+            high = max(row['High'], open_price)
+            low = min(row['Low'], open_price)
+
+            this_candle = Candle(row['Date'], row['Volume'], open_price, high, low, row['Close'])
+            previous_close = this_candle.close
+
             self.__logger.log(f"New candle created: {this_candle}", level="DEBUG")
             # Step 3.1: The candle is added to each of our rolling windows
             for key in self.__deque_dictionary.keys():
@@ -89,7 +103,7 @@ class MarketAnalyzer:
                 if self.__rolling_window_complete_msg_display:
                     self.__logger.log("We now have enough data for all our rolling windows", level="INFO")
                     self.__rolling_window_complete_msg_display = False
-            # Step 5: Update the spread and volumetric percentiles to understand relative size and strength of each Candle
+            # Step 5: Update the spread and volumetric percentiles to understand the relative size and strength of each Candle
             self.update_percentiles()
 
             if index == last_index:
