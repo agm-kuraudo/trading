@@ -324,6 +324,7 @@ class MarketAnalyzer:
                 'High': [candle.high for candle in candles],
                 'Low': [candle.low for candle in candles],
                 'Close': [candle.close for candle in candles],
+                'Volume': [candle.volume for candle in candles]  # Include volume
             }
             df = pd.DataFrame(data)
             df.set_index('Date', inplace=True)
@@ -336,7 +337,7 @@ class MarketAnalyzer:
                 style='charles',
                 title=f'{self.__ticker_symbol} - {period} - Candlestick Chart',
                 ylabel='Price',
-                volume=False,
+                volume=True,
                 tight_layout=True,
                 datetime_format='%Y-%m-%d',
                 xrotation=90,
