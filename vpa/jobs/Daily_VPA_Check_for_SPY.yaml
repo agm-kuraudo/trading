@@ -1,0 +1,27 @@
+- defaultTab: nodes
+  description: ''
+  executionEnabled: true
+  id: bef115f6-fb63-4a01-965f-b099f3f6daf9
+  loglevel: INFO
+  name: Daily VPA Check for SPY
+  nodeFilterEditable: false
+  plugins:
+    ExecutionLifecycle: {}
+  schedule:
+    month: '*'
+    time:
+      hour: '08'
+      minute: '30'
+      seconds: '0'
+    weekday:
+      day: '*'
+    year: '*'
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - autoSecureInput: 'false'
+      passSecureInput: 'false'
+      scriptfile: /usr/local/trading/vpa/scripts/start_vpa.sh
+    keepgoing: false
+    strategy: node-first
+  uuid: bef115f6-fb63-4a01-965f-b099f3f6daf9

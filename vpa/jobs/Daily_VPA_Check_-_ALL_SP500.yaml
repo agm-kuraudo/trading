@@ -1,0 +1,27 @@
+- defaultTab: nodes
+  description: ''
+  executionEnabled: true
+  id: 5204b47e-c0c5-44cc-8d76-37e7b95ee033
+  loglevel: INFO
+  name: Daily VPA Check - ALL SP500
+  nodeFilterEditable: false
+  plugins:
+    ExecutionLifecycle: {}
+  schedule:
+    month: '*'
+    time:
+      hour: '08'
+      minute: '10'
+      seconds: '0'
+    weekday:
+      day: '2,3,4,5,6'
+    year: '*'
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - autoSecureInput: 'false'
+      passSecureInput: 'false'
+      scriptfile: /usr/local/trading/vpa/scripts/start_vpa_all_shares.sh
+    keepgoing: false
+    strategy: node-first
+  uuid: 5204b47e-c0c5-44cc-8d76-37e7b95ee033
