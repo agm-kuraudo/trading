@@ -1,10 +1,17 @@
+import os
 from vpa.app_runner import MarketAnalyzer
 import pandas as pd
+from datetime import datetime
 
 tickers = []
 
 # Open the file in read mode
-with open('D:/projects/trading/vpa/data/SP500-tickers.csv', 'r') as file:
+
+absolute_path = os.path.dirname(__file__)
+relative_path = "data/"
+full_path = os.path.join(absolute_path, relative_path)
+
+with open(os.path.join(full_path, 'SP500-tickers.csv'), 'r') as file:
     # Read each line in the file
     for line in file:
         # Process the line (e.g., print it)
@@ -27,10 +34,28 @@ print(df)
 # Sort the dataframe by signal_score in descending order
 df_sorted = df.sort_values(by='signal_score', ascending=False)
 
+absolute_path = os.path.dirname(__file__)
+relative_path = "log/"
+full_path = os.path.join(absolute_path, relative_path)
+# Get the current date and time
+current_time = datetime.now().strftime("%Y%m%d")
+log_filename = f"share_output_{current_time}.txt"
+
+log_file = open(os.path.join(full_path, log_filename), "a")
+
 # Print the top five rows
-print("Top 5 rows:")
-print(df_sorted.head(5))
+log_file.write("\nTop 5 rows:\n")
+log_file.write(df_sorted.head(5).to_string())
 
 # Print the bottom five rows
-print("Bottom 5 rows:")
-print(df_sorted.tail(5))
+log_file.write("\nBottom 5 rows:\n")
+log_file.write(df_sorted.tail(5).to_string())
+
+log_file.flush()
+log_file.close()
+
+
+
+
+
+
