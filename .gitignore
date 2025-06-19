@@ -1,6 +1,5 @@
 *.pyc
 *.png
-vpa/data
 vpa/log
 test_data
 tmp
