@@ -349,6 +349,10 @@ class MarketAnalyzer:
             # Save raw data to CSV with 2 decimal places
             df.round(1).to_csv(csv_filename)
 
+    def log(self, log_message):
+        self.__logger.log(log_message, level="INFO")
+
+
 if __name__ == "__main__":
     analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
     trade_signal = analyzer.process_data()
@@ -356,8 +360,8 @@ if __name__ == "__main__":
     analyzer.graph_intervals()
 
     if trade_signal >= 15:
-        print("BUY Recommendation")
+        analyzer.log("BUY Recommendation")
     elif trade_signal <= -15:
-        print("SELL Recommendation")
+        analyzer.log("SELL Recommendation")
     else:
-        print("DO NOT TRADE")
+        analyzer.log("DO NOT TRADE")
