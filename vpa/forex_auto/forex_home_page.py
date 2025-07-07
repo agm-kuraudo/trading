@@ -7,7 +7,7 @@ from vpa.forex_auto.base_page import BasePage
 
 
 class ForexPage(BasePage):
-    __url = "https://www.forexrobotacademy.com/forex-historical-data"
+    __url = "https://forexsb.com/historical-forex-data"
     __load_button = (By.XPATH, "/html//button[@id='btn-load-data']")
     __forex_data_download = (By.LINK_TEXT, "GBPUSD_D1.csv")
     __body_element = (By.XPATH, "//body")
@@ -18,6 +18,9 @@ class ForexPage(BasePage):
     def open(self):
         super()._open_url(self.__url)
         super()._click(self.__body_element)
+
+
+
 
     def load_data(self):
         super()._click(self.__load_button)
