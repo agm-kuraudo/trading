@@ -278,7 +278,7 @@ class Candle:
 class DebugLog:
     LEVELS = {"DEBUG": 10, "INFO": 20, "WARN": 30, "ERROR": 40}
 
-    def __init__(self, level="DEBUG"):
+    def __init__(self, level="DEBUG", file_prefix="debug_log"):
         self.level = self.LEVELS.get(level, 10)
         absolute_path = os.path.dirname(__file__)
         relative_path = "log/"
@@ -286,7 +286,7 @@ class DebugLog:
 
         # Get the current date and time
         current_time = datetime.now().strftime("%Y%m%d")
-        log_filename = f"debug_log_{current_time}.txt"
+        log_filename = f"{file_prefix}_{current_time}.txt"
 
         self.log_file = open(os.path.join(full_path, log_filename), "a")
         print("Writing log messages to: ", self.log_file.name)

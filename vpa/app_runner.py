@@ -10,12 +10,12 @@ import mplfinance as mpf
 
 #Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
 class MarketAnalyzer:
-    def __init__(self, config_path, ticker_symbol=None, log_level="INFO", fixed_df=None):
+    def __init__(self, config_path, ticker_symbol=None, log_level="INFO", fixed_df=None, log_prefix="debug_log"):
         # Load configuration from the JSON file
         self.__ticker_symbol = ticker_symbol
         self.__config = None
         self.load_config(config_path)
-        self.__logger = DebugLog(level=log_level)
+        self.__logger = DebugLog(level=log_level, file_prefix=log_prefix)
         # Set up rolling windows for different periods
         self.__deque_dictionary = {
             "period_one": deque(maxlen=self.__config["PERIOD_ONE_LENGTH"]),
@@ -354,7 +354,7 @@ class MarketAnalyzer:
 
 
 if __name__ == "__main__":
-    analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY")
+    analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol="SPY", log_prefix="SPY")
     trade_signal = analyzer.process_data()
 
     analyzer.graph_intervals()
