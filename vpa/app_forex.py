@@ -61,9 +61,14 @@ else:
 recent_files.sort(key=lambda f: os.path.getmtime(os.path.join(downloads_folder, f)), reverse=True)
 
 my_df = pd.read_csv(os.path.join(downloads_folder, recent_files[0]), sep="\t", index_col=False).tail(100)
+os.remove(os.path.join(downloads_folder, recent_files[0]))
 
 my_df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
+my_df['Date'] = pd.to_datetime(my_df['Date'])
+
 print(my_df.head(5))
 
-analyzer = MarketAnalyzer(config_path="config/config.json", log_level="INFO", fixed_df=my_df)
+analyzer = MarketAnalyzer(config_path="config/config.json", log_level="INFO", fixed_df=my_df, ticker_symbol="GBPUSD")
 signal_score = analyzer.process_data()
+
+analyzer.graph_intervals()
