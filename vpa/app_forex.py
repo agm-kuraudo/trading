@@ -89,6 +89,13 @@ my_df['Date'] = pd.to_datetime(my_df['Date'])
 print(my_df.head(5))
 
 analyzer = MarketAnalyzer(config_path="config/config.json", log_level="INFO", fixed_df=my_df, ticker_symbol="GBPUSD", log_prefix="GBPUSD")
-signal_score = analyzer.process_data()
+trade_signal = analyzer.process_data()
 
 analyzer.graph_intervals()
+
+if trade_signal >= 15:
+    analyzer.log("BUY Recommendation")
+elif trade_signal <= -15:
+    analyzer.log("SELL Recommendation")
+else:
+    analyzer.log("DO NOT TRADE")
