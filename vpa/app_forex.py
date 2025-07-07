@@ -26,7 +26,7 @@ options.set_preference("browser.download.manager.showWhenStarting", False)
 options.set_preference("browser.download.useDownloadDir", True)
 options.set_preference("browser.download.panel.shown", False)
 # Optional: run headless
-#options.add_argument("--headless")
+options.add_argument("--headless")
 
 service = Service('/usr/local/bin/geckodriver')
 driver = webdriver.Firefox(service=service, options=options)
@@ -80,7 +80,7 @@ else:
 
 recent_files.sort(key=lambda f: os.path.getmtime(os.path.join(downloads_folder, f)), reverse=True)
 
-my_df = pd.read_csv(os.path.join(downloads_folder, recent_files[0]), sep="\t", index_col=False).tail(100)
+my_df = pd.read_csv(os.path.join(downloads_folder, recent_files[0]), sep="\t", index_col=False).tail(51)
 os.remove(os.path.join(downloads_folder, recent_files[0]))
 
 my_df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']

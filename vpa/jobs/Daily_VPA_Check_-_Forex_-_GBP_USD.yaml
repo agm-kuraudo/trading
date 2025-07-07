@@ -1,0 +1,27 @@
+- defaultTab: nodes
+  description: ''
+  executionEnabled: true
+  id: face548c-92d1-4d30-b190-bee689185185
+  loglevel: INFO
+  name: Daily VPA Check - Forex - GBP USD
+  nodeFilterEditable: false
+  plugins:
+    ExecutionLifecycle: {}
+  schedule:
+    month: '*'
+    time:
+      hour: '09'
+      minute: '30'
+      seconds: '0'
+    weekday:
+      day: '2,3,4,5,6'
+    year: '*'
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - autoSecureInput: 'false'
+      passSecureInput: 'false'
+      scriptfile: /usr/local/trading/vpa/scripts/start_vpa_forex.sh
+    keepgoing: false
+    strategy: node-first
+  uuid: face548c-92d1-4d30-b190-bee689185185
