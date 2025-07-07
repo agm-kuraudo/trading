@@ -10,10 +10,29 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
 from datetime import datetime, timedelta
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 
-driver = webdriver.Chrome()
+# Set your desired download directory
+download_dir = "/home/mypi/Downloads"  # Change this to your actual path
+
+# Configure Firefox options
+options = Options()
+options.set_preference("browser.download.folderList", 2)  # Use custom download dir
+options.set_preference("browser.download.dir", download_dir)
+options.set_preference("browser.helperApps.neverAsk.saveToDisk", "text/csv,application/csv")
+options.set_preference("pdfjs.disabled", True)  # Disable built-in PDF viewer
+options.set_preference("browser.download.manager.showWhenStarting", False)
+options.set_preference("browser.download.useDownloadDir", True)
+options.set_preference("browser.download.panel.shown", False)
+# Optional: run headless
+#options.add_argument("--headless")
+
+service = Service('/usr/local/bin/geckodriver')
+driver = webdriver.Firefox(service=service, options=options)
+
 driver.get("https://forexsb.com/historical-forex-data")
-driver.set_window_size(1920, 1044)
+#driver.set_window_size(1920, 1044)
 driver.switch_to.frame(0)
 driver.find_element(By.ID, "select-symbol").click()
 dropdown = driver.find_element(By.ID, "select-symbol")
@@ -28,9 +47,10 @@ dropdown = Select(driver.find_element("id", "select-format"))
 # Select the option by visible text
 dropdown.select_by_visible_text("Excel (CSV)")
 # Wait up to 10 seconds for the link to be clickable
-wait = WebDriverWait(driver, 10)
+wait = WebDriverWait(driver, 20)
 download_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "GBPUSD_D1.csv")))
-download_link.click()
+#download_link.click()
+driver.execute_script("arguments[0].click();", download_link)
 
 # Wait long enough for the file to download
 time.sleep(10)
