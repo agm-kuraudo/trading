@@ -5,7 +5,6 @@
 # Iron Butterfly: A variation of the iron condor where the two short strikes are identical (usually at-the-money), creating a narrower but higher-potential profit peak.
 # Long Inverse Skip Butterfly: A "Skip" butterfly typically skips one of the long wings to create a directional bias. An inverse version flips the standard butterfly into a net credit or "short" body position to profit from a move in one direction without the risk of the skipped wing.
 
-# Assuming your OptionStrategy class is defined here or imported
 from options_payoffs import OptionStrategy
 
 def run_advanced_strategies():
