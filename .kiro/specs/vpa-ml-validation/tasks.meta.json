@@ -1,0 +1,466 @@
+{
+  "pbtResults": {
+    "2.2 Write property test for ConclusionEngine (Property 12)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787144282215
+    },
+    "3.2 Write property test for chronological ordering (Property 9)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787144784406
+    },
+    "3.3 Write property test for fold skip threshold (Property 10)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787144815707
+    },
+    "5.3 Write property tests for feature extraction (Properties 1, 2)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787145826576
+    },
+    "5.4 Write property tests for labelling and dataset shape (Properties 3, 4, 5)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787145855023
+    },
+    "6.3 Write property tests for baseline and feature importance (Properties 6, 7, 8, 11)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787146453263
+    },
+    "8.2 Write property test for reproducibility (Property 13)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787146940714
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the `vpa/ml_validation/` package directory with `__init__.py`, and `vpa/tests/ml_validation/` test package with `__init__.py`": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143684887
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143695734
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143935768
+      }
+    ],
+    "1.2 Create the custom exception class and shared data models": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143684990
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143696499
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143936489
+      }
+    ],
+    "1.3 Add `enable_feature_extraction` field to config.json (default `false`)": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685112
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143697367
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143937280
+      }
+    ],
+    "2.1 Implement `vpa/ml_validation/conclusion.py` with `ConclusionEngine.determine_conclusion()`": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685204
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143942195
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144118340
+      }
+    ],
+    "2.2 Write property test for ConclusionEngine (Property 12)": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685297
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144125003
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144889810
+      }
+    ],
+    "2.3 Write unit tests for ConclusionEngine boundary cases": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685371
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144125666
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144890642
+      }
+    ],
+    "3.1 Implement `vpa/ml_validation/walk_forward.py` with `WalkForwardValidator.validate()`": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685437
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143942947
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144119214
+      }
+    ],
+    "3.2 Write property test for chronological ordering (Property 9)": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685520
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144126433
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144891305
+      }
+    ],
+    "3.3 Write property test for fold skip threshold (Property 10)": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685600
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144127172
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144892078
+      }
+    ],
+    "3.4 Write unit tests for WalkForwardValidator edge cases": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685686
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144127933
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144892860
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143685832
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144898756
+      },
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144966530
+      }
+    ],
+    "5.1 Implement `vpa/ml_validation/feature_extractor.py` with `VPAFeatureExtractor.__init__()` and `_extract_feature_vector()`": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686204
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145042598
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145280757
+      }
+    ],
+    "5.2 Implement `VPAFeatureExtractor.generate_dataset()`": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686283
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145288793
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145706750
+      }
+    ],
+    "6.1 Implement `vpa/ml_validation/analysis.py` — baseline accuracy and feature importance methods": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686356
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145711370
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146121888
+      }
+    ],
+    "6.2 Implement `vpa/ml_validation/analysis.py` — walk-forward orchestration, conclusion, and output generation": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686492
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146126698
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146313894
+      }
+    ],
+    "7. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686571
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146562057
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146643363
+      }
+    ],
+    "8.1 Implement `vpa/ml_validation/run_analysis.py` — CLI entry point": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686669
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146644224
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146799831
+      }
+    ],
+    "9. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143686751
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787147060209
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787147231537
+      }
+    ],
+    "1. Set up module structure, dependencies, and shared utilities": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787143937357
+      }
+    ],
+    "2. Implement ConclusionEngine (pure logic, no dependencies)": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144890724
+      }
+    ],
+    "3. Implement WalkForwardValidator": [
+      {
+        "executionId": "fdfd8255-5e19-49e2-9e36-016aac5cd47a",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787144892944
+      }
+    ],
+    "5.3 Write property tests for feature extraction (Properties 1, 2)": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145712144
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146118964
+      }
+    ],
+    "5.4 Write property tests for labelling and dataset shape (Properties 3, 4, 5)": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145712895
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146119966
+      }
+    ],
+    "5.5 Write unit tests for VPAFeatureExtractor": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787145713709
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146120771
+      }
+    ],
+    "5. Implement VPAFeatureExtractor": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146120900
+      }
+    ],
+    "6.3 Write property tests for baseline and feature importance (Properties 6, 7, 8, 11)": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146318725
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146555553
+      }
+    ],
+    "6.4 Write unit tests for AnalysisScript": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146319495
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146556289
+      }
+    ],
+    "6. Implement AnalysisScript": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146556367
+      }
+    ],
+    "8.2 Write property test for reproducibility (Property 13)": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146805845
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787147054199
+      }
+    ],
+    "8.3 Write integration tests for the full pipeline": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787146806625
+      },
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787147055093
+      }
+    ],
+    "8. Implement entry point and wire pipeline end-to-end": [
+      {
+        "executionId": "39ab6d26-2525-4541-a4a9-5582e5a81e92",
+        "chatSessionId": "sess_d9a14667-28e8-4c9a-8d32-9a892d666387",
+        "timestamp": 1787147055183
+      }
+    ]
+  }
+}
