@@ -1,4 +1,5 @@
 {
+  "enable_feature_extraction": false,
   "use_real_data": true,
   "rolling_window_complete_msg_display": true,
   "MAX_ROWS": 5002,
