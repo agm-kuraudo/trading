@@ -42,14 +42,17 @@ df = pd.DataFrame(columns=['ticker', 'signal_score'])
 dataframes: dict[str, pd.DataFrame] = {}
 
 for ticker in tickers:
-    analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol=ticker, log_level="ERROR")
-    signal_score = analyzer.process_data()
+    try:
+        analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol=ticker, log_level="ERROR")
+        signal_score = analyzer.process_data()
 
-    new_row = {'ticker': ticker, 'signal_score': round(signal_score, 1)}
-    df.loc[len(df)] = new_row
+        new_row = {'ticker': ticker, 'signal_score': round(signal_score, 1)}
+        df.loc[len(df)] = new_row
 
-    # Store DataFrame for drawdown filter evaluation
-    dataframes[ticker] = analyzer.get_dataframe()
+        # Store DataFrame for drawdown filter evaluation
+        dataframes[ticker] = analyzer.get_dataframe()
+    except Exception as e:
+        print(f"Skipping {ticker}: {e}")
 
 print(df)
 
