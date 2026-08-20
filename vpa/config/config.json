@@ -29,6 +29,12 @@
       "below_two": 2
     }
   },
+  "drawdown_filter": {
+    "enabled": true,
+    "drawdown_threshold": 20,
+    "momentum_period": 20,
+    "data_days": 365
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,

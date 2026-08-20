@@ -29,6 +29,9 @@ class MarketAnalyzer:
         # Initialize MA crossover configuration
         self._init_ma_config()
 
+        # Initialize drawdown filter configuration
+        self._init_drawdown_config()
+
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
             self.load_data()
@@ -104,6 +107,32 @@ class MarketAnalyzer:
 
         self.__ma_enabled = True
 
+    def _init_drawdown_config(self):
+        """Load drawdown filter config for data window coordination.
+
+        Sets self.__drawdown_enabled (bool) and self.__drawdown_config (dict).
+        Only needs enabled flag and data_days for determining the data window.
+        Full validation of thresholds is handled by load_drawdown_config() at scan time.
+        """
+        section = self.__config.get("drawdown_filter", {})
+        self.__drawdown_enabled = section.get("enabled", True)
+        self.__drawdown_config = {
+            "data_days": section.get("data_days", 365),
+        }
+
+    def _get_data_days(self) -> int:
+        """Return the largest data_days across all enabled features."""
+        candidates = [100]  # base default
+        if self.__ma_enabled:
+            candidates.append(self.__ma_config["ma_data_days"])
+        if self.__drawdown_enabled:
+            candidates.append(self.__drawdown_config["data_days"])
+        return max(candidates)
+
+    def get_dataframe(self) -> pd.DataFrame:
+        """Public accessor for the loaded DataFrame."""
+        return self.myDF
+
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
         if self.__config["use_real_data"]:
@@ -116,11 +145,8 @@ class MarketAnalyzer:
                 ticker_symbol = self.__ticker_symbol
             # Get the current date
             end_date = datetime.datetime.now().date()
-            # Determine data window based on MA crossover configuration
-            if self.__ma_enabled:
-                data_days = self.__ma_config["ma_data_days"]
-            else:
-                data_days = 100
+            # Determine data window using max across all enabled features
+            data_days = self._get_data_days()
             start_date = end_date - datetime.timedelta(days=data_days)
             # Fetch the data
             self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
