@@ -1,0 +1,380 @@
+{
+  "pbtResults": {
+    "7.1 Write property test for config validation (Property 9)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787232732594
+    },
+    "3.2 Write property tests for report formatting (Properties 7–8)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787232769090
+    },
+    "1.5 Write property tests for core calculations (Properties 1–6)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787232986449
+    },
+    "4.2 Write property test for data window coordination (Property 10)": {
+      "status": "passed",
+      "lastRunTimestamp": 1787233474556
+    }
+  },
+  "executionHistory": {
+    "1.1 Create `vpa/opportunities.py` with config loading and validation": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232327794
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232337381
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232516329
+      }
+    ],
+    "1.2 Implement `compute_52_week_high()` and `compute_drawdown_percentage()`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232327876
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232522149
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232626766
+      }
+    ],
+    "1.3 Implement `compute_momentum()`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232327946
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232523760
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232627487
+      }
+    ],
+    "1.4 Implement `evaluate_ticker()`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328027
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232632868
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232827661
+      }
+    ],
+    "1.5 Write property tests for core calculations (Properties 1–6)": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328125
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232835128
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233247064
+      }
+    ],
+    "1.6 Write unit tests for config loading and edge cases": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328201
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232835822
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233247880
+      }
+    ],
+    "2. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328273
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233901117
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233978271
+      }
+    ],
+    "3.1 Implement `format_opportunities_report()`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328341
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232338087
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232517166
+      }
+    ],
+    "3.2 Write property tests for report formatting (Properties 7–8)": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328408
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232633572
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232828692
+      }
+    ],
+    "3.3 Write unit tests for report formatting": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328474
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232634273
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232829354
+      }
+    ],
+    "4.1 Add `_init_drawdown_config()` and `_get_data_days()` to `MarketAnalyzer`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328542
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232836826
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233246022
+      }
+    ],
+    "4.2 Write property test for data window coordination (Property 10)": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328605
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233257089
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233485818
+      }
+    ],
+    "4.3 Write unit tests for data window coordination": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328673
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233257818
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233486579
+      }
+    ],
+    "5. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328742
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233982681
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233987967
+      }
+    ],
+    "6.1 Add `drawdown_filter` section to `vpa/config/config.json`": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328840
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232523868
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232628385
+      }
+    ],
+    "6.2 Integrate filter into `app_all_shares.py` scan loop": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232328937
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233497410
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233754793
+      }
+    ],
+    "6.3 Write integration tests with synthetic DataFrames": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232329007
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233763256
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233896250
+      }
+    ],
+    "7.1 Write property test for config validation (Property 9)": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232329089
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232635067
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232830308
+      }
+    ],
+    "8. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232329155
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233992704
+      },
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787234216118
+      }
+    ],
+    "3. Report formatting and output": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232829479
+      }
+    ],
+    "7. Add config validation for invalid momentum_period (Property 9)": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787232830394
+      }
+    ],
+    "1. Create filter module with configuration and core calculations": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233247996
+      }
+    ],
+    "4. Data window coordination in MarketAnalyzer": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233486855
+      }
+    ],
+    "6. Integration and configuration": [
+      {
+        "executionId": "b3386599-24bd-4f83-8eba-8bc3bd654921",
+        "chatSessionId": "sess_342b625d-22e5-4e68-be4b-e7b6e3bc14df",
+        "timestamp": 1787233896395
+      }
+    ]
+  }
+}
