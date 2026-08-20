@@ -20,7 +20,7 @@ DEFAULT_DRAWDOWN_CONFIG = {
     "enabled": True,
     "drawdown_threshold": 20,
     "momentum_period": 20,
-    "data_days": 365,
+    "data_days": 400,
 }
 
 

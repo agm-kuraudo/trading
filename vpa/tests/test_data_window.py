@@ -312,7 +312,7 @@ class TestDataWindowCoordination:
             os.unlink(config_path)
 
     def test_no_drawdown_section_uses_defaults(self):
-        """When drawdown_filter section is absent, defaults are applied (enabled=True, data_days=365).
+        """When drawdown_filter section is absent, defaults are applied (enabled=True, data_days=400).
 
         Validates: Requirements 7.1, 7.2
         """
@@ -339,8 +339,8 @@ class TestDataWindowCoordination:
 
             # Drawdown should be enabled by default
             assert analyzer._MarketAnalyzer__drawdown_enabled is True
-            # data_days default is 365, which is > MA's 300
-            assert analyzer._get_data_days() == 365
+            # data_days default is 400, which is > MA's 300
+            assert analyzer._get_data_days() == 400
         finally:
             os.unlink(config_path)
 

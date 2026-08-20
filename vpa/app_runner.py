@@ -117,7 +117,7 @@ class MarketAnalyzer:
         section = self.__config.get("drawdown_filter", {})
         self.__drawdown_enabled = section.get("enabled", True)
         self.__drawdown_config = {
-            "data_days": section.get("data_days", 365),
+            "data_days": section.get("data_days", 400),
         }
 
     def _get_data_days(self) -> int:

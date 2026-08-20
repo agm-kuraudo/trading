@@ -525,7 +525,7 @@ class TestConfigDefaults:
         assert result["enabled"] is True
         assert result["drawdown_threshold"] == 20
         assert result["momentum_period"] == 20
-        assert result["data_days"] == 365
+        assert result["data_days"] == 400
 
     def test_empty_section_uses_all_defaults(self):
         config = {"drawdown_filter": {}}
@@ -533,7 +533,7 @@ class TestConfigDefaults:
         assert result["enabled"] is True
         assert result["drawdown_threshold"] == 20
         assert result["momentum_period"] == 20
-        assert result["data_days"] == 365
+        assert result["data_days"] == 400
 
 
 class TestConfigValidParsing:
@@ -560,7 +560,7 @@ class TestConfigValidParsing:
         assert result["drawdown_threshold"] == 15
         assert result["enabled"] is True
         assert result["momentum_period"] == 20
-        assert result["data_days"] == 365
+        assert result["data_days"] == 400
 
 
 class TestConfigEnabledFlag:
