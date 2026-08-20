@@ -204,8 +204,8 @@ class TestOutputFileCreation:
 
         assert "feature_name" in df.columns
         assert "importance_score" in df.columns
-        # Should have exactly 27 features
-        assert len(df) == 27
+        # Should have exactly 29 features (including rsi_value and rsi_signal_score)
+        assert len(df) == 29
 
     @patch("vpa.ml_validation.feature_extractor.yf.download")
     def test_feature_importance_scores_sum_to_one(self, mock_yf_download, tmp_path):

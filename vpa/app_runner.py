@@ -32,6 +32,9 @@ class MarketAnalyzer:
         # Initialize drawdown filter configuration
         self._init_drawdown_config()
 
+        # Initialize RSI configuration
+        self._init_rsi_config()
+
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
             self.load_data()
@@ -120,6 +123,47 @@ class MarketAnalyzer:
             "data_days": section.get("data_days", 400),
         }
 
+    def _init_rsi_config(self):
+        """Load and validate the rsi configuration section.
+
+        Sets self.__rsi_config (dict) and self.__rsi_enabled (bool).
+        Uses defaults if the section is missing. Validates that
+        oversold_threshold < overbought_threshold, logging a warning
+        and disabling RSI on invalid configuration.
+        """
+        rsi_defaults = {
+            "enabled": True,
+            "period": 14,
+            "overbought_threshold": 70,
+            "oversold_threshold": 30,
+            "scores": {"overbought": -5, "oversold": 5}
+        }
+
+        # Use config section if present, otherwise use defaults
+        if "rsi" in self.__config:
+            self.__rsi_config = self.__config["rsi"]
+        else:
+            self.__rsi_config = rsi_defaults
+
+        # Check enabled flag
+        if not self.__rsi_config.get("enabled", True):
+            self.__rsi_enabled = False
+            return
+
+        # Validate thresholds: oversold must be less than overbought
+        oversold = self.__rsi_config.get("oversold_threshold", 30)
+        overbought = self.__rsi_config.get("overbought_threshold", 70)
+
+        if oversold >= overbought:
+            self.__logger.log(
+                f"RSI disabled: invalid thresholds (oversold={oversold} >= overbought={overbought})",
+                level="WARN"
+            )
+            self.__rsi_enabled = False
+            return
+
+        self.__rsi_enabled = True
+
     def _get_data_days(self) -> int:
         """Return the largest data_days across all enabled features."""
         candidates = [100]  # base default
@@ -184,6 +228,23 @@ class MarketAnalyzer:
         self.myDF["SMA_long"] = self.myDF["Close"].rolling(
             window=periods["long"], min_periods=periods["long"]
         ).mean()
+
+    def compute_rsi_column(self):
+        """Pre-compute RSI column on self.myDF."""
+        if not self.__rsi_enabled:
+            return
+
+        from vpa.rsi import calculate_rsi
+
+        period = self.__rsi_config.get("period", 14)
+        closes = self.myDF["Close"].tolist()
+        rsi_values = []
+
+        for i in range(len(closes)):
+            rsi_val = calculate_rsi(closes[:i + 1], period)
+            rsi_values.append(rsi_val)
+
+        self.myDF["RSI"] = rsi_values
 
     def detect_ma_signals(self, row_index):
         """Detect MA crossover and price position signals for the given row.
@@ -275,6 +336,46 @@ class MarketAnalyzer:
 
         return {"ma_crossover_signals": signals_list, "ma_crossover_signal_score": total_score}
 
+    def detect_rsi_signals(self, row_index: int) -> dict:
+        """Detect RSI overbought/oversold signals for the given row.
+
+        Returns:
+            dict with keys: rsi_signals (list[str]), rsi_signal_score (float)
+        """
+        if not self.__rsi_enabled:
+            return {"rsi_signals": [], "rsi_signal_score": 0.0}
+
+        current_row = self.myDF.iloc[row_index]
+        rsi_value = current_row.get("RSI", 50.0)
+
+        if pd.isna(rsi_value):
+            return {"rsi_signals": [], "rsi_signal_score": 0.0}
+
+        # Check if we have sufficient data for RSI calculation
+        rsi_period = self.__rsi_config.get("period", 14)
+        if row_index < rsi_period:
+            return {"rsi_signals": [], "rsi_signal_score": 0.0}
+
+        overbought = self.__rsi_config.get("overbought_threshold", 70)
+        oversold = self.__rsi_config.get("oversold_threshold", 30)
+        scores = self.__rsi_config.get("scores", {"overbought": -5, "oversold": 5})
+
+        signals_list = []
+        total_score = 0.0
+
+        if rsi_value > overbought:
+            signals_list.append("RSI Overbought")
+            total_score += scores["overbought"]
+        elif rsi_value < oversold:
+            signals_list.append("RSI Oversold")
+            total_score += scores["oversold"]
+
+        self.__logger.log(f"RSI: {rsi_value:.2f}", level="INFO")
+        if signals_list:
+            self.__logger.log(f"RSI Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
+
+        return {"rsi_signals": signals_list, "rsi_signal_score": total_score}
+
     def process_data(self):
         # Step 2: Loop around each item in the data frame
 
@@ -282,6 +383,9 @@ class MarketAnalyzer:
 
         # Pre-compute SMA columns for MA crossover detection
         self.compute_sma_columns()
+
+        # Pre-compute RSI column
+        self.compute_rsi_column()
 
         # Get the last index
         last_index = self.myDF.index[-1]
@@ -343,8 +447,13 @@ class MarketAnalyzer:
             signals["ma_crossover_signals"] = ma_signals["ma_crossover_signals"]
             signals["ma_crossover_signal_score"] = ma_signals["ma_crossover_signal_score"]
 
+            # Step 6.2: Detect RSI signals
+            rsi_signals = self.detect_rsi_signals(row_position)
+            signals["rsi_signals"] = rsi_signals["rsi_signals"]
+            signals["rsi_signal_score"] = rsi_signals["rsi_signal_score"]
+
             self.__logger.log(f"signals: {signals}", level="INFO")
-            trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"] + signals["ma_crossover_signal_score"]
+            trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"] + signals["ma_crossover_signal_score"] + signals["rsi_signal_score"]
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
