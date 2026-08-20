@@ -26,17 +26,83 @@ class MarketAnalyzer:
         self.__percentiles_store = {"spread": {}, "volume": {}}
         self.__rolling_window_complete_msg_display = self.__config["rolling_window_complete_msg_display"]
 
+        # Initialize MA crossover configuration
+        self._init_ma_config()
+
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
             self.load_data()
         else:
             # Use the provided dataframe
             self.myDF = fixed_df
+            # Check if we have enough data for the long-period SMA
+            if self.__ma_enabled:
+                long_period = self.__ma_config.get("ma_periods", {}).get("long", 200)
+                if len(self.myDF) < long_period:
+                    self.__logger.log(
+                        f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
+                        level="WARN"
+                    )
+                    self.__ma_enabled = False
 
     def load_config(self, config_path):
         # Load configuration from JSON file
         with open(config_path, 'r') as file:
             self.__config = json.load(file)
+
+    def _init_ma_config(self):
+        """Load and validate the ma_crossover configuration section.
+
+        Sets self.__ma_config (dict) and self.__ma_enabled (bool).
+        Uses defaults if the section is missing. Validates period ordering
+        and ma_data_days, logging warnings on invalid configuration.
+        """
+        ma_defaults = {
+            "enabled": True,
+            "ma_periods": {"short": 10, "medium": 50, "long": 200},
+            "ma_data_days": 300,
+            "crossover_scores": {"short_medium": 5, "short_long": 8, "medium_long": 10},
+            "position_scores": {"above_all": 5, "below_all": 5, "above_two": 2, "below_two": 2}
+        }
+
+        # Use config section if present, otherwise use defaults
+        if "ma_crossover" in self.__config:
+            self.__ma_config = self.__config["ma_crossover"]
+        else:
+            self.__ma_config = ma_defaults
+
+        # Check enabled flag
+        if not self.__ma_config.get("enabled", True):
+            self.__ma_enabled = False
+            return
+
+        # Validate period ordering: short < medium < long
+        periods = self.__ma_config.get("ma_periods", ma_defaults["ma_periods"])
+        short = periods.get("short", 10)
+        medium = periods.get("medium", 50)
+        long_period = periods.get("long", 200)
+
+        if short >= medium or medium >= long_period:
+            self.__logger.log(
+                f"MA crossover disabled: invalid period ordering (short={short}, medium={medium}, long={long_period}). "
+                f"Periods must satisfy short < medium < long.",
+                level="WARN"
+            )
+            self.__ma_enabled = False
+            return
+
+        # Validate ma_data_days > long period; auto-correct if not
+        ma_data_days = self.__ma_config.get("ma_data_days", ma_defaults["ma_data_days"])
+        if ma_data_days <= long_period:
+            corrected = long_period + 100
+            self.__logger.log(
+                f"MA crossover: ma_data_days ({ma_data_days}) <= long period ({long_period}). "
+                f"Auto-correcting to {corrected}.",
+                level="WARN"
+            )
+            self.__ma_config["ma_data_days"] = corrected
+
+        self.__ma_enabled = True
 
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
@@ -50,9 +116,13 @@ class MarketAnalyzer:
                 ticker_symbol = self.__ticker_symbol
             # Get the current date
             end_date = datetime.datetime.now().date()
-            # Get the date one year ago from today
-            start_date = end_date - datetime.timedelta(days=100)
-            # Fetch the data for the last year
+            # Determine data window based on MA crossover configuration
+            if self.__ma_enabled:
+                data_days = self.__ma_config["ma_data_days"]
+            else:
+                data_days = 100
+            start_date = end_date - datetime.timedelta(days=data_days)
+            # Fetch the data
             self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
             self.myDF = self.myDF.reset_index()
             self.myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
@@ -64,16 +134,135 @@ class MarketAnalyzer:
         self.myDF = self.myDF.sort_values("Date", axis=0)
         self.__logger.log(f"Data loaded: {self.myDF.shape} rows", level="INFO")
 
+        # Check if we have enough data for the long-period SMA
+        if self.__ma_enabled:
+            long_period = self.__ma_config.get("ma_periods", {}).get("long", 200)
+            if len(self.myDF) < long_period:
+                self.__logger.log(
+                    f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
+                    level="WARN"
+                )
+                self.__ma_enabled = False
+
+    def compute_sma_columns(self):
+        """Pre-compute SMA columns on self.myDF. Called once before row-by-row processing."""
+        if not self.__ma_enabled:
+            return
+        periods = self.__ma_config["ma_periods"]
+        self.myDF["SMA_short"] = self.myDF["Close"].rolling(
+            window=periods["short"], min_periods=periods["short"]
+        ).mean()
+        self.myDF["SMA_medium"] = self.myDF["Close"].rolling(
+            window=periods["medium"], min_periods=periods["medium"]
+        ).mean()
+        self.myDF["SMA_long"] = self.myDF["Close"].rolling(
+            window=periods["long"], min_periods=periods["long"]
+        ).mean()
+
+    def detect_ma_signals(self, row_index):
+        """Detect MA crossover and price position signals for the given row.
+
+        Args:
+            row_index: Integer index into self.myDF
+
+        Returns:
+            dict with keys: ma_crossover_signals (list[str]), ma_crossover_signal_score (float)
+        """
+        if not self.__ma_enabled:
+            return {"ma_crossover_signals": [], "ma_crossover_signal_score": 0}
+
+        current_row = self.myDF.iloc[row_index]
+        sma_short = current_row["SMA_short"]
+        sma_medium = current_row["SMA_medium"]
+        sma_long = current_row["SMA_long"]
+        close = current_row["Close"]
+
+        # If any current SMA is NaN, return zero score
+        if pd.isna(sma_short) or pd.isna(sma_medium) or pd.isna(sma_long):
+            return {"ma_crossover_signals": [], "ma_crossover_signal_score": 0}
+
+        # Log SMA values
+        self.__logger.log(
+            f"SMA_Short: {sma_short:.2f}, SMA_Medium: {sma_medium:.2f}, SMA_Long: {sma_long:.2f}",
+            level="INFO"
+        )
+
+        signals_list = []
+        total_score = 0
+
+        # Crossover detection - only if we have a previous row
+        crossover_pairs = [
+            ("SMA_short", "SMA_medium", "short/medium", "short_medium"),
+            ("SMA_short", "SMA_long", "short/long", "short_long"),
+            ("SMA_medium", "SMA_long", "medium/long", "medium_long"),
+        ]
+
+        if row_index > 0:
+            prev_row = self.myDF.iloc[row_index - 1]
+
+            for faster_col, slower_col, pair_name, score_key in crossover_pairs:
+                prev_faster = prev_row[faster_col]
+                prev_slower = prev_row[slower_col]
+
+                # Skip pair if any previous SMA is NaN
+                if pd.isna(prev_faster) or pd.isna(prev_slower):
+                    continue
+
+                curr_faster = current_row[faster_col]
+                curr_slower = current_row[slower_col]
+
+                crossover_score = self.__ma_config["crossover_scores"][score_key]
+
+                # Golden Cross: prev_faster < prev_slower AND curr_faster >= curr_slower
+                if prev_faster < prev_slower and curr_faster >= curr_slower:
+                    signals_list.append(f"Golden Cross ({pair_name})")
+                    total_score += crossover_score
+                    self.__logger.log(f"Golden Cross detected ({pair_name})", level="INFO")
+                # Death Cross: prev_faster > prev_slower AND curr_faster <= curr_slower
+                elif prev_faster > prev_slower and curr_faster <= curr_slower:
+                    signals_list.append(f"Death Cross ({pair_name})")
+                    total_score -= crossover_score
+                    self.__logger.log(f"Death Cross detected ({pair_name})", level="INFO")
+
+        # Price position - count how many SMAs the close is strictly above
+        sma_values = [sma_short, sma_medium, sma_long]
+        above_count = sum(1 for sma in sma_values if close > sma)
+
+        position_scores = self.__ma_config["position_scores"]
+
+        if above_count == 3:
+            signals_list.append("Price above_all")
+            total_score += position_scores["above_all"]
+        elif above_count == 0:
+            signals_list.append("Price below_all")
+            total_score -= position_scores["below_all"]
+        elif above_count == 2:
+            signals_list.append("Price above_two")
+            total_score += position_scores["above_two"]
+        else:  # above_count == 1
+            signals_list.append("Price below_two")
+            total_score -= position_scores["below_two"]
+
+        # Log summary
+        self.__logger.log(f"MA Crossover Signals: {signals_list}", level="INFO")
+        self.__logger.log(f"MA Crossover Signal Score: {total_score}", level="INFO")
+
+        return {"ma_crossover_signals": signals_list, "ma_crossover_signal_score": total_score}
+
     def process_data(self):
         # Step 2: Loop around each item in the data frame
 
         trade_signal = 0
+
+        # Pre-compute SMA columns for MA crossover detection
+        self.compute_sma_columns()
 
         # Get the last index
         last_index = self.myDF.index[-1]
 
         previous_close = 0
 
+        row_position = 0
         for index, row in self.myDF.iterrows():
             if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
                 break
@@ -98,6 +287,7 @@ class MarketAnalyzer:
                 self.__deque_dictionary[key].append(this_candle)
             # Step 4: We keep going without further action until we have enough data for all our rolling windows
             if len(self.__deque_dictionary["period_three"]) < self.__config["PERIOD_THREE_LENGTH"]:
+                row_position += 1
                 continue
             elif len(self.__deque_dictionary["period_three"]) == self.__config["PERIOD_THREE_LENGTH"]:
                 if self.__rolling_window_complete_msg_display:
@@ -121,10 +311,18 @@ class MarketAnalyzer:
 
             # Step 6: Detect signals based on the updated data
             signals = self.detect_signals(this_candle)
+
+            # Step 6.1: Detect MA crossover signals
+            ma_signals = self.detect_ma_signals(row_position)
+            signals["ma_crossover_signals"] = ma_signals["ma_crossover_signals"]
+            signals["ma_crossover_signal_score"] = ma_signals["ma_crossover_signal_score"]
+
             self.__logger.log(f"signals: {signals}", level="INFO")
-            trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"]
+            trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"] + signals["ma_crossover_signal_score"]
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
+
+            row_position += 1
 
         return trade_signal
 

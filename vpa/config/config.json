@@ -9,6 +9,26 @@
   "PERCENTILE_START": 5,
   "PERCENTILE_INCREMENTS": 5,
   "ticker_symbol": "SPY",
+  "ma_crossover": {
+    "enabled": true,
+    "ma_periods": {
+      "short": 10,
+      "medium": 50,
+      "long": 200
+    },
+    "ma_data_days": 300,
+    "crossover_scores": {
+      "short_medium": 5,
+      "short_long": 8,
+      "medium_long": 10
+    },
+    "position_scores": {
+      "above_all": 5,
+      "below_all": 5,
+      "above_two": 2,
+      "below_two": 2
+    }
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,

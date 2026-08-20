@@ -5,5 +5,5 @@ test_data
 tmp
 options/data
 /options/charts/
-venv
+.venv
 ml_validation_output/

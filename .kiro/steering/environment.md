@@ -6,10 +6,10 @@ inclusion: auto
 
 ## Python
 
-- Virtual environment location: `venv` (not `.venv`)
-- Python executable: `d:\projects\trading\venv\Scripts\python.exe`
-- To run Python: `& "d:\projects\trading\venv\Scripts\python.exe"`
-- To run pytest: `& "d:\projects\trading\venv\Scripts\python.exe" -m pytest`
+- Virtual environment location: `.venv`
+- Python executable: `d:\projects\trading\.venv\Scripts\python.exe`
+- To run Python: `& "d:\projects\trading\.venv\Scripts\python.exe"`
+- To run pytest: `& "d:\projects\trading\.venv\Scripts\python.exe" -m pytest`
 
 ## Shell
 
