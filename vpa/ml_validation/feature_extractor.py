@@ -11,12 +11,13 @@ import yfinance as yf
 
 from vpa.app import Candle, calculate_adx, identify_acc_or_dist
 from vpa.ml_validation.exceptions import InsufficientDataError
+from vpa.rsi import calculate_rsi
 
 
 class VPAFeatureExtractor:
     """Extracts VPA intermediate features as a structured vector for ML analysis."""
 
-    # Fixed column order for the 27-feature vector
+    # Fixed column order for the 29-feature vector
     FEATURE_COLUMNS = [
         "spread_pct_p1",
         "spread_pct_p2",
@@ -43,6 +44,8 @@ class VPAFeatureExtractor:
         "trend_score",
         "multiple_bar_score",
         "acc_dist_score",
+        "rsi_value",
+        "rsi_signal_score",
         "composite_score",
         "up_bar_current",
     ]
@@ -94,7 +97,7 @@ class VPAFeatureExtractor:
             deque_dictionary: Dict of period deques containing Candle objects.
 
         Returns:
-            A dict with fixed column names and numeric values, containing all 27
+            A dict with fixed column names and numeric values, containing all 29
             feature columns in the order defined by FEATURE_COLUMNS.
         """
         # Spread percentiles
@@ -164,9 +167,32 @@ class VPAFeatureExtractor:
         multiple_bar_score = float(signals.get("multiple_bar_signal_score", 0))
         acc_dist_score = float(signals.get("acc_dist_signal_score", 0))
 
-        # Composite score is sum of all four sub-scores
+        # RSI calculation
+        rsi_config = self._config.get("rsi", {"enabled": True, "period": 14, "overbought_threshold": 70, "oversold_threshold": 30, "scores": {"overbought": -5, "oversold": 5}})
+        rsi_enabled = rsi_config.get("enabled", True)
+
+        if rsi_enabled:
+            period_three_closes = [c.close for c in deque_dictionary["period_three"]]
+            rsi_period = rsi_config.get("period", 14)
+            rsi_value = calculate_rsi(period_three_closes, rsi_period)
+
+            # RSI signal score using same threshold logic as MarketAnalyzer
+            overbought = rsi_config.get("overbought_threshold", 70)
+            oversold = rsi_config.get("oversold_threshold", 30)
+            scores = rsi_config.get("scores", {"overbought": -5, "oversold": 5})
+
+            rsi_signal_score = 0.0
+            if rsi_value > overbought:
+                rsi_signal_score = float(scores["overbought"])
+            elif rsi_value < oversold:
+                rsi_signal_score = float(scores["oversold"])
+        else:
+            rsi_value = 50.0
+            rsi_signal_score = 0.0
+
+        # Composite score is sum of all sub-scores including RSI
         composite_score = (
-            single_candle_score + trend_score + multiple_bar_score + acc_dist_score
+            single_candle_score + trend_score + multiple_bar_score + acc_dist_score + rsi_signal_score
         )
 
         # Current candle direction
@@ -199,6 +225,8 @@ class VPAFeatureExtractor:
             "trend_score": trend_score,
             "multiple_bar_score": multiple_bar_score,
             "acc_dist_score": acc_dist_score,
+            "rsi_value": rsi_value,
+            "rsi_signal_score": rsi_signal_score,
             "composite_score": composite_score,
             "up_bar_current": up_bar_current,
         }

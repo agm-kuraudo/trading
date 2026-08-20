@@ -35,6 +35,16 @@
     "momentum_period": 20,
     "data_days": 400
   },
+  "rsi": {
+    "enabled": true,
+    "period": 14,
+    "overbought_threshold": 70,
+    "oversold_threshold": 30,
+    "scores": {
+      "overbought": -5,
+      "oversold": 5
+    }
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,

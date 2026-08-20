@@ -209,11 +209,11 @@ def test_property_model_receives_only_feature_columns(n_rows: int, seed: int) ->
         f"but found: {present_excluded}"
     )
 
-    # Verify that all 27 feature columns ARE present
+    # Verify that all feature columns ARE present
     expected_feature_cols = set(VPAFeatureExtractor.FEATURE_COLUMNS)
     actual_cols = set(X.columns)
     assert actual_cols == expected_feature_cols, (
-        f"Feature matrix X should contain exactly the 27 feature columns.\n"
+        f"Feature matrix X should contain exactly the {len(VPAFeatureExtractor.FEATURE_COLUMNS)} feature columns.\n"
         f"Missing: {expected_feature_cols - actual_cols}\n"
         f"Extra: {actual_cols - expected_feature_cols}"
     )
@@ -240,9 +240,10 @@ def test_property_feature_importance_report_validity(seed: int) -> None:
     rng = np.random.default_rng(seed)
     n_rows = 200
 
-    # Create training data with the 27 feature columns
+    # Create training data with all feature columns
+    n_features = len(VPAFeatureExtractor.FEATURE_COLUMNS)
     X = pd.DataFrame(
-        rng.standard_normal((n_rows, 27)),
+        rng.standard_normal((n_rows, n_features)),
         columns=VPAFeatureExtractor.FEATURE_COLUMNS,
     )
     y = pd.Series(rng.integers(0, 2, size=n_rows), name="next_day_direction")
@@ -280,9 +281,9 @@ def test_property_feature_importance_report_validity(seed: int) -> None:
     for score in scores:
         assert score >= 0.0, f"Importance score should be non-negative, got {score}"
 
-    # Property: All 27 feature names are present
-    assert len(importance_df) == 27, (
-        f"Expected 27 features in importance report, got {len(importance_df)}"
+    # Property: All feature names are present
+    assert len(importance_df) == len(VPAFeatureExtractor.FEATURE_COLUMNS), (
+        f"Expected {len(VPAFeatureExtractor.FEATURE_COLUMNS)} features in importance report, got {len(importance_df)}"
     )
     assert set(importance_df["feature_name"]) == set(VPAFeatureExtractor.FEATURE_COLUMNS), (
         "Importance report feature names don't match FEATURE_COLUMNS"
