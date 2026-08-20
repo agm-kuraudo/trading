@@ -1,0 +1,388 @@
+{
+  "pbtResults": {
+    "3.2 Write property test for SMA correctness": {
+      "status": "passed",
+      "lastRunTimestamp": 1787228762993
+    },
+    "4.2 Write property test for crossover mutual exclusivity": {
+      "status": "passed",
+      "lastRunTimestamp": 1787229142152
+    },
+    "4.3 Write property test for crossover detection correctness": {
+      "status": "passed",
+      "lastRunTimestamp": 1787229142951
+    },
+    "4.4 Write property test for NaN propagation": {
+      "status": "passed",
+      "lastRunTimestamp": 1787229143624
+    },
+    "4.5 Write property test for price position exhaustiveness": {
+      "status": "passed",
+      "lastRunTimestamp": 1787229144354
+    },
+    "4.6 Write property test for score composition": {
+      "status": "passed",
+      "lastRunTimestamp": 1787229145010
+    }
+  },
+  "executionHistory": {
+    "1.1 Add `ma_crossover` section to `vpa/config/config.json`": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227340018
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227352336
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227411951
+      }
+    ],
+    "1.2 Add MA config loading and validation to `MarketAnalyzer.__init__()`": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227340786
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227416064
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227833476
+      }
+    ],
+    "1.3 Write unit tests for config validation": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227340882
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227838116
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228368167
+      }
+    ],
+    "2.1 Modify `MarketAnalyzer.load_data()` to use `ma_data_days`": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341061
+      },
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227838875
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228250511
+      }
+    ],
+    "2.2 Write unit tests for data window extension": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341185
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228372333
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228637012
+      }
+    ],
+    "3.1 Implement `compute_sma_columns()` method on `MarketAnalyzer`": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341306
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228373150
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228637720
+      }
+    ],
+    "3.2 Write property test for SMA correctness": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341364
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228642870
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229006039
+      }
+    ],
+    "3.3 Write unit tests for SMA edge cases": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341446
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228643422
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229005254
+      }
+    ],
+    "4.1 Implement `detect_ma_signals(row_index)` method on `MarketAnalyzer`": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341538
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228644270
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229006930
+      }
+    ],
+    "4.2 Write property test for crossover mutual exclusivity": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341599
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229012536
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229161958
+      }
+    ],
+    "4.3 Write property test for crossover detection correctness": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341655
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229013230
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229162688
+      }
+    ],
+    "4.4 Write property test for NaN propagation": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341715
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229013944
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229163360
+      }
+    ],
+    "4.5 Write property test for price position exhaustiveness": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341782
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229014614
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229164039
+      }
+    ],
+    "4.6 Write property test for score composition": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341852
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229015352
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229164904
+      }
+    ],
+    "4.7 Write unit tests for crossover and price position": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341920
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229169251
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229296977
+      }
+    ],
+    "5. Checkpoint - Core logic complete": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227341988
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229317826
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229337668
+      }
+    ],
+    "6.1 Wire MA signals into `process_data()` loop": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227342053
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229338498
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229505603
+      }
+    ],
+    "6.2 Write integration test for composite score": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227342114
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229506585
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229600540
+      }
+    ],
+    "7. Final checkpoint - All tests pass": [
+      {
+        "executionId": "690ddc96-aead-42dd-ad3b-7ece3083bbff",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787227342189
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229605321
+      },
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229754785
+      }
+    ],
+    "1. Config schema and validation": [
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228368250
+      }
+    ],
+    "2. Data window extension": [
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787228637156
+      }
+    ],
+    "3. SMA computation": [
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229006131
+      }
+    ],
+    "4. Crossover detection and price position": [
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229297060
+      }
+    ],
+    "6. Integration into process_data()": [
+      {
+        "executionId": "d7261264-3da6-458b-a427-a15d2400ae4c",
+        "chatSessionId": "sess_6b60449e-56b3-474a-a959-d4e7a481d315",
+        "timestamp": 1787229600618
+      }
+    ]
+  }
+}
