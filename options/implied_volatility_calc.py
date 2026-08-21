@@ -3,8 +3,10 @@ Script to Calculate Implied Volatility of an Option
 
 https://amainit.atlassian.net/browse/SP-166
 
-This script retrieves historical stock data for a specified ticker symbol (e.g., AAPL) and calculates the implied volatility of an option based on various financial parameters.
-The script uses real or sample data, processes it, and computes the implied volatility using the binomional pricing method
+This script retrieves historical stock data for a specified ticker symbol (e.g., AAPL) and
+calculates the implied volatility of an option based on various financial parameters.
+The script uses real or sample data, processes it, and computes the implied volatility
+using the binomional pricing method
 
 Key Constants:
 - TRADING_DAYS: Number of trading days in a year (typically 252).
@@ -32,7 +34,12 @@ Usage:
 Run the script to get the implied volatility of the specified option based on the provided parameters.
 """
 
-from utils.utils import get_live_data_from_yfinance, return_sample_data, trading_days_between, get_asset_data, process_data, implied_volatility
+from utils.utils import (
+    get_asset_data,
+    implied_volatility,
+    process_data,
+    trading_days_between,
+)
 
 # Constants
 TRADING_DAYS = 252
@@ -41,23 +48,33 @@ INTEREST_RATE = 0.045  # 4%
 DIVIDEND_YIELD = 0.0042  # 0.42%
 
 # Option parameters
-OPTION_EXPIRATION_DATE = '2025-04-17'
-TICKER = 'AAPL'
+OPTION_EXPIRATION_DATE = "2025-04-17"
+TICKER = "AAPL"
 HISTORY_START_DAYS = 380
 HISTORY_END_DAYS = 0
 strike_price = 235
-option_type = 'call'  # 'call' or 'put'
-OPTION_STYLE = 'AMERICAN'  # or 'EUROPEAN'
+option_type = "call"  # 'call' or 'put'
+OPTION_STYLE = "AMERICAN"  # or 'EUROPEAN'
 use_real_data = True
 option_price = 11.7  # Example option price
 
 # Main script
 asset_data_frame = get_asset_data(use_real_data, TICKER, HISTORY_START_DAYS, HISTORY_END_DAYS)
 asset_data_frame = process_data(asset_data_frame)
-current_stock_price = asset_data_frame.iloc[0]['Close']
-TRADING_DAYS_LEFT = trading_days_between(asset_data_frame.iloc[0]['Date'], OPTION_EXPIRATION_DATE)
+current_stock_price = asset_data_frame.iloc[0]["Close"]
+TRADING_DAYS_LEFT = trading_days_between(asset_data_frame.iloc[0]["Date"], OPTION_EXPIRATION_DATE)
 time_to_expiration = TRADING_DAYS_LEFT / TRADING_DAYS
 
-implied_vol = implied_volatility(option_price, option_type, current_stock_price, strike_price, time_to_expiration,
-                                 INTEREST_RATE, DIVIDEND_YIELD, PRICING_STEPS, OPTION_STYLE, TRADING_DAYS)
+implied_vol = implied_volatility(
+    option_price,
+    option_type,
+    current_stock_price,
+    strike_price,
+    time_to_expiration,
+    INTEREST_RATE,
+    DIVIDEND_YIELD,
+    PRICING_STEPS,
+    OPTION_STYLE,
+    TRADING_DAYS,
+)
 print(f"Implied Volatility: {implied_vol:.2%}")

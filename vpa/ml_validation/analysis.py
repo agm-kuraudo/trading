@@ -52,8 +52,7 @@ class AnalysisScript:
 
         if len(valid_rows) == 0:
             raise InsufficientDataError(
-                f"Cannot compute baseline accuracy for {self.ticker}: "
-                f"zero rows with valid composite_score."
+                f"Cannot compute baseline accuracy for {self.ticker}: " f"zero rows with valid composite_score."
             )
 
         # Classify: UP (1) when composite_score > 0, DOWN (0) when <= 0
@@ -97,8 +96,7 @@ class AnalysisScript:
         total = importance_array.sum()
         if total == 0.0:
             logger.warning(
-                "All features have zero importance for %s. "
-                "The model found no distinguishing features.",
+                "All features have zero importance for %s. " "The model found no distinguishing features.",
                 self.ticker,
             )
             normalised = np.zeros(len(feature_names))
@@ -123,9 +121,7 @@ class AnalysisScript:
         )
 
         # Sort descending by importance_score
-        importance_df = importance_df.sort_values(
-            "importance_score", ascending=False
-        ).reset_index(drop=True)
+        importance_df = importance_df.sort_values("importance_score", ascending=False).reset_index(drop=True)
 
         return importance_df
 
@@ -148,9 +144,7 @@ class AnalysisScript:
         """
         # Exclude metadata and label columns — keep only the 27 feature columns
         exclude_cols = VPAFeatureExtractor.METADATA_COLUMNS + ["next_day_direction"]
-        feature_cols = [
-            col for col in self.dataset.columns if col not in exclude_cols
-        ]
+        feature_cols = [col for col in self.dataset.columns if col not in exclude_cols]
 
         X = self.dataset[feature_cols]
         y = self.dataset["next_day_direction"]
@@ -201,9 +195,7 @@ class AnalysisScript:
         try:
             self.output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            logger.error(
-                "Failed to create output directory %s: %s", self.output_dir, e
-            )
+            logger.error("Failed to create output directory %s: %s", self.output_dir, e)
             return
 
         # Save dataset CSV
@@ -214,9 +206,7 @@ class AnalysisScript:
             logger.error("Failed to write dataset CSV %s: %s", dataset_path, e)
 
         # Save feature importance CSV
-        importance_path = (
-            self.output_dir / f"{self.ticker}_feature_importance.csv"
-        )
+        importance_path = self.output_dir / f"{self.ticker}_feature_importance.csv"
         try:
             importance_df.to_csv(importance_path, index=False)
         except OSError as e:
@@ -231,6 +221,4 @@ class AnalysisScript:
         try:
             summary_path.write_text(summary_text, encoding="utf-8")
         except OSError as e:
-            logger.error(
-                "Failed to write analysis summary %s: %s", summary_path, e
-            )
+            logger.error("Failed to write analysis summary %s: %s", summary_path, e)

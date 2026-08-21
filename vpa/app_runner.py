@@ -1,14 +1,17 @@
-import os
-import json
-from collections import deque
-import numpy as np
-import yfinance as yf
 import datetime
-from vpa.app import DebugLog, Candle, calculate_adx, identify_acc_or_dist
-import pandas as pd
-import mplfinance as mpf
+import json
+import os
+from collections import deque
 
-#Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
+import mplfinance as mpf
+import numpy as np
+import pandas as pd
+import yfinance as yf
+
+from vpa.app import Candle, DebugLog, calculate_adx, identify_acc_or_dist
+
+
+# Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
 class MarketAnalyzer:
     def __init__(self, config_path, ticker_symbol=None, log_level="INFO", fixed_df=None, log_prefix="debug_log"):
         # Load configuration from the JSON file
@@ -20,7 +23,7 @@ class MarketAnalyzer:
         self.__deque_dictionary = {
             "period_one": deque(maxlen=self.__config["PERIOD_ONE_LENGTH"]),
             "period_two": deque(maxlen=self.__config["PERIOD_TWO_LENGTH"]),
-            "period_three": deque(maxlen=self.__config["PERIOD_THREE_LENGTH"])
+            "period_three": deque(maxlen=self.__config["PERIOD_THREE_LENGTH"]),
         }
         # Template variable for storing the current percentile numbers for "spread" and "volume"
         self.__percentiles_store = {"spread": {}, "volume": {}}
@@ -47,13 +50,13 @@ class MarketAnalyzer:
                 if len(self.myDF) < long_period:
                     self.__logger.log(
                         f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
-                        level="WARN"
+                        level="WARN",
                     )
                     self.__ma_enabled = False
 
     def load_config(self, config_path):
         # Load configuration from JSON file
-        with open(config_path, 'r') as file:
+        with open(config_path) as file:
             self.__config = json.load(file)
 
     def _init_ma_config(self):
@@ -68,7 +71,7 @@ class MarketAnalyzer:
             "ma_periods": {"short": 10, "medium": 50, "long": 200},
             "ma_data_days": 300,
             "crossover_scores": {"short_medium": 5, "short_long": 8, "medium_long": 10},
-            "position_scores": {"above_all": 5, "below_all": 5, "above_two": 2, "below_two": 2}
+            "position_scores": {"above_all": 5, "below_all": 5, "above_two": 2, "below_two": 2},
         }
 
         # Use config section if present, otherwise use defaults
@@ -92,7 +95,7 @@ class MarketAnalyzer:
             self.__logger.log(
                 f"MA crossover disabled: invalid period ordering (short={short}, medium={medium}, long={long_period}). "
                 f"Periods must satisfy short < medium < long.",
-                level="WARN"
+                level="WARN",
             )
             self.__ma_enabled = False
             return
@@ -104,7 +107,7 @@ class MarketAnalyzer:
             self.__logger.log(
                 f"MA crossover: ma_data_days ({ma_data_days}) <= long period ({long_period}). "
                 f"Auto-correcting to {corrected}.",
-                level="WARN"
+                level="WARN",
             )
             self.__ma_config["ma_data_days"] = corrected
 
@@ -136,7 +139,7 @@ class MarketAnalyzer:
             "period": 14,
             "overbought_threshold": 70,
             "oversold_threshold": 30,
-            "scores": {"overbought": -5, "oversold": 5}
+            "scores": {"overbought": -5, "oversold": 5},
         }
 
         # Use config section if present, otherwise use defaults
@@ -156,8 +159,7 @@ class MarketAnalyzer:
 
         if oversold >= overbought:
             self.__logger.log(
-                f"RSI disabled: invalid thresholds (oversold={oversold} >= overbought={overbought})",
-                level="WARN"
+                f"RSI disabled: invalid thresholds (oversold={oversold} >= overbought={overbought})", level="WARN"
             )
             self.__rsi_enabled = False
             return
@@ -180,7 +182,6 @@ class MarketAnalyzer:
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
         if self.__config["use_real_data"]:
-
             # Define the ticker symbol
 
             if self.__ticker_symbol is None:
@@ -195,7 +196,7 @@ class MarketAnalyzer:
             # Fetch the data
             self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
             self.myDF = self.myDF.reset_index()
-            self.myDF.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
+            self.myDF.columns = ["Date", "Close", "High", "Low", "Open", "Volume"]
         else:
             absolute_path = os.path.dirname(__file__)
             relative_path = "data/"
@@ -210,7 +211,7 @@ class MarketAnalyzer:
             if len(self.myDF) < long_period:
                 self.__logger.log(
                     f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
-                    level="WARN"
+                    level="WARN",
                 )
                 self.__ma_enabled = False
 
@@ -219,15 +220,13 @@ class MarketAnalyzer:
         if not self.__ma_enabled:
             return
         periods = self.__ma_config["ma_periods"]
-        self.myDF["SMA_short"] = self.myDF["Close"].rolling(
-            window=periods["short"], min_periods=periods["short"]
-        ).mean()
-        self.myDF["SMA_medium"] = self.myDF["Close"].rolling(
-            window=periods["medium"], min_periods=periods["medium"]
-        ).mean()
-        self.myDF["SMA_long"] = self.myDF["Close"].rolling(
-            window=periods["long"], min_periods=periods["long"]
-        ).mean()
+        self.myDF["SMA_short"] = (
+            self.myDF["Close"].rolling(window=periods["short"], min_periods=periods["short"]).mean()
+        )
+        self.myDF["SMA_medium"] = (
+            self.myDF["Close"].rolling(window=periods["medium"], min_periods=periods["medium"]).mean()
+        )
+        self.myDF["SMA_long"] = self.myDF["Close"].rolling(window=periods["long"], min_periods=periods["long"]).mean()
 
     def compute_rsi_column(self):
         """Pre-compute RSI column on self.myDF."""
@@ -241,7 +240,7 @@ class MarketAnalyzer:
         rsi_values = []
 
         for i in range(len(closes)):
-            rsi_val = calculate_rsi(closes[:i + 1], period)
+            rsi_val = calculate_rsi(closes[: i + 1], period)
             rsi_values.append(rsi_val)
 
         self.myDF["RSI"] = rsi_values
@@ -270,8 +269,7 @@ class MarketAnalyzer:
 
         # Log SMA values
         self.__logger.log(
-            f"SMA_Short: {sma_short:.2f}, SMA_Medium: {sma_medium:.2f}, SMA_Long: {sma_long:.2f}",
-            level="INFO"
+            f"SMA_Short: {sma_short:.2f}, SMA_Medium: {sma_medium:.2f}, SMA_Long: {sma_long:.2f}", level="INFO"
         )
 
         signals_list = []
@@ -402,13 +400,13 @@ class MarketAnalyzer:
             if previous_close != 0:
                 open_price = previous_close
             else:
-                open_price = row['Open']
+                open_price = row["Open"]
 
             # Adjust high and low if needed
-            high = max(row['High'], open_price)
-            low = min(row['Low'], open_price)
+            high = max(row["High"], open_price)
+            low = min(row["Low"], open_price)
 
-            this_candle = Candle(row['Date'], row['Volume'], open_price, high, low, row['Close'])
+            this_candle = Candle(row["Date"], row["Volume"], open_price, high, low, row["Close"])
             previous_close = this_candle.close
 
             self.__logger.log(f"New candle created: {this_candle}", level="DEBUG")
@@ -423,11 +421,14 @@ class MarketAnalyzer:
                 if self.__rolling_window_complete_msg_display:
                     self.__logger.log("We now have enough data for all our rolling windows", level="INFO")
                     self.__rolling_window_complete_msg_display = False
-            # Step 5: Update the spread and volumetric percentiles to understand the relative size and strength of each Candle
+            # Step 5: Update the spread and volumetric percentiles to understand
+            # the relative size and strength of each Candle
             self.update_percentiles()
 
             if index == last_index:
-                self.__logger.log("==================================================================================", level="INFO")
+                self.__logger.log(
+                    "==================================================================================", level="INFO"
+                )
                 self.__logger.log(self.myDF.head(5), level="DEBUG")
                 self.__logger.log(self.myDF.tail(5), level="DEBUG")
 
@@ -453,7 +454,14 @@ class MarketAnalyzer:
             signals["rsi_signal_score"] = rsi_signals["rsi_signal_score"]
 
             self.__logger.log(f"signals: {signals}", level="INFO")
-            trade_signal = signals["single_candle_signal_score"] + signals["trend_signal_score"] + signals["multiple_bar_signal_score"] + signals["acc_dist_signal_score"] + signals["ma_crossover_signal_score"] + signals["rsi_signal_score"]
+            trade_signal = (
+                signals["single_candle_signal_score"]
+                + signals["trend_signal_score"]
+                + signals["multiple_bar_signal_score"]
+                + signals["acc_dist_signal_score"]
+                + signals["ma_crossover_signal_score"]
+                + signals["rsi_signal_score"]
+            )
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
@@ -461,14 +469,15 @@ class MarketAnalyzer:
 
         return trade_signal
 
-
     def update_percentiles(self):
         # Step 5.1: Working out the Percentiles for each Period for the spread and volume
         props = ["spread", "volume"]
         for prop in props:
             for key in self.__deque_dictionary.keys():
                 stats_list = [getattr(item, prop) for item in self.__deque_dictionary[key]]
-                self.__percentiles_store[prop][key] = np.percentile(stats_list, range(self.__config["PERCENTILE_START"], 100, self.__config["PERCENTILE_INCREMENTS"]))
+                self.__percentiles_store[prop][key] = np.percentile(
+                    stats_list, range(self.__config["PERCENTILE_START"], 100, self.__config["PERCENTILE_INCREMENTS"])
+                )
                 self.__logger.log(f"{prop} percentiles for {key}: {self.__percentiles_store[prop][key]}", level="DEBUG")
         # Step 5.2: Update all Candles in our rolling windows with their relevant percentiles
         for key in self.__deque_dictionary.keys():
@@ -485,13 +494,12 @@ class MarketAnalyzer:
                 self.__logger.log(f"Updated candle: {candle}", level="DEBUG")
 
     def detect_signals(self, this_candle):
-
         all_signals = {}
 
         single_candle_signals = []
         single_candle_signal_score = 0
 
-        #Is the candle up or down? - score 1
+        # Is the candle up or down? - score 1
         single_candle_signals.append("Up Bar" if this_candle.up_bar else "Down Bar")
         single_candle_signal_score += 1 if this_candle.up_bar else -1
 
@@ -527,7 +535,11 @@ class MarketAnalyzer:
         # Step 6: Understand if the market is trending and if so, in what direction
         adx_values = calculate_adx(self.__deque_dictionary["period_three"])
         self.__logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
-        self.__logger.log(f"ADX - over 25 is trending.  Average True Range - Higher is more volatile.  DM+ swings upward. DM- Swings downwards", level="INFO")
+        self.__logger.log(
+            "ADX - over 25 is trending.  Average True Range - Higher is more volatile.  "
+            "DM+ swings upward. DM- Swings downwards",
+            level="INFO",
+        )
         trending = adx_values[0] > 25
         trending_up = adx_values[2] > adx_values[3]
         trending_down = adx_values[3] > adx_values[2]
@@ -565,25 +577,44 @@ class MarketAnalyzer:
         }
         for key in self.__deque_dictionary.keys():
             up_bar_count = sum(1 for candle in self.__deque_dictionary[key] if candle.up_bar)
-            high_spread_count = sum(1 for candle in self.__deque_dictionary[key] if candle.spread_percentiles[key] > self.__config["trading_parameters"][key]["High_Spread_Threshold"])
-            high_volume_count = sum(1 for candle in self.__deque_dictionary[key] if candle.volume_percentiles[key] > self.__config["trading_parameters"][key]["High_Volume_Threshold"])
-            anomaly_count = sum(1 for candle in self.__deque_dictionary[key] if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key]) > self.__config["trading_parameters"][key]["Anomaly_Threshold"])
+            high_spread_count = sum(
+                1
+                for candle in self.__deque_dictionary[key]
+                if candle.spread_percentiles[key] > self.__config["trading_parameters"][key]["High_Spread_Threshold"]
+            )
+            high_volume_count = sum(
+                1
+                for candle in self.__deque_dictionary[key]
+                if candle.volume_percentiles[key] > self.__config["trading_parameters"][key]["High_Volume_Threshold"]
+            )
+            anomaly_count = sum(
+                1
+                for candle in self.__deque_dictionary[key]
+                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key])
+                > self.__config["trading_parameters"][key]["Anomaly_Threshold"]
+            )
             bar_counts[key] = {
                 "up_bars": up_bar_count,
                 "high_spread_count": high_spread_count,
                 "high_volume_count": high_volume_count,
-                "anomaly_count": anomaly_count
+                "anomaly_count": anomaly_count,
             }
             self.__logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
             # Step 8: Decide whether a signal is being generated on each time period
             if up_bar_count >= self.__config["trading_parameters"][key]["Signal_Bar_Count"]:
                 signals[f"{key}_bull"] = True
                 self.__logger.log(f"{key} Bullish Signal", level="INFO")
-            elif up_bar_count <= (self.__config["PERIOD_ONE_LENGTH"] - self.__config["trading_parameters"][key]["Signal_Bar_Count"]):
+            elif up_bar_count <= (
+                self.__config["PERIOD_ONE_LENGTH"] - self.__config["trading_parameters"][key]["Signal_Bar_Count"]
+            ):
                 signals[f"{key}_bear"] = True
                 self.__logger.log(f"{key} Bearish Signal", level="INFO")
             if signals[f"{key}_bear"] or signals[f"{key}_bull"]:
-                if high_spread_count >= self.__config["trading_parameters"][key]["High_Spread_Count"] and high_volume_count >= self.__config["trading_parameters"][key]["High_Volume_Count"] and anomaly_count <= self.__config["trading_parameters"][key]["Anomaly_Threshold"]:
+                if (
+                    high_spread_count >= self.__config["trading_parameters"][key]["High_Spread_Count"]
+                    and high_volume_count >= self.__config["trading_parameters"][key]["High_Volume_Count"]
+                    and anomaly_count <= self.__config["trading_parameters"][key]["Anomaly_Threshold"]
+                ):
                     signals[f"{key}_volume_backed"] = True
                     self.__logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
 
@@ -610,32 +641,33 @@ class MarketAnalyzer:
         all_signals["multiple_bar_signals"] = multiple_bar_signals
         all_signals["multiple_bar_signal_score"] = multiple_bar_signal_score
 
-
         # Initialize accumulation/distribution signals and score
         acc_dist_signals = []
         acc_dist_signal_score = 0
 
         # Step 9: Identify if the market is near accumulation or distribution points
-        acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(self.__deque_dictionary["period_three"], self.__deque_dictionary["period_one"])
+        acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(
+            self.__deque_dictionary["period_three"], self.__deque_dictionary["period_one"]
+        )
         if acc_or_dist_bool:
             acc_dist_signals.append(f"Possible {acc_or_dist}")
             acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
             self.__logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
-            if this_candle.spread_percentiles['period_one'] > 65 or this_candle.is_candle_pattern():
-                self.__logger.log(f"Potential Test IDENTIFIED ##########", level="DEBUG")
-                if this_candle.volume_percentiles['period_one'] < 50:
+            if this_candle.spread_percentiles["period_one"] > 65 or this_candle.is_candle_pattern():
+                self.__logger.log("Potential Test IDENTIFIED ##########", level="DEBUG")
+                if this_candle.volume_percentiles["period_one"] < 50:
                     acc_dist_signals.append("Test Pass")
                     acc_dist_signal_score += 5 if acc_or_dist == "Acc" else -5
-                    self.__logger.log(f"Potential TEST PASS IDENTIFIED ##########", level="INFO")
+                    self.__logger.log("Potential TEST PASS IDENTIFIED ##########", level="INFO")
                 else:
                     acc_dist_signals.append("Test Fail")
                     # Test fail makes the signal weaker
                     acc_dist_signal_score -= 2 if acc_or_dist == "Acc" else 2
                     self.__logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
-            if this_candle.spread_percentiles['period_two'] < 40 and this_candle.volume_percentiles['period_two'] > 60:
+            if this_candle.spread_percentiles["period_two"] < 40 and this_candle.volume_percentiles["period_two"] > 60:
                 acc_dist_signals.append("Climax")
                 acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
-                self.__logger.log(f"Potential Climax IDENTIFIED ##########", level="INFO")
+                self.__logger.log("Potential Climax IDENTIFIED ##########", level="INFO")
 
         # Log the results
         self.__logger.log(f"Accumulation/Distribution Signals: {acc_dist_signals}", level="INFO")
@@ -652,29 +684,29 @@ class MarketAnalyzer:
 
             # Convert to DataFrame
             data = {
-                'Date': [candle.time for candle in candles],
-                'Open': [candle.open for candle in candles],
-                'High': [candle.high for candle in candles],
-                'Low': [candle.low for candle in candles],
-                'Close': [candle.close for candle in candles],
-                'Volume': [candle.volume for candle in candles]  # Include volume
+                "Date": [candle.time for candle in candles],
+                "Open": [candle.open for candle in candles],
+                "High": [candle.high for candle in candles],
+                "Low": [candle.low for candle in candles],
+                "Close": [candle.close for candle in candles],
+                "Volume": [candle.volume for candle in candles],  # Include volume
             }
             df = pd.DataFrame(data)
-            df.set_index('Date', inplace=True)
+            df.set_index("Date", inplace=True)
 
             # Save chart to file
             chart_filename = f"log/{self.__ticker_symbol}_{period}_candlestick.png"
             mpf.plot(
                 df,
-                type='candle',
-                style='charles',
-                title=f'{self.__ticker_symbol} - {period} - Candlestick Chart',
-                ylabel='Price',
+                type="candle",
+                style="charles",
+                title=f"{self.__ticker_symbol} - {period} - Candlestick Chart",
+                ylabel="Price",
                 volume=True,
                 tight_layout=True,
-                datetime_format='%Y-%m-%d',
+                datetime_format="%Y-%m-%d",
                 xrotation=90,
-                savefig=chart_filename
+                savefig=chart_filename,
             )
 
             # Save raw data to CSV

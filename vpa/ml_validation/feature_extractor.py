@@ -3,7 +3,6 @@
 import datetime
 import json
 from collections import deque
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -53,9 +52,7 @@ class VPAFeatureExtractor:
     # Metadata columns (excluded from the numeric feature array)
     METADATA_COLUMNS = ["date", "close"]
 
-    def __init__(
-        self, config_path: str, ticker_symbol: str, enable_extraction: bool = True
-    ):
+    def __init__(self, config_path: str, ticker_symbol: str, enable_extraction: bool = True):
         """
         Args:
             config_path: Path to the VPA config JSON.
@@ -67,7 +64,7 @@ class VPAFeatureExtractor:
         self._enable_extraction = enable_extraction
 
         # Load configuration
-        with open(config_path, "r") as f:
+        with open(config_path) as f:
             self._config = json.load(f)
 
         # Store period lengths for up_bar_ratio calculations
@@ -122,14 +119,10 @@ class VPAFeatureExtractor:
         period_three_deque = deque_dictionary["period_three"]
 
         up_bar_ratio_p1 = (
-            sum(1 for c in period_one_deque if c.up_bar) / len(period_one_deque)
-            if len(period_one_deque) > 0
-            else 0.0
+            sum(1 for c in period_one_deque if c.up_bar) / len(period_one_deque) if len(period_one_deque) > 0 else 0.0
         )
         up_bar_ratio_p2 = (
-            sum(1 for c in period_two_deque if c.up_bar) / len(period_two_deque)
-            if len(period_two_deque) > 0
-            else 0.0
+            sum(1 for c in period_two_deque if c.up_bar) / len(period_two_deque) if len(period_two_deque) > 0 else 0.0
         )
         up_bar_ratio_p3 = (
             sum(1 for c in period_three_deque if c.up_bar) / len(period_three_deque)
@@ -145,12 +138,8 @@ class VPAFeatureExtractor:
         # Volume-backed signals - extracted from the multiple_bar_signals list
         multiple_bar_signals = signals.get("multiple_bar_signals", [])
         vol_backed_p1 = 1 if "Volume Backed (period_one)" in multiple_bar_signals else 0
-        vol_backed_p2 = (
-            1 if "Volume Backed (period_two)" in multiple_bar_signals else 0
-        )
-        vol_backed_p3 = (
-            1 if "Volume Backed (period_three)" in multiple_bar_signals else 0
-        )
+        vol_backed_p2 = 1 if "Volume Backed (period_two)" in multiple_bar_signals else 0
+        vol_backed_p3 = 1 if "Volume Backed (period_three)" in multiple_bar_signals else 0
 
         # Accumulation/distribution
         acc_dist_flag = int(acc_dist_result[0])
@@ -168,7 +157,16 @@ class VPAFeatureExtractor:
         acc_dist_score = float(signals.get("acc_dist_signal_score", 0))
 
         # RSI calculation
-        rsi_config = self._config.get("rsi", {"enabled": True, "period": 14, "overbought_threshold": 70, "oversold_threshold": 30, "scores": {"overbought": -5, "oversold": 5}})
+        rsi_config = self._config.get(
+            "rsi",
+            {
+                "enabled": True,
+                "period": 14,
+                "overbought_threshold": 70,
+                "oversold_threshold": 30,
+                "scores": {"overbought": -5, "oversold": 5},
+            },
+        )
         rsi_enabled = rsi_config.get("enabled", True)
 
         if rsi_enabled:
@@ -191,9 +189,7 @@ class VPAFeatureExtractor:
             rsi_signal_score = 0.0
 
         # Composite score is sum of all sub-scores including RSI
-        composite_score = (
-            single_candle_score + trend_score + multiple_bar_score + acc_dist_score + rsi_signal_score
-        )
+        composite_score = single_candle_score + trend_score + multiple_bar_score + acc_dist_score + rsi_signal_score
 
         # Current candle direction
         up_bar_current = int(candle.up_bar)
@@ -341,9 +337,7 @@ class VPAFeatureExtractor:
             props = ["spread", "volume"]
             for prop in props:
                 for key in deque_dictionary:
-                    stats_list = [
-                        getattr(item, prop) for item in deque_dictionary[key]
-                    ]
+                    stats_list = [getattr(item, prop) for item in deque_dictionary[key]]
                     percentiles_store[prop][key] = np.percentile(
                         stats_list,
                         list(range(percentile_start, 100, percentile_increments)),
@@ -398,17 +392,14 @@ class VPAFeatureExtractor:
         # --- Step 11: Build DataFrame ---
         if not feature_rows:
             raise InsufficientDataError(
-                f"No valid feature rows produced for {self._ticker_symbol}. "
-                f"Downloaded data may be insufficient."
+                f"No valid feature rows produced for {self._ticker_symbol}. " f"Downloaded data may be insufficient."
             )
 
         result_df = pd.DataFrame(feature_rows)
 
         # --- Step 12: Add next_day_direction label ---
         # 1 if next day's close > current close, 0 otherwise (including equal)
-        result_df["next_day_direction"] = (
-            result_df["close"].shift(-1) > result_df["close"]
-        ).astype(int)
+        result_df["next_day_direction"] = (result_df["close"].shift(-1) > result_df["close"]).astype(int)
 
         # --- Step 13: Exclude final row (no next-day label) ---
         result_df = result_df.iloc[:-1].reset_index(drop=True)
@@ -482,27 +473,21 @@ class VPAFeatureExtractor:
         signals_flags = {}
 
         for key in deque_dictionary:
-            up_bar_count = sum(
-                1 for candle in deque_dictionary[key] if candle.up_bar
-            )
+            up_bar_count = sum(1 for candle in deque_dictionary[key] if candle.up_bar)
             high_spread_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if candle.spread_percentiles[key]
-                > trading_params[key]["High_Spread_Threshold"]
+                if candle.spread_percentiles[key] > trading_params[key]["High_Spread_Threshold"]
             )
             high_volume_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if candle.volume_percentiles[key]
-                > trading_params[key]["High_Volume_Threshold"]
+                if candle.volume_percentiles[key] > trading_params[key]["High_Volume_Threshold"]
             )
             anomaly_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if abs(
-                    candle.spread_percentiles[key] - candle.volume_percentiles[key]
-                )
+                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key])
                 > trading_params[key]["Anomaly_Threshold"]
             )
 
@@ -512,20 +497,14 @@ class VPAFeatureExtractor:
 
             if up_bar_count >= trading_params[key]["Signal_Bar_Count"]:
                 signals_flags[f"{key}_bull"] = True
-            elif up_bar_count <= (
-                self._config["PERIOD_ONE_LENGTH"]
-                - trading_params[key]["Signal_Bar_Count"]
-            ):
+            elif up_bar_count <= (self._config["PERIOD_ONE_LENGTH"] - trading_params[key]["Signal_Bar_Count"]):
                 signals_flags[f"{key}_bear"] = True
 
             if signals_flags[f"{key}_bear"] or signals_flags[f"{key}_bull"]:
                 if (
-                    high_spread_count
-                    >= trading_params[key]["High_Spread_Count"]
-                    and high_volume_count
-                    >= trading_params[key]["High_Volume_Count"]
-                    and anomaly_count
-                    <= trading_params[key]["Anomaly_Threshold"]
+                    high_spread_count >= trading_params[key]["High_Spread_Count"]
+                    and high_volume_count >= trading_params[key]["High_Volume_Count"]
+                    and anomaly_count <= trading_params[key]["Anomaly_Threshold"]
                 ):
                     signals_flags[f"{key}_volume_backed"] = True
 
@@ -535,9 +514,7 @@ class VPAFeatureExtractor:
         for period in deque_dictionary:
             for signal_type in ["bull", "bear"]:
                 if signals_flags[f"{period}_{signal_type}"]:
-                    multiple_bar_signals.append(
-                        f"{signal_type.capitalize()} Signal ({period})"
-                    )
+                    multiple_bar_signals.append(f"{signal_type.capitalize()} Signal ({period})")
                     score_adjustment = 2.5 if signal_type == "bull" else -2.5
                     if signals_flags[f"{period}_volume_backed"]:
                         multiple_bar_signal_score += score_adjustment * 2
@@ -559,20 +536,14 @@ class VPAFeatureExtractor:
         if acc_or_dist_bool:
             acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
 
-            if (
-                this_candle.spread_percentiles["period_one"] > 65
-                or this_candle.is_candle_pattern()
-            ):
+            if this_candle.spread_percentiles["period_one"] > 65 or this_candle.is_candle_pattern():
                 if this_candle.volume_percentiles["period_one"] < 50:
                     acc_dist_signal_score += 5 if acc_or_dist == "Acc" else -5
                 else:
                     # Test fail weakens signal
                     acc_dist_signal_score -= 2 if acc_or_dist == "Acc" else 2
 
-            if (
-                this_candle.spread_percentiles["period_two"] < 40
-                and this_candle.volume_percentiles["period_two"] > 60
-            ):
+            if this_candle.spread_percentiles["period_two"] < 40 and this_candle.volume_percentiles["period_two"] > 60:
                 acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
 
         all_signals["acc_dist_signal_score"] = acc_dist_signal_score

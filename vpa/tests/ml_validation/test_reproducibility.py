@@ -30,9 +30,7 @@ def _make_synthetic_dataset(n_rows: int = 300, seed: int = 42) -> pd.DataFrame:
     for col in VPAFeatureExtractor.FEATURE_COLUMNS:
         data[col] = rng.standard_normal(n_rows)
 
-    data["date"] = pd.date_range("2015-01-02", periods=n_rows, freq="B").strftime(
-        "%Y-%m-%d"
-    )
+    data["date"] = pd.date_range("2015-01-02", periods=n_rows, freq="B").strftime("%Y-%m-%d")
     data["close"] = rng.uniform(100, 500, size=n_rows)
     data["next_day_direction"] = rng.integers(0, 2, size=n_rows)
 
@@ -59,9 +57,7 @@ class TestReproducibility:
         """
         np.random.seed(42)
 
-        script = AnalysisScript(
-            dataset=dataset.copy(), ticker="TEST", output_dir=output_dir
-        )
+        script = AnalysisScript(dataset=dataset.copy(), ticker="TEST", output_dir=output_dir)
 
         baseline_acc = script.compute_baseline_accuracy()
         wf_result = script.run_walk_forward_validation(n_splits=5)
@@ -85,13 +81,11 @@ class TestReproducibility:
         run1 = self._run_pipeline(dataset, tmp_path / "run1")
         run2 = self._run_pipeline(dataset, tmp_path / "run2")
 
-        assert run1["baseline_accuracy"] == run2["baseline_accuracy"], (
-            f"Baseline accuracy differs: {run1['baseline_accuracy']} vs {run2['baseline_accuracy']}"
-        )
+        assert (
+            run1["baseline_accuracy"] == run2["baseline_accuracy"]
+        ), f"Baseline accuracy differs: {run1['baseline_accuracy']} vs {run2['baseline_accuracy']}"
 
-    def test_walk_forward_fold_accuracies_are_identical_across_runs(
-        self, dataset, tmp_path
-    ):
+    def test_walk_forward_fold_accuracies_are_identical_across_runs(self, dataset, tmp_path):
         """Walk-forward fold accuracies must be identical on repeated runs.
 
         XGBoost uses random_state=42, so given the same splits and same data
@@ -100,19 +94,17 @@ class TestReproducibility:
         run1 = self._run_pipeline(dataset, tmp_path / "run1")
         run2 = self._run_pipeline(dataset, tmp_path / "run2")
 
-        assert run1["fold_accuracies"] == run2["fold_accuracies"], (
-            f"Fold accuracies differ:\n  Run 1: {run1['fold_accuracies']}\n  Run 2: {run2['fold_accuracies']}"
-        )
-        assert run1["mean_accuracy"] == run2["mean_accuracy"], (
-            f"Mean accuracy differs: {run1['mean_accuracy']} vs {run2['mean_accuracy']}"
-        )
-        assert run1["std_accuracy"] == run2["std_accuracy"], (
-            f"Std accuracy differs: {run1['std_accuracy']} vs {run2['std_accuracy']}"
-        )
+        assert (
+            run1["fold_accuracies"] == run2["fold_accuracies"]
+        ), f"Fold accuracies differ:\n  Run 1: {run1['fold_accuracies']}\n  Run 2: {run2['fold_accuracies']}"
+        assert (
+            run1["mean_accuracy"] == run2["mean_accuracy"]
+        ), f"Mean accuracy differs: {run1['mean_accuracy']} vs {run2['mean_accuracy']}"
+        assert (
+            run1["std_accuracy"] == run2["std_accuracy"]
+        ), f"Std accuracy differs: {run1['std_accuracy']} vs {run2['std_accuracy']}"
 
-    def test_feature_importance_rankings_are_identical_across_runs(
-        self, dataset, tmp_path
-    ):
+    def test_feature_importance_rankings_are_identical_across_runs(self, dataset, tmp_path):
         """Feature importance order and scores must be identical on repeated runs.
 
         Since the model is deterministic (same data + same seed), the gain-based
@@ -126,12 +118,16 @@ class TestReproducibility:
 
         # Feature names in same order
         assert imp1["feature_name"].tolist() == imp2["feature_name"].tolist(), (
-            f"Feature name order differs:\n  Run 1: {imp1['feature_name'].tolist()}\n  Run 2: {imp2['feature_name'].tolist()}"
+            f"Feature name order differs:\n"
+            f"  Run 1: {imp1['feature_name'].tolist()}\n"
+            f"  Run 2: {imp2['feature_name'].tolist()}"
         )
 
         # Importance scores identical
         assert imp1["importance_score"].tolist() == imp2["importance_score"].tolist(), (
-            f"Importance scores differ:\n  Run 1: {imp1['importance_score'].tolist()}\n  Run 2: {imp2['importance_score'].tolist()}"
+            f"Importance scores differ:\n"
+            f"  Run 1: {imp1['importance_score'].tolist()}\n"
+            f"  Run 2: {imp2['importance_score'].tolist()}"
         )
 
     def test_skipped_folds_are_identical_across_runs(self, dataset, tmp_path):
@@ -143,6 +139,6 @@ class TestReproducibility:
         run1 = self._run_pipeline(dataset, tmp_path / "run1")
         run2 = self._run_pipeline(dataset, tmp_path / "run2")
 
-        assert run1["skipped_folds"] == run2["skipped_folds"], (
-            f"Skipped folds differ: {run1['skipped_folds']} vs {run2['skipped_folds']}"
-        )
+        assert (
+            run1["skipped_folds"] == run2["skipped_folds"]
+        ), f"Skipped folds differ: {run1['skipped_folds']} vs {run2['skipped_folds']}"

@@ -7,7 +7,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import (
     composite,
@@ -15,7 +14,6 @@ from hypothesis.strategies import (
     integers,
     lists,
 )
-
 
 # --- Helper: replicates the labelling logic from generate_dataset() ---
 
@@ -30,9 +28,7 @@ def apply_labelling(df: pd.DataFrame) -> pd.DataFrame:
     Returns the labelled DataFrame (copy, original unmodified).
     """
     result = df.copy()
-    result["next_day_direction"] = (
-        result["close"].shift(-1) > result["close"]
-    ).astype(int)
+    result["next_day_direction"] = (result["close"].shift(-1) > result["close"]).astype(int)
     result = result.iloc[:-1].reset_index(drop=True)
     return result
 
@@ -96,13 +92,15 @@ def ohlcv_dataframes_with_nans(draw, min_rows=5, max_rows=100):
         )
     )
 
-    df = pd.DataFrame({
-        "Open": opens,
-        "High": highs,
-        "Low": lows,
-        "Close": closes,
-        "Volume": volumes,
-    })
+    df = pd.DataFrame(
+        {
+            "Open": opens,
+            "High": highs,
+            "Low": lows,
+            "Close": closes,
+            "Volume": volumes,
+        }
+    )
 
     # Insert NaN values in random positions (at least 1 NaN, at most half the rows)
     max_nan_rows = max(1, n_rows // 2)
@@ -179,9 +177,7 @@ def test_equal_prices_labelled_as_zero(prices: list) -> None:
 
     # Verify the row where next_close == current_close
     if len(labelled) > 0 and modified_prices[1] == modified_prices[0]:
-        assert labelled.at[0, "next_day_direction"] == 0, (
-            f"Equal prices ({modified_prices[0]}) should produce label 0"
-        )
+        assert labelled.at[0, "next_day_direction"] == 0, f"Equal prices ({modified_prices[0]}) should produce label 0"
 
 
 # --- Property 4: Dataset excludes unlabellable final row ---
@@ -204,9 +200,7 @@ def test_dataset_excludes_final_row(n_rows: int) -> None:
 
     labelled = apply_labelling(df)
 
-    assert len(labelled) == n_rows - 1, (
-        f"Expected {n_rows - 1} rows from {n_rows} input rows, got {len(labelled)}"
-    )
+    assert len(labelled) == n_rows - 1, f"Expected {n_rows - 1} rows from {n_rows} input rows, got {len(labelled)}"
 
 
 @settings(max_examples=50)
@@ -222,14 +216,10 @@ def test_final_row_excluded_with_random_data(prices: list) -> None:
     df = pd.DataFrame({"close": prices})
     labelled = apply_labelling(df)
 
-    assert len(labelled) == len(prices) - 1, (
-        f"Expected {len(prices) - 1} rows, got {len(labelled)}"
-    )
+    assert len(labelled) == len(prices) - 1, f"Expected {len(prices) - 1} rows, got {len(labelled)}"
 
     # Also verify no NaN in labels (all rows should have valid labels)
-    assert labelled["next_day_direction"].isna().sum() == 0, (
-        "All rows in the output should have valid (non-NaN) labels"
-    )
+    assert labelled["next_day_direction"].isna().sum() == 0, "All rows in the output should have valid (non-NaN) labels"
 
 
 # --- Property 5: NaN OHLCV rows are dropped ---
@@ -253,18 +243,14 @@ def test_nan_ohlcv_rows_dropped(data: tuple) -> None:
     # All remaining rows should have no NaN in OHLCV columns
     ohlcv_cols = ["Open", "High", "Low", "Close", "Volume"]
     for col in ohlcv_cols:
-        assert result[col].isna().sum() == 0, (
-            f"Column {col} still has NaN values after dropping"
-        )
+        assert result[col].isna().sum() == 0, f"Column {col} still has NaN values after dropping"
 
     # Result should have fewer rows than input (we inserted at least 1 NaN)
     # Note: nan_row_indices may have duplicates, so actual NaN rows could be fewer
     rows_with_any_nan = df_with_nans[ohlcv_cols].isna().any(axis=1).sum()
     expected_rows = len(df_with_nans) - rows_with_any_nan
 
-    assert len(result) == expected_rows, (
-        f"Expected {expected_rows} rows after dropping NaN, got {len(result)}"
-    )
+    assert len(result) == expected_rows, f"Expected {expected_rows} rows after dropping NaN, got {len(result)}"
 
 
 @settings(max_examples=100)
@@ -289,9 +275,7 @@ def test_nan_dropping_preserves_valid_rows(data: tuple) -> None:
     # Compare values (reset index for both)
     expected_valid_rows = expected_valid_rows.reset_index(drop=True)
 
-    assert len(result) == len(expected_valid_rows), (
-        f"Expected {len(expected_valid_rows)} valid rows, got {len(result)}"
-    )
+    assert len(result) == len(expected_valid_rows), f"Expected {len(expected_valid_rows)} valid rows, got {len(result)}"
 
     # Values should match
     pd.testing.assert_frame_equal(

@@ -9,7 +9,6 @@ Tests:
 Requirements: 7.1, 7.2, 7.3, 8.3, 8.4
 """
 
-from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -17,7 +16,6 @@ import pandas as pd
 import pytest
 
 from vpa.ml_validation.run_analysis import main
-
 
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
 
@@ -287,7 +285,7 @@ class TestSummaryFileContent:
         ]
         assert any(
             conclusion in summary_content for conclusion in valid_conclusions
-        ), f"Summary does not contain a valid conclusion string"
+        ), "Summary does not contain a valid conclusion string"
 
     def test_summary_contains_date_range(self, summary_content):
         """Summary should contain the data date range."""

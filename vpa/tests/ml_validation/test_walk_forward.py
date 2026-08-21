@@ -16,7 +16,6 @@ from sklearn.model_selection import TimeSeriesSplit
 from vpa.ml_validation.exceptions import InsufficientDataError
 from vpa.ml_validation.walk_forward import WalkForwardResult, WalkForwardValidator
 
-
 # --- Helpers ---
 
 
@@ -40,9 +39,7 @@ def _make_dataset(n_rows: int, n_features: int = 5, seed: int = 42) -> tuple[pd.
     return X, y
 
 
-def _compute_expected_skipped_folds(
-    n_rows: int, n_splits: int, min_train: int, min_test: int
-) -> list[int]:
+def _compute_expected_skipped_folds(n_rows: int, n_splits: int, min_train: int, min_test: int) -> list[int]:
     """Independently calculate which folds should be skipped using TimeSeriesSplit."""
     tscv = TimeSeriesSplit(n_splits=n_splits)
     indices = np.arange(n_rows)
@@ -169,9 +166,7 @@ def test_property_fold_skip_on_insufficient_samples(n_rows: int, seed: int) -> N
     """
     X, y = _make_dataset(n_rows, n_features=5, seed=seed)
 
-    expected_skipped = _compute_expected_skipped_folds(
-        n_rows, 5, 30, 10
-    )
+    expected_skipped = _compute_expected_skipped_folds(n_rows, 5, 30, 10)
 
     validator = WalkForwardValidator(
         n_splits=5,
@@ -197,8 +192,7 @@ def test_property_fold_skip_on_insufficient_samples(n_rows: int, seed: int) -> N
     # Verify that the number of fold accuracies equals non-skipped folds
     expected_valid_folds = 5 - len(expected_skipped)
     assert len(result.fold_accuracies) == expected_valid_folds, (
-        f"Expected {expected_valid_folds} fold accuracies for n_rows={n_rows}, "
-        f"got {len(result.fold_accuracies)}"
+        f"Expected {expected_valid_folds} fold accuracies for n_rows={n_rows}, " f"got {len(result.fold_accuracies)}"
     )
 
 

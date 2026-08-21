@@ -20,7 +20,7 @@ absolute_path = os.path.dirname(__file__)
 relative_path = "data/"
 full_path = os.path.join(absolute_path, relative_path)
 
-with open(os.path.join(full_path, 'SP500-tickers.csv'), 'r') as file:
+with open(os.path.join(full_path, "SP500-tickers.csv")) as file:
     # Read each line in the file
     for line in file:
         # Process the line (e.g., print it)
@@ -30,13 +30,13 @@ print(tickers)
 
 # Load config for drawdown filter
 config_full_path = os.path.join(os.path.dirname(__file__), "config", "config.json")
-with open(config_full_path, 'r') as f:
+with open(config_full_path) as f:
     config = json.load(f)
 
 drawdown_config = load_drawdown_config(config)
 
 # Create an empty dataframe with the specified columns
-df = pd.DataFrame(columns=['ticker', 'signal_score'])
+df = pd.DataFrame(columns=["ticker", "signal_score"])
 
 # Store DataFrames for drawdown filter evaluation
 dataframes: dict[str, pd.DataFrame] = {}
@@ -46,7 +46,7 @@ for ticker in tickers:
         analyzer = MarketAnalyzer(config_path="config/config.json", ticker_symbol=ticker, log_level="ERROR")
         signal_score = analyzer.process_data()
 
-        new_row = {'ticker': ticker, 'signal_score': round(signal_score, 1)}
+        new_row = {"ticker": ticker, "signal_score": round(signal_score, 1)}
         df.loc[len(df)] = new_row
 
         # Store DataFrame for drawdown filter evaluation
@@ -57,7 +57,7 @@ for ticker in tickers:
 print(df)
 
 # Sort the dataframe by signal_score in descending order
-df_sorted = df.sort_values(by='signal_score', ascending=False)
+df_sorted = df.sort_values(by="signal_score", ascending=False)
 
 absolute_path = os.path.dirname(__file__)
 relative_path = "log/"
@@ -100,9 +100,3 @@ else:
 
 log_file.flush()
 log_file.close()
-
-
-
-
-
-

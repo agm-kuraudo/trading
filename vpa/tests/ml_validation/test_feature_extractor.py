@@ -9,7 +9,6 @@ Tests:
 Requirements: 1.2, 1.3, 2.4
 """
 
-import datetime
 from unittest.mock import patch
 
 import numpy as np
@@ -53,14 +52,16 @@ def _make_ohlcv_dataframe(n_rows: int, start_date: str = "2010-01-04") -> pd.Dat
     lows = np.minimum(opens, closes) * (1 - rng.uniform(0.001, 0.01, size=n_rows))
     volumes = rng.integers(1_000_000, 100_000_000, size=n_rows).astype(float)
 
-    return pd.DataFrame({
-        "Date": dates,
-        "Open": opens,
-        "High": highs,
-        "Low": lows,
-        "Close": closes,
-        "Volume": volumes,
-    })
+    return pd.DataFrame(
+        {
+            "Date": dates,
+            "Open": opens,
+            "High": highs,
+            "Low": lows,
+            "Close": closes,
+            "Volume": volumes,
+        }
+    )
 
 
 # --- Test 1: enable_feature_extraction=False flag storage ---

@@ -91,8 +91,7 @@ def main(ticker: str = "SPY", output_dir: str = "ml_validation_output", config_p
 
     # Step 8: Build summary text and save all outputs
     top_5_text = "\n".join(
-        f"  {i + 1}. {row['feature_name']} ({row['importance_score']:.4f})"
-        for i, row in top_5.iterrows()
+        f"  {i + 1}. {row['feature_name']} ({row['importance_score']:.4f})" for i, row in top_5.iterrows()
     )
 
     summary_text = (
@@ -124,9 +123,7 @@ def main(ticker: str = "SPY", output_dir: str = "ml_validation_output", config_p
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VPA ML Validation Pipeline")
-    parser.add_argument(
-        "--ticker", type=str, default="SPY", help="Ticker symbol (default: SPY)"
-    )
+    parser.add_argument("--ticker", type=str, default="SPY", help="Ticker symbol (default: SPY)")
     parser.add_argument(
         "--output-dir",
         type=str,

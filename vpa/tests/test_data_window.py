@@ -13,10 +13,8 @@ import os
 import tempfile
 
 import pandas as pd
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
-
 
 # ---------------------------------------------------------------------------
 # Shared helpers
@@ -34,14 +32,16 @@ def make_temp_config(config_dict: dict) -> str:
 def make_large_df(rows: int = 400) -> pd.DataFrame:
     """Create a DataFrame large enough for both MA and drawdown features."""
     prices = [100.0 + i * 0.1 for i in range(rows)]
-    return pd.DataFrame({
-        "Date": pd.date_range("2022-01-01", periods=rows),
-        "Close": prices,
-        "High": [p + 1 for p in prices],
-        "Low": [p - 1 for p in prices],
-        "Open": prices,
-        "Volume": [1_000_000] * rows,
-    })
+    return pd.DataFrame(
+        {
+            "Date": pd.date_range("2022-01-01", periods=rows),
+            "Close": prices,
+            "High": [p + 1 for p in prices],
+            "Low": [p - 1 for p in prices],
+            "Open": prices,
+            "Volume": [1_000_000] * rows,
+        }
+    )
 
 
 def base_config() -> dict:
@@ -430,8 +430,8 @@ class TestDataWindowProperty:
             )
             result = analyzer._get_data_days()
             expected = max(ma_days, drawdown_days)
-            assert result == expected, (
-                f"_get_data_days() returned {result}, expected max({ma_days}, {drawdown_days}) = {expected}"
-            )
+            assert (
+                result == expected
+            ), f"_get_data_days() returned {result}, expected max({ma_days}, {drawdown_days}) = {expected}"
         finally:
             os.unlink(config_path)

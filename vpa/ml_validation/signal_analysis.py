@@ -8,14 +8,12 @@ multiple tickers.
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 
 from vpa.ml_validation.exceptions import InsufficientDataError
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -66,15 +64,15 @@ class SignalMetrics:
     signal_type: SignalType
     horizon_days: int
     event_count: int
-    hit_rate: Optional[float]
-    base_rate: Optional[float]
-    p_value: Optional[float]
-    ci_lower: Optional[float]
-    ci_upper: Optional[float]
-    avg_win: Optional[float]
-    avg_loss: Optional[float]
-    profit_factor: Optional[float]
-    signals_per_year: Optional[float]
+    hit_rate: float | None
+    base_rate: float | None
+    p_value: float | None
+    ci_lower: float | None
+    ci_upper: float | None
+    avg_win: float | None
+    avg_loss: float | None
+    profit_factor: float | None
+    signals_per_year: float | None
 
 
 @dataclass(frozen=True)
@@ -83,15 +81,15 @@ class CrossTickerSummary:
 
     signal_type: SignalType
     horizon_days: int
-    median_hit_rate: Optional[float]
-    mean_hit_rate: Optional[float]
+    median_hit_rate: float | None
+    mean_hit_rate: float | None
     significant_ticker_count: int
     total_ticker_count: int
-    median_profit_factor: Optional[float]
-    best_ticker: Optional[str]
-    best_hit_rate: Optional[float]
-    worst_ticker: Optional[str]
-    worst_hit_rate: Optional[float]
+    median_profit_factor: float | None
+    best_ticker: str | None
+    best_hit_rate: float | None
+    worst_ticker: str | None
+    worst_hit_rate: float | None
     conclusion: str
 
 
@@ -109,8 +107,17 @@ class SignalConditionalAnalyzer:
     """
 
     TICKER_UNIVERSE: list[str] = [
-        "SPY", "AAPL", "MSFT", "NVDA", "TSLA",
-        "AMD", "KO", "JNJ", "CAT", "BA", "XOM",
+        "SPY",
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "TSLA",
+        "AMD",
+        "KO",
+        "JNJ",
+        "CAT",
+        "BA",
+        "XOM",
     ]
     COMPOSITE_THRESHOLD: float = 15.0
     ACC_DIST_SCORE_THRESHOLD: float = 15.0
@@ -140,8 +147,7 @@ class SignalConditionalAnalyzer:
 
         if len(df) < self.MIN_ROWS_FOR_ANALYSIS:
             raise InsufficientDataError(
-                f"Ticker {ticker} has {len(df)} usable rows "
-                f"(minimum {self.MIN_ROWS_FOR_ANALYSIS} required)"
+                f"Ticker {ticker} has {len(df)} usable rows " f"(minimum {self.MIN_ROWS_FOR_ANALYSIS} required)"
             )
 
         return df
@@ -161,50 +167,28 @@ class SignalConditionalAnalyzer:
         acc_score_valid = df["acc_dist_score"].notna()
 
         # Strong Bullish: composite_score >= threshold (NaN excluded)
-        strong_bullish_mask = composite_valid & (
-            df["composite_score"] >= self.COMPOSITE_THRESHOLD
-        )
+        strong_bullish_mask = composite_valid & (df["composite_score"] >= self.COMPOSITE_THRESHOLD)
         result[SignalType.STRONG_BULLISH] = df.index[strong_bullish_mask].tolist()
 
         # Strong Bearish: composite_score <= -threshold (NaN excluded)
-        strong_bearish_mask = composite_valid & (
-            df["composite_score"] <= -self.COMPOSITE_THRESHOLD
-        )
+        strong_bearish_mask = composite_valid & (df["composite_score"] <= -self.COMPOSITE_THRESHOLD)
         result[SignalType.STRONG_BEARISH] = df.index[strong_bearish_mask].tolist()
 
         # Accumulation: acc_dist_flag == 1 AND acc_dist_type == 1
-        acc_base_mask = (
-            acc_flag_valid
-            & acc_type_valid
-            & (df["acc_dist_flag"] == 1)
-            & (df["acc_dist_type"] == 1)
-        )
+        acc_base_mask = acc_flag_valid & acc_type_valid & (df["acc_dist_flag"] == 1) & (df["acc_dist_type"] == 1)
         result[SignalType.ACCUMULATION] = df.index[acc_base_mask].tolist()
 
         # Distribution: acc_dist_flag == 1 AND acc_dist_type == -1
-        dist_mask = (
-            acc_flag_valid
-            & acc_type_valid
-            & (df["acc_dist_flag"] == 1)
-            & (df["acc_dist_type"] == -1)
-        )
+        dist_mask = acc_flag_valid & acc_type_valid & (df["acc_dist_flag"] == 1) & (df["acc_dist_type"] == -1)
         result[SignalType.DISTRIBUTION] = df.index[dist_mask].tolist()
 
         # Accumulation Test Pass: accumulation conditions + acc_dist_score >= threshold
-        acc_test_pass_mask = (
-            acc_base_mask
-            & acc_score_valid
-            & (df["acc_dist_score"] >= self.ACC_DIST_SCORE_THRESHOLD)
-        )
-        result[SignalType.ACCUMULATION_TEST_PASS] = df.index[
-            acc_test_pass_mask
-        ].tolist()
+        acc_test_pass_mask = acc_base_mask & acc_score_valid & (df["acc_dist_score"] >= self.ACC_DIST_SCORE_THRESHOLD)
+        result[SignalType.ACCUMULATION_TEST_PASS] = df.index[acc_test_pass_mask].tolist()
 
         return result
 
-    def compute_forward_returns(
-        self, df: pd.DataFrame, indices: list[int], horizon: int
-    ) -> np.ndarray:
+    def compute_forward_returns(self, df: pd.DataFrame, indices: list[int], horizon: int) -> np.ndarray:
         """Compute forward returns for signal events at the given horizon.
 
         Excludes events with insufficient future data or zero close price.
@@ -306,19 +290,11 @@ class SignalConditionalAnalyzer:
 
         # Avg win: mean of absolute values of winning returns
         winning_returns = returns[hits_mask]
-        avg_win: float | None = (
-            float(np.mean(np.abs(winning_returns)))
-            if len(winning_returns) > 0
-            else None
-        )
+        avg_win: float | None = float(np.mean(np.abs(winning_returns))) if len(winning_returns) > 0 else None
 
         # Avg loss: mean of absolute values of losing returns
         losing_returns = returns[~hits_mask]
-        avg_loss: float | None = (
-            float(np.mean(np.abs(losing_returns)))
-            if len(losing_returns) > 0
-            else None
-        )
+        avg_loss: float | None = float(np.mean(np.abs(losing_returns))) if len(losing_returns) > 0 else None
 
         # Profit factor
         sum_wins = float(np.sum(np.abs(winning_returns)))
@@ -365,7 +341,7 @@ class SignalConditionalAnalyzer:
 
     def binomial_test(self, hits: int, n: int, base_rate: float) -> float:
         """Perform two-sided binomial test, returning p-value."""
-        result = stats.binomtest(hits, n, base_rate, alternative='two-sided')
+        result = stats.binomtest(hits, n, base_rate, alternative="two-sided")
         return float(result.pvalue)
 
     def bootstrap_ci(self, hit_miss_array: np.ndarray) -> tuple[float, float]:
@@ -405,16 +381,12 @@ class SignalConditionalAnalyzer:
             for horizon in FORWARD_HORIZONS:
                 returns = self.compute_forward_returns(df, indices, horizon)
                 base_rate = self.compute_base_rate(df, horizon)
-                metrics = self.compute_metrics(
-                    returns, signal_type, horizon, base_rate, dataset_years
-                )
+                metrics = self.compute_metrics(returns, signal_type, horizon, base_rate, dataset_years)
                 results.append(metrics)
 
         return results
 
-    def compute_cross_ticker_summary(
-        self, all_metrics: dict[str, list[SignalMetrics]]
-    ) -> list[CrossTickerSummary]:
+    def compute_cross_ticker_summary(self, all_metrics: dict[str, list[SignalMetrics]]) -> list[CrossTickerSummary]:
         """Aggregate per-ticker metrics into cross-ticker summaries.
 
         Computes median/mean hit rates, significance counts, best/worst
@@ -441,10 +413,7 @@ class SignalConditionalAnalyzer:
                     # Find the matching metric for this signal_type/horizon
                     metric = None
                     for m in metrics_list:
-                        if (
-                            m.signal_type == signal_type
-                            and m.horizon_days == horizon
-                        ):
+                        if m.signal_type == signal_type and m.horizon_days == horizon:
                             metric = m
                             break
 
@@ -456,10 +425,7 @@ class SignalConditionalAnalyzer:
                         hit_rates.append((ticker, metric.hit_rate))
                         if metric.p_value is not None:
                             p_values.append(metric.p_value)
-                        if (
-                            metric.profit_factor is not None
-                            and metric.profit_factor != float("inf")
-                        ):
+                        if metric.profit_factor is not None and metric.profit_factor != float("inf"):
                             profit_factors.append(metric.profit_factor)
 
                 total_ticker_count = len(hit_rates)
@@ -494,11 +460,7 @@ class SignalConditionalAnalyzer:
                 significant_count_01 = sum(1 for p in p_values if p < 0.01)
 
                 # Median profit factor
-                median_profit_factor: float | None = (
-                    float(np.median(profit_factors))
-                    if profit_factors
-                    else None
-                )
+                median_profit_factor: float | None = float(np.median(profit_factors)) if profit_factors else None
 
                 # Best and worst tickers by hit rate
                 best_ticker, best_hit_rate = max(hit_rates, key=lambda x: x[1])
@@ -576,7 +538,7 @@ class SignalConditionalAnalyzer:
         return "Inconclusive \u2014 insufficient statistical evidence"
 
     @staticmethod
-    def _fmt_float(value: Optional[float], decimals: int) -> str:
+    def _fmt_float(value: float | None, decimals: int) -> str:
         """Format a float value for CSV output.
 
         Returns empty string for None, formatted string otherwise.
@@ -586,7 +548,7 @@ class SignalConditionalAnalyzer:
         return f"{value:.{decimals}f}"
 
     @staticmethod
-    def _fmt_profit_factor(value: Optional[float]) -> str:
+    def _fmt_profit_factor(value: float | None) -> str:
         """Format profit_factor for CSV output.
 
         Returns empty string for None, 'inf' for infinity, formatted 4dp otherwise.
@@ -610,9 +572,18 @@ class SignalConditionalAnalyzer:
         csv_path = self.output_dir / f"{ticker}_signal_analysis.csv"
 
         headers = [
-            "signal_type", "horizon_days", "event_count", "hit_rate",
-            "base_rate", "p_value", "ci_lower", "ci_upper",
-            "avg_win", "avg_loss", "profit_factor", "signals_per_year",
+            "signal_type",
+            "horizon_days",
+            "event_count",
+            "hit_rate",
+            "base_rate",
+            "p_value",
+            "ci_lower",
+            "ci_upper",
+            "avg_win",
+            "avg_loss",
+            "profit_factor",
+            "signals_per_year",
         ]
 
         with open(csv_path, "w", newline="") as f:
@@ -648,10 +619,17 @@ class SignalConditionalAnalyzer:
         csv_path = self.output_dir / "signal_comparison_summary.csv"
 
         headers = [
-            "signal_type", "horizon_days", "median_hit_rate", "mean_hit_rate",
-            "significant_ticker_count", "total_ticker_count",
-            "median_profit_factor", "best_ticker", "best_hit_rate",
-            "worst_ticker", "worst_hit_rate",
+            "signal_type",
+            "horizon_days",
+            "median_hit_rate",
+            "mean_hit_rate",
+            "significant_ticker_count",
+            "total_ticker_count",
+            "median_profit_factor",
+            "best_ticker",
+            "best_hit_rate",
+            "worst_ticker",
+            "worst_hit_rate",
         ]
 
         with open(csv_path, "w", newline="") as f:
@@ -690,22 +668,10 @@ class SignalConditionalAnalyzer:
         lines.append("Interpretation Table:")
         lines.append("| Hit Rate Band | Conclusion |")
         lines.append("|---|---|")
-        lines.append(
-            "| < 45% (p < 0.05) | Reliable contrarian indicator"
-            " \u2014 invert the signal |"
-        )
-        lines.append(
-            "| <= 55% (majority p >= 0.05) | Signal is noise"
-            " \u2014 remove or reduce signal weight |"
-        )
-        lines.append(
-            "| 55-60% (p < 0.05) | Weak but real edge"
-            " \u2014 keep signal, consider as filter only |"
-        )
-        lines.append(
-            "| >= 60% (p < 0.01) | Strong signal"
-            " \u2014 build trading strategy around this event type |"
-        )
+        lines.append("| < 45% (p < 0.05) | Reliable contrarian indicator" " \u2014 invert the signal |")
+        lines.append("| <= 55% (majority p >= 0.05) | Signal is noise" " \u2014 remove or reduce signal weight |")
+        lines.append("| 55-60% (p < 0.05) | Weak but real edge" " \u2014 keep signal, consider as filter only |")
+        lines.append("| >= 60% (p < 0.01) | Strong signal" " \u2014 build trading strategy around this event type |")
         lines.append("")
         lines.append("Results by Horizon:")
 
@@ -714,9 +680,7 @@ class SignalConditionalAnalyzer:
             lines.append(f"=== {horizon}-Day Forward Returns ===")
 
             # Filter summaries for this horizon and sort by median hit rate descending
-            horizon_summaries = [
-                s for s in summaries if s.horizon_days == horizon
-            ]
+            horizon_summaries = [s for s in summaries if s.horizon_days == horizon]
             # Sort by median_hit_rate descending; None values go last
             horizon_summaries.sort(
                 key=lambda s: s.median_hit_rate if s.median_hit_rate is not None else -1.0,
@@ -729,9 +693,7 @@ class SignalConditionalAnalyzer:
                 else:
                     hr_pct = "N/A"
                 lines.append(
-                    f"Signal: {s.signal_type.value}"
-                    f" | Median Hit Rate: {hr_pct}"
-                    f" | Conclusion: {s.conclusion}"
+                    f"Signal: {s.signal_type.value}" f" | Median Hit Rate: {hr_pct}" f" | Conclusion: {s.conclusion}"
                 )
 
         lines.append("")  # trailing newline
@@ -752,25 +714,14 @@ class SignalConditionalAnalyzer:
             try:
                 metrics = self.analyse_ticker(ticker)
                 # Count unique signal events (use the first horizon event counts)
-                signal_count = sum(
-                    m.event_count for m in metrics
-                    if m.horizon_days == FORWARD_HORIZONS[0]
-                )
-                print(
-                    f"Processing {ticker} ({n}/{total})..."
-                    f" {signal_count} signal events found"
-                )
+                signal_count = sum(m.event_count for m in metrics if m.horizon_days == FORWARD_HORIZONS[0])
+                print(f"Processing {ticker} ({n}/{total})..." f" {signal_count} signal events found")
                 all_metrics[ticker] = metrics
                 self.write_per_ticker_csv(ticker, metrics)
             except FileNotFoundError:
-                print(
-                    f"Warning: Feature dataset not found for {ticker}, skipping"
-                )
+                print(f"Warning: Feature dataset not found for {ticker}, skipping")
             except (pd.errors.ParserError, pd.errors.EmptyDataError) as e:
-                print(
-                    f"Warning: Could not parse dataset for {ticker}: {e},"
-                    " skipping"
-                )
+                print(f"Warning: Could not parse dataset for {ticker}: {e}," " skipping")
             except InsufficientDataError as e:
                 print(f"Warning: {e}, skipping {ticker}")
 

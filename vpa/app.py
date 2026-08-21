@@ -1,9 +1,9 @@
 import os
 import statistics
-from collections import deque
 from datetime import datetime
-import pandas as pd
+
 import numpy as np
+
 
 def calculate_true_range(candle1, candle2):
     # True Range (TR) is the greatest of the following:
@@ -12,11 +12,13 @@ def calculate_true_range(candle1, candle2):
     # - Absolute value of Current Low minus Previous Close
     return max(candle2.high - candle2.low, abs(candle2.high - candle1.close), abs(candle2.low - candle1.close))
 
+
 def calculate_dm_plus(candle1, candle2):
     # Positive Directional Movement (DM+) is calculated as:
     # - Current High minus Previous High if it is greater than Current Low minus Previous Low
     # - Otherwise, it is zero
     return max(candle2.high - candle1.high, 0) if (candle2.high - candle1.high) > (candle1.low - candle2.low) else 0
+
 
 def calculate_dm_minus(candle1, candle2):
     # Negative Directional Movement (DM-) is calculated as:
@@ -35,9 +37,9 @@ def calculate_adx(candles, period=14):
 
     # Calculate True Range (TR), DM+, and DM- for each pair of candles
     for i in range(1, len(candles)):
-        tr_list.append(calculate_true_range(candles[i-1], candles[i]))
-        dm_plus_list.append(calculate_dm_plus(candles[i-1], candles[i]))
-        dm_minus_list.append(calculate_dm_minus(candles[i-1], candles[i]))
+        tr_list.append(calculate_true_range(candles[i - 1], candles[i]))
+        dm_plus_list.append(calculate_dm_plus(candles[i - 1], candles[i]))
+        dm_minus_list.append(calculate_dm_minus(candles[i - 1], candles[i]))
 
     # print(tr_list[:5])  # Print the first 5 TR values
     # print(dm_plus_list[:5])  # Print the first 5 DM+ values
@@ -83,8 +85,8 @@ def identify_acc_or_dist(period_three, period_one):
     volume_stats_list = []
     price_stats_list = []
     for item in period_three:
-        volume_stats_list.append(getattr(item, "volume"))
-        price_stats_list.append(getattr(item, "close"))
+        volume_stats_list.append(item.volume)
+        price_stats_list.append(item.close)
 
     period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
     period_three_price_percentiles = np.percentile(price_stats_list, [10, 20, 80])
@@ -94,8 +96,8 @@ def identify_acc_or_dist(period_three, period_one):
 
     high_volume_count = 0
     for item in period_one:
-#        logger.log(f"Volume: {getattr(item, 'volume')}", level="DEBUG")
-        if getattr(item, "volume") > period_three_volume_percentiles[0]:
+        #        logger.log(f"Volume: {getattr(item, 'volume')}", level="DEBUG")
+        if item.volume > period_three_volume_percentiles[0]:
             high_volume_count += 1
 
     # print(f"High Volume Count: {high_volume_count}")
@@ -110,6 +112,7 @@ def identify_acc_or_dist(period_three, period_one):
         return True, "Dist"
     else:
         return False, ""
+
 
 class Candle:
     DEBUG = False
@@ -153,20 +156,24 @@ class Candle:
         self.__lld = False
 
         # If the upper wick is two times bigger than the spread and the lower wick - shooting star candle
-        if (self.__upper_wick > (self.__spread * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD)
-                and self.__upper_wick > (self.__lower_wick *
-                                         Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK)):
+        if self.__upper_wick > (
+            self.__spread * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD
+        ) and self.__upper_wick > (
+            self.__lower_wick * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK
+        ):
             self.__shooting_star = True
 
         # If the lower wick is two times bigger than the spread and the upper wick - Hammer candle
-        if (self.__lower_wick > (self.__spread * Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_SPREAD)
-                and self.__lower_wick > (self.__upper_wick *
-                                         Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_UPPER_WICK)):
+        if self.__lower_wick > (
+            self.__spread * Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_SPREAD
+        ) and self.__lower_wick > (self.__upper_wick * Candle.CONFIG_HAMMER_LOWER_WICK_X_TIMES_BIGGER_THAN_UPPER_WICK):
             self.__hammer = True
 
         # If both the lower wick and the higher wick are double the spread - long-legged Doji
-        if (self.__upper_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD
-                and self.__lower_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD):
+        if (
+            self.__upper_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD
+            and self.__lower_wick > self.__spread * Candle.CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD
+        ):
             self.__lld = True
             # If it's a lld then probably shouldn't also be marked as a Hammer or Shooting star!
             self.__shooting_star = False
@@ -186,8 +193,12 @@ class Candle:
         if self.__lld:
             patterns += ":Long Legged Doji:"
 
-        return ("Candle {} is an {} opened at {} and closed at {}. High was {}. Low was {}. Spread was {}. Volume was {}. "
-                "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  Spread Percentiles: {}:{}:{}, Volume Percentiles: {}:{}:{}").format(
+        return (
+            "Candle {} is an {} opened at {} and closed at {}. "
+            "High was {}. Low was {}. Spread was {}. Volume was {}. "
+            "Upper Wick was {}. Lower Wick was {}. Pattern was {}.  "
+            "Spread Percentiles: {}:{}:{}, Volume Percentiles: {}:{}:{}"
+        ).format(
             self.__time,
             bar_type,
             self.__open,
@@ -204,7 +215,8 @@ class Candle:
             self.__spread_percentiles.get("period_three"),
             self.__volume_percentiles.get("period_one"),
             self.__volume_percentiles.get("period_two"),
-            self.__volume_percentiles.get("period_three"))
+            self.__volume_percentiles.get("period_three"),
+        )
 
     def is_candle_pattern(self):
         if self.__shooting_star or self.__hammer or self.__lld:
@@ -274,6 +286,7 @@ class Candle:
         if self.__spread_percentiles is not None:
             for key in self.__volume_percentiles.keys():
                 self.__anomaly[key] = self.__volume_percentiles[key] - self.spread_percentiles[key]
+
 
 class DebugLog:
     LEVELS = {"DEBUG": 10, "INFO": 20, "WARN": 30, "ERROR": 40}

@@ -12,14 +12,13 @@ import tempfile
 
 import numpy as np
 import pandas as pd
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
-
 
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def make_temp_config(config_dict: dict) -> str:
     """Write a config dict to a temp JSON file and return its path."""
@@ -32,14 +31,16 @@ def make_temp_config(config_dict: dict) -> str:
 def make_minimal_df(rows: int = 250) -> pd.DataFrame:
     """Create a minimal DataFrame with enough rows to avoid insufficient-data warnings."""
     prices = [100.0 + i * 0.1 for i in range(rows)]
-    return pd.DataFrame({
-        "Date": pd.date_range("2023-01-01", periods=rows),
-        "Close": prices,
-        "High": [p + 1 for p in prices],
-        "Low": [p - 1 for p in prices],
-        "Open": prices,
-        "Volume": [1_000_000] * rows,
-    })
+    return pd.DataFrame(
+        {
+            "Date": pd.date_range("2023-01-01", periods=rows),
+            "Close": prices,
+            "High": [p + 1 for p in prices],
+            "Low": [p - 1 for p in prices],
+            "Open": prices,
+            "Volume": [1_000_000] * rows,
+        }
+    )
 
 
 def base_config() -> dict:
@@ -86,6 +87,7 @@ def base_config() -> dict:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestMAConfigValidation:
     """Tests for MA crossover configuration loading and validation."""
@@ -373,14 +375,16 @@ class TestSMAProperties:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=len(prices)),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * len(prices),
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=len(prices)),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * len(prices),
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -396,14 +400,14 @@ class TestSMAProperties:
                 for i in range(len(prices)):
                     if i < period_val - 1:
                         # Should be NaN during warmup
-                        assert pd.isna(analyzer.myDF.iloc[i][col]), \
-                            f"Row {i} should be NaN for {col} (period={period_val})"
+                        assert pd.isna(
+                            analyzer.myDF.iloc[i][col]
+                        ), f"Row {i} should be NaN for {col} (period={period_val})"
                     else:
                         # Should equal arithmetic mean of last 'period_val' closes
                         expected = np.mean(prices[i - period_val + 1 : i + 1])
                         actual = analyzer.myDF.iloc[i][col]
-                        assert abs(actual - expected) < 1e-10, \
-                            f"Row {i} {col}: expected {expected}, got {actual}"
+                        assert abs(actual - expected) < 1e-10, f"Row {i} {col}: expected {expected}, got {actual}"
         finally:
             os.unlink(config_path)
 
@@ -431,14 +435,16 @@ class TestSMAEdgeCases:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=15),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * 15,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=15),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * 15,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -478,14 +484,16 @@ class TestSMAEdgeCases:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=20),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * 20,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=20),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * 20,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -577,8 +585,6 @@ class TestNaNProperties:
         """
         from vpa.app_runner import MarketAnalyzer
 
-        # Create a DataFrame with only 12 rows - SMA_long (period 15) will be NaN
-        prices = [100.0 + i for i in range(12)]
         config = base_config()
         config["ma_crossover"] = {
             "enabled": True,
@@ -592,14 +598,16 @@ class TestNaNProperties:
         try:
             # Use a larger df but check early rows where SMA_long is NaN
             prices2 = [100.0 + i for i in range(20)]
-            df2 = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=20),
-                "Close": prices2,
-                "High": [p + 1 for p in prices2],
-                "Low": [p - 1 for p in prices2],
-                "Open": prices2,
-                "Volume": [1000000] * 20,
-            })
+            df2 = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=20),
+                    "Close": prices2,
+                    "High": [p + 1 for p in prices2],
+                    "Low": [p - 1 for p in prices2],
+                    "Open": prices2,
+                    "Volume": [1000000] * 20,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -643,7 +651,9 @@ class TestPricePositionProperties:
             above_count == 1,  # below_two
         ]
 
-        assert sum(classifications) == 1, f"Expected exactly 1 classification, got {sum(classifications)} for above_count={above_count}"
+        assert (
+            sum(classifications) == 1
+        ), f"Expected exactly 1 classification, got {sum(classifications)} for above_count={above_count}"
 
 
 class TestScoreCompositionProperties:
@@ -668,14 +678,16 @@ class TestScoreCompositionProperties:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=50),
-                "Close": [100.0 + i for i in range(50)],
-                "High": [101.0 + i for i in range(50)],
-                "Low": [99.0 + i for i in range(50)],
-                "Open": [100.0 + i for i in range(50)],
-                "Volume": [1000000] * 50,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=50),
+                    "Close": [100.0 + i for i in range(50)],
+                    "High": [101.0 + i for i in range(50)],
+                    "Low": [99.0 + i for i in range(50)],
+                    "Open": [100.0 + i for i in range(50)],
+                    "Volume": [1000000] * 50,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -712,14 +724,16 @@ class TestScoreCompositionProperties:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=50),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * 50,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=50),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * 50,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -746,6 +760,7 @@ class TestCrossoverAndPositionUnit:
     def _make_analyzer_with_smas(self, prices, periods=None):
         """Helper: create analyzer with given prices and compute SMAs."""
         from vpa.app_runner import MarketAnalyzer
+
         if periods is None:
             periods = {"short": 3, "medium": 7, "long": 15}
 
@@ -759,14 +774,16 @@ class TestCrossoverAndPositionUnit:
         }
 
         config_path = make_temp_config(config)
-        df = pd.DataFrame({
-            "Date": pd.date_range("2024-01-01", periods=len(prices)),
-            "Close": prices,
-            "High": [p + 1 for p in prices],
-            "Low": [p - 1 for p in prices],
-            "Open": prices,
-            "Volume": [1000000] * len(prices),
-        })
+        df = pd.DataFrame(
+            {
+                "Date": pd.date_range("2024-01-01", periods=len(prices)),
+                "Close": prices,
+                "High": [p + 1 for p in prices],
+                "Low": [p - 1 for p in prices],
+                "Open": prices,
+                "Volume": [1000000] * len(prices),
+            }
+        )
 
         analyzer = MarketAnalyzer(
             config_path=config_path,
@@ -889,11 +906,9 @@ class TestCrossoverAndPositionUnit:
 
         try:
             # Find a row where above_two is detected
-            found = False
             for i in range(20, 30):
                 result = analyzer.detect_ma_signals(i)
                 if "Price above_two" in result["ma_crossover_signals"]:
-                    found = True
                     break
             # This specific data pattern may or may not trigger above_two
             # Use a more controlled approach instead
@@ -921,14 +936,16 @@ class TestCrossoverAndPositionUnit:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=20),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * 20,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=20),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * 20,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -980,14 +997,16 @@ class TestIntegration:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=rows),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * rows,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=rows),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * rows,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -1004,7 +1023,7 @@ class TestIntegration:
             # - The trade_signal should be non-zero (it includes all signal categories)
             # We can't predict exact value but can verify it ran without error
             # and that MA signals contributed (above_all adds +5)
-            assert isinstance(trade_signal, (int, float))
+            assert isinstance(trade_signal, int | float)
 
             # Verify MA signals are accessible - check that the method works end-to-end
             # The last row should have price above all SMAs in a rising series
@@ -1032,14 +1051,16 @@ class TestIntegration:
 
         config_path = make_temp_config(config)
         try:
-            df = pd.DataFrame({
-                "Date": pd.date_range("2024-01-01", periods=rows),
-                "Close": prices,
-                "High": [p + 1 for p in prices],
-                "Low": [p - 1 for p in prices],
-                "Open": prices,
-                "Volume": [1000000] * rows,
-            })
+            df = pd.DataFrame(
+                {
+                    "Date": pd.date_range("2024-01-01", periods=rows),
+                    "Close": prices,
+                    "High": [p + 1 for p in prices],
+                    "Low": [p - 1 for p in prices],
+                    "Open": prices,
+                    "Volume": [1000000] * rows,
+                }
+            )
 
             analyzer = MarketAnalyzer(
                 config_path=config_path,
@@ -1051,6 +1072,6 @@ class TestIntegration:
             trade_signal = analyzer.process_data()
 
             # Should run without error, MA contributes nothing
-            assert isinstance(trade_signal, (int, float))
+            assert isinstance(trade_signal, int | float)
         finally:
             os.unlink(config_path)

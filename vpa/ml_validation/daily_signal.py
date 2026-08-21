@@ -25,10 +25,8 @@ from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 from vpa.ml_validation.signal_analysis import (
     SIGNAL_DIRECTIONS,
     SignalConditionalAnalyzer,
-    SignalDirection,
     SignalType,
 )
-from vpa.rsi import calculate_rsi
 
 # Import thresholds directly from SignalConditionalAnalyzer (Req 8.4)
 COMPOSITE_THRESHOLD: float = SignalConditionalAnalyzer.COMPOSITE_THRESHOLD
@@ -84,9 +82,7 @@ CSV_COLUMNS: list[str] = [
 # ---------------------------------------------------------------------------
 
 
-def build_signal_records(
-    ticker: str, date: str, signal_types: set[SignalType]
-) -> list[SignalRecord]:
+def build_signal_records(ticker: str, date: str, signal_types: set[SignalType]) -> list[SignalRecord]:
     """Build sorted SignalRecords from classified signal types.
 
     Filters out excluded signals (ACCUMULATION_TEST_PASS), creates one
@@ -151,9 +147,7 @@ def classify_last_row(df: pd.DataFrame) -> set[SignalType]:
 
     # --- Composite score thresholds ---
     # Check composite_score is numeric and not NaN
-    if composite_score is not None and not (
-        isinstance(composite_score, float) and math.isnan(composite_score)
-    ):
+    if composite_score is not None and not (isinstance(composite_score, float) and math.isnan(composite_score)):
         score = float(composite_score)
         if not math.isnan(score):
             if score >= COMPOSITE_THRESHOLD:
@@ -252,12 +246,10 @@ class DailySignalGenerator:
             )
 
         try:
-            with open(config_path, "r", encoding="utf-8") as f:
+            with open(config_path, encoding="utf-8") as f:
                 config = json.load(f)
         except (json.JSONDecodeError, OSError) as exc:
-            raise InsufficientDataError(
-                f"Failed to load configuration from {config_path}: {exc}"
-            ) from exc
+            raise InsufficientDataError(f"Failed to load configuration from {config_path}: {exc}") from exc
 
         period_one_length: int = config["PERIOD_ONE_LENGTH"]
         period_two_length: int = config["PERIOD_TWO_LENGTH"]
@@ -278,9 +270,7 @@ class DailySignalGenerator:
                 progress=False,
             )
         except Exception as exc:
-            raise InsufficientDataError(
-                f"Failed to download data for {self.ticker}: {exc}"
-            ) from exc
+            raise InsufficientDataError(f"Failed to download data for {self.ticker}: {exc}") from exc
 
         if df is None or df.empty:
             raise InsufficientDataError(
@@ -369,9 +359,7 @@ class DailySignalGenerator:
             props = ["spread", "volume"]
             for prop in props:
                 for key in deque_dictionary:
-                    stats_list = [
-                        getattr(item, prop) for item in deque_dictionary[key]
-                    ]
+                    stats_list = [getattr(item, prop) for item in deque_dictionary[key]]
                     percentiles_store[prop][key] = np.percentile(
                         stats_list,
                         list(range(percentile_start, 100, percentile_increments)),
@@ -519,18 +507,14 @@ def append_to_log(records: list[SignalRecord], log_path: Path) -> None:
     # Determine existing keys for deduplication (Req 6.1)
     existing_keys: set[tuple[str, str, str]] = set()
     if log_path.exists():
-        with open(log_path, mode="r", encoding="utf-8", newline="") as f:
+        with open(log_path, encoding="utf-8", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 key = (row["ticker"], row["date"], row["signal_type"])
                 existing_keys.add(key)
 
     # Filter out duplicates
-    new_records = [
-        r
-        for r in records
-        if (r.ticker, r.date, r.signal_type) not in existing_keys
-    ]
+    new_records = [r for r in records if (r.ticker, r.date, r.signal_type) not in existing_keys]
 
     if not new_records:
         return

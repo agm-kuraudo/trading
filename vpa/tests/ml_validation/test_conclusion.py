@@ -3,7 +3,6 @@
 # Feature: vpa-ml-validation, Property 12: Conclusion engine correctness
 """
 
-import pytest
 from hypothesis import given, settings
 from hypothesis.strategies import floats
 
@@ -37,9 +36,7 @@ def test_conclusion_engine_correctness(baseline_pct: float, ml_pct: float) -> No
     result = ConclusionEngine.determine_conclusion(baseline_pct, ml_pct)
 
     # Must be one of the five valid conclusions
-    assert result in VALID_CONCLUSIONS, (
-        f"Unexpected conclusion: {result!r} for baseline={baseline_pct}, ml={ml_pct}"
-    )
+    assert result in VALID_CONCLUSIONS, f"Unexpected conclusion: {result!r} for baseline={baseline_pct}, ml={ml_pct}"
 
     # Verify correct branch selection based on decision tree
     edge_threshold = ConclusionEngine.EDGE_THRESHOLD  # 52.0
@@ -63,8 +60,7 @@ def test_conclusion_engine_correctness(baseline_pct: float, ml_pct: float) -> No
             expected = "Rule-based approach outperforms ML on this dataset"
 
     assert result == expected, (
-        f"Wrong branch for baseline={baseline_pct}, ml={ml_pct}: "
-        f"got {result!r}, expected {expected!r}"
+        f"Wrong branch for baseline={baseline_pct}, ml={ml_pct}: " f"got {result!r}, expected {expected!r}"
     )
 
 
