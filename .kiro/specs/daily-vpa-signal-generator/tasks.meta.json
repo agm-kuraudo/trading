@@ -1,0 +1,311 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create `vpa/ml_validation/daily_signal.py` with imports, `SignalRecord` dataclass, confidence map, excluded signals set, CSV columns list, and confidence order": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305943480
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305954163
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306031795
+      }
+    ],
+    "2.1 Implement `classify_last_row(df: pd.DataFrame) -> set[SignalType]`": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305944288
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306036491
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306154417
+      }
+    ],
+    "2.2 Implement `build_signal_records(ticker: str, date: str, signal_types: set[SignalType]) -> list[SignalRecord]`": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305944445
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306037471
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306155290
+      }
+    ],
+    "3.1 Implement `DailySignalGenerator.__init__` and `run` method": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305944612
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306160587
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306436095
+      }
+    ],
+    "4. Checkpoint": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305944739
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306456459
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306485092
+      }
+    ],
+    "5.1 Implement `print_signals(ticker: str, date: str, records: list[SignalRecord]) -> None`": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305944917
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306494655
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306626569
+      }
+    ],
+    "5.2 Implement `append_to_log(records: list[SignalRecord], log_path: Path) -> None`": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945006
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306495519
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306627367
+      }
+    ],
+    "5.3 Write property test for CSV deduplication (Property 5)": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945098
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306864953
+      }
+    ],
+    "6.1 Implement `parse_args(argv: list[str] | None = None) -> argparse.Namespace`": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945175
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306631795
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306759139
+      }
+    ],
+    "6.2 Implement `main()` function and `if __name__ == \"__main__\"` block": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945247
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306632741
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306760041
+      }
+    ],
+    "6.3 Write property test for CLI lookback-days validation (Property 6)": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945332
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306865889
+      }
+    ],
+    "7. Checkpoint": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945442
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306764873
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306832163
+      }
+    ],
+    "8.1 Wire feature extraction equivalence and add `__init__.py` entry if needed": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945514
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306839704
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306859260
+      }
+    ],
+    "8.2 Write property test for feature extraction equivalence (Property 7)": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945579
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306866520
+      }
+    ],
+    "8.3 Write unit tests for console output and edge cases": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945650
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306867462
+      }
+    ],
+    "8.4 Write integration test with mocked yfinance": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945730
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306868453
+      }
+    ],
+    "9. Final checkpoint": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787305945799
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306875104
+      },
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306899294
+      }
+    ],
+    "1. Create module with data models and constants": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306031884
+      }
+    ],
+    "2. Implement classification and signal building": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306155378
+      }
+    ],
+    "3. Implement DailySignalGenerator class": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306436186
+      }
+    ],
+    "5. Implement output functions": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306865037
+      }
+    ],
+    "6. Implement CLI interface": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306866003
+      }
+    ],
+    "8. Integration and wiring": [
+      {
+        "executionId": "5fa3a599-4dcc-4f22-af2c-6f980c7b00e2",
+        "chatSessionId": "sess_dcfc9626-611c-4ed9-901f-4713fa588515",
+        "timestamp": 1787306868555
+      }
+    ]
+  }
+}
