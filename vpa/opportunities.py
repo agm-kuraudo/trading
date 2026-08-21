@@ -6,9 +6,8 @@ All functions operate on pandas DataFrames/Series and config dicts with no
 external data-source dependencies.
 """
 
-from typing import Optional
-
 import logging
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -68,7 +67,7 @@ def load_drawdown_config(config: dict) -> dict:
 # --- Core Calculations ---
 
 
-def compute_52_week_high(closes: pd.Series, window: int = 252) -> Optional[float]:
+def compute_52_week_high(closes: pd.Series, window: int = 252) -> float | None:
     """Compute the 52-week high from the last `window` trading days of closes.
 
     Args:
@@ -99,7 +98,7 @@ def compute_drawdown_percentage(current_close: float, fifty_two_week_high: float
     return ((current_close - fifty_two_week_high) / fifty_two_week_high) * 100
 
 
-def compute_momentum(closes: pd.Series, period: int = 20) -> Optional[float]:
+def compute_momentum(closes: pd.Series, period: int = 20) -> float | None:
     """Compute rate-of-change momentum over the given period.
 
     Formula: ((current_close - close_n_days_ago) / close_n_days_ago) * 100
@@ -130,7 +129,7 @@ def evaluate_ticker(
     df: pd.DataFrame,
     drawdown_threshold: float = 20.0,
     momentum_period: int = 20,
-) -> Optional[dict]:
+) -> dict | None:
     """Evaluate a single ticker's DataFrame against the filter criteria.
 
     A ticker qualifies when its current price is at least `drawdown_threshold`

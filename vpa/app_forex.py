@@ -1,17 +1,16 @@
+import os
 import time
-from vpa.app_runner import MarketAnalyzer
+from datetime import datetime, timedelta
+
 import pandas as pd
-import time
-import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import os
-from datetime import datetime, timedelta
-from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select, WebDriverWait
+
+from vpa.app_runner import MarketAnalyzer
 
 # Set your desired download directory
 download_dir = "/home/mypi/Downloads"  # Change this to your actual path
@@ -28,11 +27,11 @@ options.set_preference("browser.download.panel.shown", False)
 # Optional: run headless
 options.add_argument("--headless")
 
-service = Service('/usr/local/bin/geckodriver')
+service = Service("/usr/local/bin/geckodriver")
 driver = webdriver.Firefox(service=service, options=options)
 
 driver.get("https://forexsb.com/historical-forex-data")
-#driver.set_window_size(1920, 1044)
+# driver.set_window_size(1920, 1044)
 driver.switch_to.frame(0)
 driver.find_element(By.ID, "select-symbol").click()
 dropdown = driver.find_element(By.ID, "select-symbol")
@@ -49,7 +48,7 @@ dropdown.select_by_visible_text("Excel (CSV)")
 # Wait up to 10 seconds for the link to be clickable
 wait = WebDriverWait(driver, 20)
 download_link = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "GBPUSD_D1.csv")))
-#download_link.click()
+# download_link.click()
 driver.execute_script("arguments[0].click();", download_link)
 
 # Wait long enough for the file to download
@@ -83,12 +82,14 @@ recent_files.sort(key=lambda f: os.path.getmtime(os.path.join(downloads_folder, 
 my_df = pd.read_csv(os.path.join(downloads_folder, recent_files[0]), sep="\t", index_col=False).tail(51)
 os.remove(os.path.join(downloads_folder, recent_files[0]))
 
-my_df.columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-my_df['Date'] = pd.to_datetime(my_df['Date'])
+my_df.columns = ["Date", "Open", "High", "Low", "Close", "Volume"]
+my_df["Date"] = pd.to_datetime(my_df["Date"])
 
 print(my_df.head(5))
 
-analyzer = MarketAnalyzer(config_path="config/config.json", log_level="INFO", fixed_df=my_df, ticker_symbol="GBPUSD", log_prefix="GBPUSD")
+analyzer = MarketAnalyzer(
+    config_path="config/config.json", log_level="INFO", fixed_df=my_df, ticker_symbol="GBPUSD", log_prefix="GBPUSD"
+)
 trade_signal = analyzer.process_data()
 
 analyzer.graph_intervals()

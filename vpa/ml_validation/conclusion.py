@@ -8,9 +8,7 @@ class ConclusionEngine:
     IMPROVEMENT_THRESHOLD = 2.0  # percentage points
 
     @staticmethod
-    def determine_conclusion(
-        baseline_accuracy_pct: float, ml_accuracy_pct: float
-    ) -> str:
+    def determine_conclusion(baseline_accuracy_pct: float, ml_accuracy_pct: float) -> str:
         """
         Apply the five-branch decision tree to determine the conclusion.
 

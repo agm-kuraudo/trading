@@ -11,7 +11,6 @@ Requirements: 3.4, 3.5, 5.4, 7.1, 7.2, 7.3, 7.5, 7.6
 """
 
 import logging
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -21,7 +20,6 @@ from xgboost import XGBClassifier
 from vpa.ml_validation.analysis import AnalysisScript
 from vpa.ml_validation.exceptions import InsufficientDataError
 from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
-
 
 # --- Helpers ---
 
@@ -38,9 +36,7 @@ def _make_valid_dataset(n_rows: int = 100, seed: int = 42) -> pd.DataFrame:
     for col in VPAFeatureExtractor.FEATURE_COLUMNS:
         data[col] = rng.standard_normal(n_rows)
 
-    data["date"] = pd.date_range("2020-01-01", periods=n_rows, freq="B").strftime(
-        "%Y-%m-%d"
-    )
+    data["date"] = pd.date_range("2020-01-01", periods=n_rows, freq="B").strftime("%Y-%m-%d")
     data["close"] = rng.uniform(100, 500, size=n_rows)
     data["next_day_direction"] = rng.integers(0, 2, size=n_rows)
 
@@ -99,9 +95,7 @@ class TestBaselineAccuracyErrors:
         # Filter to an empty dataset
         empty_dataset = dataset[dataset["composite_score"] > 9999.0].copy()
 
-        script = AnalysisScript(
-            dataset=empty_dataset, ticker="TEST", output_dir=tmp_path
-        )
+        script = AnalysisScript(dataset=empty_dataset, ticker="TEST", output_dir=tmp_path)
 
         with pytest.raises(InsufficientDataError):
             script.compute_baseline_accuracy()
@@ -134,9 +128,7 @@ class TestBaselineAccuracyErrors:
 class TestFeatureImportance:
     """Tests for extract_feature_importance() method."""
 
-    def test_all_zero_importances_produces_warning_and_zero_scores(
-        self, tmp_path, caplog
-    ):
+    def test_all_zero_importances_produces_warning_and_zero_scores(self, tmp_path, caplog):
         """When all features have zero importance, a warning is logged
         and all scores are set to 0.0000.
 
@@ -150,14 +142,13 @@ class TestFeatureImportance:
             importance_df = script.extract_feature_importance(model)
 
         # All scores should be 0.0000
-        assert (importance_df["importance_score"] == 0.0).all(), (
-            f"Expected all zeros, got: {importance_df['importance_score'].tolist()}"
-        )
+        assert (
+            importance_df["importance_score"] == 0.0
+        ).all(), f"Expected all zeros, got: {importance_df['importance_score'].tolist()}"
 
         # A warning should have been logged
         assert any(
-            "zero importance" in record.message.lower()
-            or "no distinguishing features" in record.message.lower()
+            "zero importance" in record.message.lower() or "no distinguishing features" in record.message.lower()
             for record in caplog.records
         ), f"Expected warning about zero importance, got: {[r.message for r in caplog.records]}"
 
@@ -183,9 +174,7 @@ class TestFeatureImportance:
         importance_df = script.extract_feature_importance(model)
 
         scores = importance_df["importance_score"].tolist()
-        assert scores == sorted(scores, reverse=True), (
-            "Importance scores are not sorted in descending order"
-        )
+        assert scores == sorted(scores, reverse=True), "Importance scores are not sorted in descending order"
 
     def test_importance_normalised_to_one(self, tmp_path):
         """Normalised importance scores must sum to 1.0 (within tolerance).
@@ -208,9 +197,7 @@ class TestFeatureImportance:
         importance_df = script.extract_feature_importance(model)
 
         total = importance_df["importance_score"].sum()
-        assert abs(total - 1.0) < 1e-4, (
-            f"Importance scores sum to {total}, expected ~1.0"
-        )
+        assert abs(total - 1.0) < 1e-4, f"Importance scores sum to {total}, expected ~1.0"
 
 
 # =============================================================================
@@ -349,8 +336,7 @@ class TestSaveOutputs:
 
         # The error should be logged
         assert any(
-            "failed" in record.message.lower() or "disk full" in record.message.lower()
-            for record in caplog.records
+            "failed" in record.message.lower() or "disk full" in record.message.lower() for record in caplog.records
         ), f"Expected error log, got: {[r.message for r in caplog.records]}"
 
         # The importance CSV should still be written (second to_csv call succeeds)
@@ -368,9 +354,7 @@ class TestSaveOutputs:
         ticker = "TEST"
         script = AnalysisScript(dataset=dataset, ticker=ticker, output_dir=tmp_path)
 
-        importance_df = pd.DataFrame(
-            {"feature_name": ["adx"], "importance_score": [1.0]}
-        )
+        importance_df = pd.DataFrame({"feature_name": ["adx"], "importance_score": [1.0]})
 
         script.save_outputs(
             dataset=dataset,
@@ -383,9 +367,7 @@ class TestSaveOutputs:
 
         # Should contain all feature columns + metadata + label
         expected_cols = (
-            VPAFeatureExtractor.FEATURE_COLUMNS
-            + VPAFeatureExtractor.METADATA_COLUMNS
-            + ["next_day_direction"]
+            VPAFeatureExtractor.FEATURE_COLUMNS + VPAFeatureExtractor.METADATA_COLUMNS + ["next_day_direction"]
         )
         for col in expected_cols:
             assert col in loaded.columns, f"Missing column: {col}"
@@ -432,9 +414,7 @@ class TestSummaryTextFormat:
 
         script.save_outputs(
             dataset=dataset,
-            importance_df=pd.DataFrame(
-                {"feature_name": ["adx"], "importance_score": [1.0]}
-            ),
+            importance_df=pd.DataFrame({"feature_name": ["adx"], "importance_score": [1.0]}),
             summary_text=summary_text,
         )
 
@@ -462,9 +442,7 @@ class TestSummaryTextFormat:
 
         script.save_outputs(
             dataset=dataset,
-            importance_df=pd.DataFrame(
-                {"feature_name": ["adx"], "importance_score": [1.0]}
-            ),
+            importance_df=pd.DataFrame({"feature_name": ["adx"], "importance_score": [1.0]}),
             summary_text=summary_text,
         )
 

@@ -13,11 +13,12 @@ Tests cover:
 Requirements: 1.2, 2.1, 2.2, 2.3, 3.1, 3.2, 4.1, 5.1, 5.2
 """
 
+import logging
 import re
 
-import numpy as np
 import pandas as pd
-from hypothesis import given, settings, assume
+import pytest
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from vpa.opportunities import (
@@ -25,9 +26,10 @@ from vpa.opportunities import (
     compute_drawdown_percentage,
     compute_momentum,
     evaluate_ticker,
+    format_disabled_report,
     format_opportunities_report,
+    load_drawdown_config,
 )
-
 
 # ---------------------------------------------------------------------------
 # Strategies — Core calculations (Properties 1–6)
@@ -74,11 +76,13 @@ ticker_strategy = st.text(
     max_size=5,
 )
 
-opportunity_strategy = st.fixed_dictionaries({
-    "ticker": ticker_strategy,
-    "drawdown_pct": st.floats(min_value=-99.0, max_value=-0.1, allow_nan=False, allow_infinity=False),
-    "momentum": st.floats(min_value=0.01, max_value=50.0, allow_nan=False, allow_infinity=False),
-})
+opportunity_strategy = st.fixed_dictionaries(
+    {
+        "ticker": ticker_strategy,
+        "drawdown_pct": st.floats(min_value=-99.0, max_value=-0.1, allow_nan=False, allow_infinity=False),
+        "momentum": st.floats(min_value=0.01, max_value=50.0, allow_nan=False, allow_infinity=False),
+    }
+)
 
 opportunities_list_strategy = st.lists(
     opportunity_strategy,
@@ -107,9 +111,7 @@ class TestInsufficientDataExclusion:
     def test_evaluate_ticker_returns_none_for_insufficient_data(self, df):
         """evaluate_ticker always returns None when DataFrame has < 252 rows."""
         result = evaluate_ticker(df)
-        assert result is None, (
-            f"Expected None for DataFrame with {len(df)} rows, got {result}"
-        )
+        assert result is None, f"Expected None for DataFrame with {len(df)} rows, got {result}"
 
 
 class TestFiftyTwoWeekHighCorrectness:
@@ -131,9 +133,7 @@ class TestFiftyTwoWeekHighCorrectness:
         expected = float(closes.iloc[-252:].max())
 
         assert result is not None
-        assert abs(result - expected) < 1e-10, (
-            f"Expected {expected}, got {result}"
-        )
+        assert abs(result - expected) < 1e-10, f"Expected {expected}, got {result}"
 
 
 class TestDrawdownFormulaCorrectness:
@@ -158,8 +158,7 @@ class TestDrawdownFormulaCorrectness:
         expected = ((current_close - fifty_two_week_high) / fifty_two_week_high) * 100
 
         assert abs(result - expected) < 1e-10, (
-            f"Expected {expected}, got {result} for "
-            f"current_close={current_close}, high={fifty_two_week_high}"
+            f"Expected {expected}, got {result} for " f"current_close={current_close}, high={fifty_two_week_high}"
         )
 
 
@@ -198,9 +197,7 @@ class TestMomentumFormulaCorrectness:
         expected = ((closes.iloc[-1] - closes.iloc[-period - 1]) / closes.iloc[-period - 1]) * 100
 
         assert result is not None
-        assert abs(result - expected) < 1e-10, (
-            f"Expected {expected}, got {result} for period={period}"
-        )
+        assert abs(result - expected) < 1e-10, f"Expected {expected}, got {result} for period={period}"
 
 
 class TestMomentumInsufficientDataExclusion:
@@ -232,9 +229,7 @@ class TestMomentumInsufficientDataExclusion:
         closes = pd.Series(prices)
 
         result = compute_momentum(closes, period)
-        assert result is None, (
-            f"Expected None for series with {len(closes)} entries and period={period}, got {result}"
-        )
+        assert result is None, f"Expected None for series with {len(closes)} entries and period={period}, got {result}"
 
 
 class TestFilterPredicateCorrectness:
@@ -311,9 +306,7 @@ class TestReportContainsAllFields:
         report = format_opportunities_report(opportunities)
 
         for opp in opportunities:
-            assert opp["ticker"] in report, (
-                f"Ticker '{opp['ticker']}' not found in report output"
-            )
+            assert opp["ticker"] in report, f"Ticker '{opp['ticker']}' not found in report output"
 
     @given(opportunities=opportunities_list_strategy)
     @settings(max_examples=100, deadline=None)
@@ -323,9 +316,7 @@ class TestReportContainsAllFields:
 
         for opp in opportunities:
             formatted_drawdown = f"{opp['drawdown_pct']:.1f}"
-            assert formatted_drawdown in report, (
-                f"Drawdown value '{formatted_drawdown}' not found in report output"
-            )
+            assert formatted_drawdown in report, f"Drawdown value '{formatted_drawdown}' not found in report output"
 
     @given(opportunities=opportunities_list_strategy)
     @settings(max_examples=100, deadline=None)
@@ -335,9 +326,7 @@ class TestReportContainsAllFields:
 
         for opp in opportunities:
             formatted_momentum = f"{opp['momentum']:.1f}"
-            assert formatted_momentum in report, (
-                f"Momentum value '{formatted_momentum}' not found in report output"
-            )
+            assert formatted_momentum in report, f"Momentum value '{formatted_momentum}' not found in report output"
 
 
 class TestReportSortedByDrawdown:
@@ -385,10 +374,6 @@ class TestReportSortedByDrawdown:
 # Unit tests — Report formatting (Task 3.3)
 # Validates: Requirements 5.1, 5.2, 5.3
 # ---------------------------------------------------------------------------
-
-import pytest
-
-from vpa.opportunities import format_disabled_report
 
 
 class TestFormatEmptyList:
@@ -497,23 +482,19 @@ class TestFormatMultipleEntries:
 # Validates: Requirements 6.2, 6.3, 6.4, 6.5, 4.1
 # ---------------------------------------------------------------------------
 
-import logging
-
-import pandas as pd
-
-from vpa.opportunities import evaluate_ticker, load_drawdown_config
-
 
 def make_price_df(prices: list[float]) -> pd.DataFrame:
     """Create a DataFrame from a list of closing prices."""
-    return pd.DataFrame({
-        "Date": pd.date_range("2023-01-01", periods=len(prices)),
-        "Close": prices,
-        "High": [p + 1 for p in prices],
-        "Low": [p - 1 for p in prices],
-        "Open": prices,
-        "Volume": [1_000_000] * len(prices),
-    })
+    return pd.DataFrame(
+        {
+            "Date": pd.date_range("2023-01-01", periods=len(prices)),
+            "Close": prices,
+            "High": [p + 1 for p in prices],
+            "Low": [p - 1 for p in prices],
+            "Open": prices,
+            "Volume": [1_000_000] * len(prices),
+        }
+    )
 
 
 class TestConfigDefaults:
@@ -681,14 +662,15 @@ class TestFilterZeroMomentum:
         assert result is None
 
 
-
 # ---------------------------------------------------------------------------
 # Integration tests — End-to-end flow with synthetic DataFrames (Task 6.3)
 # Validates: Requirements 1.2, 4.1, 5.1, 5.4, 6.3
 # ---------------------------------------------------------------------------
 
 
-def make_qualifying_df(rows: int = 260, peak: float = 100.0, current: float = 75.0, price_20_ago: float = 70.0) -> pd.DataFrame:
+def make_qualifying_df(
+    rows: int = 260, peak: float = 100.0, current: float = 75.0, price_20_ago: float = 70.0
+) -> pd.DataFrame:
     """Create a DataFrame where the ticker qualifies: drawdown >= 20% and positive momentum.
 
     Args:
@@ -727,7 +709,9 @@ def make_near_high_df(rows: int = 260, peak: float = 100.0, current: float = 95.
     return pd.DataFrame({"Close": prices})
 
 
-def make_negative_momentum_df(rows: int = 260, peak: float = 100.0, current: float = 70.0, price_20_ago: float = 80.0) -> pd.DataFrame:
+def make_negative_momentum_df(
+    rows: int = 260, peak: float = 100.0, current: float = 70.0, price_20_ago: float = 80.0
+) -> pd.DataFrame:
     """Create a DataFrame where drawdown qualifies but momentum is negative.
 
     Args:
@@ -891,7 +875,7 @@ class TestIntegrationDisabledConfig:
         # Simulate the app_all_shares.py conditional logic
         if drawdown_config["enabled"]:
             # This block should not execute
-            assert False, "Should not evaluate tickers when disabled"
+            raise AssertionError("Should not evaluate tickers when disabled")
         else:
             report = format_disabled_report()
 

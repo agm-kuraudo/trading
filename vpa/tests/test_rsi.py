@@ -17,10 +17,10 @@ from hypothesis import strategies as st
 
 from vpa.rsi import calculate_rsi
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def make_temp_config(config_dict: dict) -> str:
     """Write a config dict to a temp JSON file and return its path."""
@@ -33,14 +33,16 @@ def make_temp_config(config_dict: dict) -> str:
 def make_minimal_df(rows: int = 250) -> pd.DataFrame:
     """Create a minimal DataFrame with enough rows to avoid insufficient-data warnings."""
     prices = [100.0 + i * 0.1 for i in range(rows)]
-    return pd.DataFrame({
-        "Date": pd.date_range("2023-01-01", periods=rows),
-        "Close": prices,
-        "High": [p + 1 for p in prices],
-        "Low": [p - 1 for p in prices],
-        "Open": prices,
-        "Volume": [1_000_000] * rows,
-    })
+    return pd.DataFrame(
+        {
+            "Date": pd.date_range("2023-01-01", periods=rows),
+            "Close": prices,
+            "High": [p + 1 for p in prices],
+            "Low": [p - 1 for p in prices],
+            "Open": prices,
+            "Volume": [1_000_000] * rows,
+        }
+    )
 
 
 def base_config() -> dict:
@@ -88,6 +90,7 @@ def base_config() -> dict:
 # Strategies
 # ---------------------------------------------------------------------------
 
+
 def positive_prices(min_size: int, max_size: int = 500):
     """Strategy for generating valid positive closing price sequences."""
     return st.lists(
@@ -121,6 +124,7 @@ def strictly_decreasing_prices(min_size: int, max_size: int = 500):
 # Property Tests
 # ---------------------------------------------------------------------------
 
+
 class TestRSIProperties:
     """Property-based tests for RSI calculator correctness."""
 
@@ -145,8 +149,7 @@ class TestRSIProperties:
         result = calculate_rsi(closes, period)
 
         assert 0.0 <= result <= 100.0, (
-            f"RSI {result} out of bounds [0.0, 100.0] for "
-            f"{len(closes)} prices with period={period}"
+            f"RSI {result} out of bounds [0.0, 100.0] for " f"{len(closes)} prices with period={period}"
         )
 
     @given(closes=strictly_increasing_prices(min_size=15, max_size=500))
@@ -168,8 +171,7 @@ class TestRSIProperties:
         result = calculate_rsi(closes, period)
 
         assert result > 50.0, (
-            f"RSI {result} should be > 50.0 for strictly increasing prices "
-            f"(length={len(closes)}, period={period})"
+            f"RSI {result} should be > 50.0 for strictly increasing prices " f"(length={len(closes)}, period={period})"
         )
 
     @given(closes=strictly_decreasing_prices(min_size=15, max_size=500))
@@ -191,8 +193,7 @@ class TestRSIProperties:
         result = calculate_rsi(closes, period)
 
         assert result < 50.0, (
-            f"RSI {result} should be < 50.0 for strictly decreasing prices "
-            f"(length={len(closes)}, period={period})"
+            f"RSI {result} should be < 50.0 for strictly decreasing prices " f"(length={len(closes)}, period={period})"
         )
 
     @given(
@@ -220,10 +221,10 @@ class TestRSIProperties:
         )
 
 
-
 # ---------------------------------------------------------------------------
 # Example-Based Tests for Signal Scoring (Task 4.4)
 # ---------------------------------------------------------------------------
+
 
 class TestRSISignalScoring:
     """Example-based tests for detect_rsi_signals() signal scoring logic.
@@ -418,6 +419,7 @@ class TestRSISignalScoring:
 # Integration Tests for RSI Composite Score (Task 6.3)
 # ---------------------------------------------------------------------------
 
+
 class TestRSIIntegration:
     """Integration tests verifying RSI contributes to the composite trade_signal.
 
@@ -437,14 +439,16 @@ class TestRSIIntegration:
         RSI will be well below 30 (oversold territory).
         """
         prices = [200.0 - i * 1.5 for i in range(rows)]
-        return pd.DataFrame({
-            "Date": pd.date_range("2023-01-01", periods=rows),
-            "Close": prices,
-            "High": [p + 0.5 for p in prices],
-            "Low": [p - 0.5 for p in prices],
-            "Open": [p + 0.2 for p in prices],
-            "Volume": [1_000_000] * rows,
-        })
+        return pd.DataFrame(
+            {
+                "Date": pd.date_range("2023-01-01", periods=rows),
+                "Close": prices,
+                "High": [p + 0.5 for p in prices],
+                "Low": [p - 0.5 for p in prices],
+                "Open": [p + 0.2 for p in prices],
+                "Volume": [1_000_000] * rows,
+            }
+        )
 
     def _make_rising_df(self, rows: int = 100) -> pd.DataFrame:
         """Create a DataFrame with steadily increasing prices to produce overbought RSI.
@@ -453,14 +457,16 @@ class TestRSIIntegration:
         RSI will be well above 70 (overbought territory).
         """
         prices = [50.0 + i * 1.5 for i in range(rows)]
-        return pd.DataFrame({
-            "Date": pd.date_range("2023-01-01", periods=rows),
-            "Close": prices,
-            "High": [p + 0.5 for p in prices],
-            "Low": [p - 0.5 for p in prices],
-            "Open": [p - 0.2 for p in prices],
-            "Volume": [1_000_000] * rows,
-        })
+        return pd.DataFrame(
+            {
+                "Date": pd.date_range("2023-01-01", periods=rows),
+                "Close": prices,
+                "High": [p + 0.5 for p in prices],
+                "Low": [p - 0.5 for p in prices],
+                "Open": [p - 0.2 for p in prices],
+                "Volume": [1_000_000] * rows,
+            }
+        )
 
     def test_oversold_rsi_contributes_positive_score(self):
         """Steadily declining prices produce oversold RSI, adding +5 to composite score.
@@ -647,8 +653,7 @@ class TestRSIIntegration:
 
                 # Disabled signal should differ from enabled signal
                 assert signal != signal_enabled, (
-                    f"Expected different trade_signal when RSI is enabled vs disabled, "
-                    f"but both returned {signal}"
+                    f"Expected different trade_signal when RSI is enabled vs disabled, " f"but both returned {signal}"
                 )
             finally:
                 os.unlink(config_enabled_path)

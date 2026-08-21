@@ -12,14 +12,12 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from xgboost import XGBClassifier
 
 from vpa.ml_validation.analysis import AnalysisScript
 from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
-
 
 # --- Helpers ---
 
@@ -150,9 +148,7 @@ def test_property_baseline_accuracy_computation(predictions_match: list[bool]) -
     # Expected: count of matches / total
     expected = sum(predictions_match) / n
 
-    assert abs(accuracy - expected) < 1e-10, (
-        f"Accuracy formula mismatch: got {accuracy}, expected {expected}"
-    )
+    assert abs(accuracy - expected) < 1e-10, f"Accuracy formula mismatch: got {accuracy}, expected {expected}"
 
 
 # Feature: vpa-ml-validation, Property 8: Model receives only feature columns
@@ -205,8 +201,7 @@ def test_property_model_receives_only_feature_columns(n_rows: int, seed: int) ->
     excluded_columns = {"date", "close", "next_day_direction"}
     present_excluded = set(X.columns) & excluded_columns
     assert present_excluded == set(), (
-        f"Feature matrix X should not contain metadata/label columns, "
-        f"but found: {present_excluded}"
+        f"Feature matrix X should not contain metadata/label columns, " f"but found: {present_excluded}"
     )
 
     # Verify that all feature columns ARE present
@@ -259,32 +254,30 @@ def test_property_feature_importance_report_validity(seed: int) -> None:
     importance_df = script.extract_feature_importance(model)
 
     # Property: DataFrame has correct columns
-    assert list(importance_df.columns) == ["feature_name", "importance_score"], (
-        f"Expected columns [feature_name, importance_score], got {list(importance_df.columns)}"
-    )
+    assert list(importance_df.columns) == [
+        "feature_name",
+        "importance_score",
+    ], f"Expected columns [feature_name, importance_score], got {list(importance_df.columns)}"
 
     # Property: Sorted in non-increasing (descending) order by importance_score
     scores = importance_df["importance_score"].tolist()
     for i in range(len(scores) - 1):
         assert scores[i] >= scores[i + 1], (
-            f"Importance scores not sorted descending at index {i}: "
-            f"{scores[i]} < {scores[i + 1]}"
+            f"Importance scores not sorted descending at index {i}: " f"{scores[i]} < {scores[i + 1]}"
         )
 
     # Property: All normalised scores sum to 1.0 (within tolerance)
     total = sum(scores)
-    assert abs(total - 1.0) < 1e-6, (
-        f"Importance scores should sum to 1.0, got {total}"
-    )
+    assert abs(total - 1.0) < 1e-6, f"Importance scores should sum to 1.0, got {total}"
 
     # Property: All scores are non-negative
     for score in scores:
         assert score >= 0.0, f"Importance score should be non-negative, got {score}"
 
     # Property: All feature names are present
-    assert len(importance_df) == len(VPAFeatureExtractor.FEATURE_COLUMNS), (
-        f"Expected {len(VPAFeatureExtractor.FEATURE_COLUMNS)} features in importance report, got {len(importance_df)}"
-    )
-    assert set(importance_df["feature_name"]) == set(VPAFeatureExtractor.FEATURE_COLUMNS), (
-        "Importance report feature names don't match FEATURE_COLUMNS"
-    )
+    assert len(importance_df) == len(
+        VPAFeatureExtractor.FEATURE_COLUMNS
+    ), f"Expected {len(VPAFeatureExtractor.FEATURE_COLUMNS)} features in importance report, got {len(importance_df)}"
+    assert set(importance_df["feature_name"]) == set(
+        VPAFeatureExtractor.FEATURE_COLUMNS
+    ), "Importance report feature names don't match FEATURE_COLUMNS"
