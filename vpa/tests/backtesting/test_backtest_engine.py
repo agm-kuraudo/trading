@@ -281,9 +281,7 @@ def test_property_6_no_overlap_tie_break_highest_confidence(
     # Every loser is skipped with OVERLAPPING_POSITION.
     losers = {t for t in cluster_types if t != best_type}
     overlapping = {
-        s.signal_type
-        for s in result.skipped
-        if s.reason == SkipReason.OVERLAPPING_POSITION and s.signal_date == date
+        s.signal_type for s in result.skipped if s.reason == SkipReason.OVERLAPPING_POSITION and s.signal_date == date
     }
     assert overlapping == losers
 

@@ -165,9 +165,9 @@ class TestRawOhlcMetadataColumns:
             src_idx = index_by_date[date_key]
             if src_idx > 0:
                 synthesised_open = float(mock_df.iloc[src_idx - 1]["Close"])
-                assert raw_open != pytest.approx(synthesised_open), (
-                    "test fixture must make raw open differ from synthesised open"
-                )
+                assert raw_open != pytest.approx(
+                    synthesised_open
+                ), "test fixture must make raw open differ from synthesised open"
                 checked_distinct += 1
 
         assert checked_distinct >= 2, "expected at least two rows distinguishing raw vs synthesised open"

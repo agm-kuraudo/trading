@@ -128,9 +128,7 @@ class BacktestEngine:
                 # STACKING: open a trade for every eligible entry; no tie-break
                 # (Req 5.6, 5.7). No open_exit_index tracking.
                 for entry in group:
-                    trade = self._resolve_trade(
-                        entry, entry_index, sorted_prices, config, skipped
-                    )
+                    trade = self._resolve_trade(entry, entry_index, sorted_prices, config, skipped)
                     if trade is not None:
                         trades.append(trade)
                 continue
@@ -155,9 +153,7 @@ class BacktestEngine:
             chosen = min(group, key=lambda e: signal_confidence_rank(e.signal_type))
             losers = [e for e in group if e is not chosen]
 
-            trade = self._resolve_trade(
-                chosen, entry_index, sorted_prices, config, skipped
-            )
+            trade = self._resolve_trade(chosen, entry_index, sorted_prices, config, skipped)
             if trade is None:
                 # The chosen entry was skipped for a data reason (its skip is
                 # already recorded by _resolve_trade). Do NOT open a position;
@@ -238,9 +234,7 @@ class BacktestEngine:
             return None
 
         # Resolve exit via the pluggable Exit_Strategy (Req 9.1).
-        exit_result = config.exit_strategy.resolve_exit(
-            entry_index, price_series, config.hold_period
-        )
+        exit_result = config.exit_strategy.resolve_exit(entry_index, price_series, config.hold_period)
         if exit_result.reason is not None or exit_result.exit_index is None:
             reason = exit_result.reason or SkipReason.INSUFFICIENT_FUTURE_DATA_EXIT
             skipped.append(

@@ -22,17 +22,13 @@ class ExitStrategy(Protocol):
     implements only the fixed-hold strategy (Req 9.4).
     """
 
-    def resolve_exit(
-        self, entry_index: int, price_series: list[PricePoint], hold_period: int
-    ) -> ExitResult: ...
+    def resolve_exit(self, entry_index: int, price_series: list[PricePoint], hold_period: int) -> ExitResult: ...
 
 
 class FixedHoldExitStrategy:
     """Exit ``hold_period`` trading days after entry at ``close[t+1+N]`` (Req 9.2)."""
 
-    def resolve_exit(
-        self, entry_index: int, price_series: list[PricePoint], hold_period: int
-    ) -> ExitResult:
+    def resolve_exit(self, entry_index: int, price_series: list[PricePoint], hold_period: int) -> ExitResult:
         exit_index = entry_index + hold_period
         if exit_index > len(price_series) - 1:
             # Exit horizon runs past the end of the series (Req 7.2).
