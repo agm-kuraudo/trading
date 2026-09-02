@@ -50,7 +50,8 @@ class VPAFeatureExtractor:
     ]
 
     # Metadata columns (excluded from the numeric feature array)
-    METADATA_COLUMNS = ["date", "close"]
+    # SP-335: add raw open/high/low alongside close
+    METADATA_COLUMNS = ["date", "open", "high", "low", "close"]
 
     def __init__(self, config_path: str, ticker_symbol: str, enable_extraction: bool = True):
         """
@@ -385,6 +386,9 @@ class VPAFeatureExtractor:
                 date_str = str(date_val)
 
             feature_vector["date"] = date_str
+            feature_vector["open"] = float(row["Open"])  # SP-335: raw yfinance open
+            feature_vector["high"] = float(row["High"])  # SP-335: raw yfinance high
+            feature_vector["low"] = float(row["Low"])  # SP-335: raw yfinance low
             feature_vector["close"] = float(row["Close"])
 
             feature_rows.append(feature_vector)

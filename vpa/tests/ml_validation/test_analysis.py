@@ -28,7 +28,7 @@ def _make_valid_dataset(n_rows: int = 100, seed: int = 42) -> pd.DataFrame:
     """Create a synthetic dataset with valid feature columns, metadata, and labels.
 
     Produces a DataFrame matching the schema expected by AnalysisScript:
-    27 feature columns + date + close + next_day_direction.
+    27 feature columns + date + open + high + low + close + next_day_direction.
     """
     rng = np.random.default_rng(seed)
 
@@ -37,6 +37,10 @@ def _make_valid_dataset(n_rows: int = 100, seed: int = 42) -> pd.DataFrame:
         data[col] = rng.standard_normal(n_rows)
 
     data["date"] = pd.date_range("2020-01-01", periods=n_rows, freq="B").strftime("%Y-%m-%d")
+    # SP-335: raw OHLC metadata columns emitted alongside close
+    data["open"] = rng.uniform(100, 500, size=n_rows)
+    data["high"] = rng.uniform(100, 500, size=n_rows)
+    data["low"] = rng.uniform(100, 500, size=n_rows)
     data["close"] = rng.uniform(100, 500, size=n_rows)
     data["next_day_direction"] = rng.integers(0, 2, size=n_rows)
 
