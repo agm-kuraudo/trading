@@ -206,8 +206,10 @@ def _no_breach_paths(draw: st.DrawFn) -> tuple[list[PricePoint], int, int, Signa
         b = draw(st.floats(min_value=lower, max_value=upper, allow_nan=False, allow_infinity=False))
         low, high = (a, b) if a <= b else (b, a)
         open_ = draw(st.floats(min_value=low, max_value=high, allow_nan=False, allow_infinity=False))
-        close = forced_close if forced_close is not None else draw(
-            st.floats(min_value=low, max_value=high, allow_nan=False, allow_infinity=False)
+        close = (
+            forced_close
+            if forced_close is not None
+            else draw(st.floats(min_value=low, max_value=high, allow_nan=False, allow_infinity=False))
         )
         return _make_bar(index, low=low, high=high, open_=open_, close=close)
 

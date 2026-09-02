@@ -116,6 +116,7 @@ def test_property_4_falling_price_positive_before_cost(
     raw_short_return = strategy_return(down_trade, 0.0)
     assert raw_short_return > 0
 
+
 # Explicit DOWN signal types per the design (Contrarian_Only set): both map to
 # SignalDirection.DOWN in SIGNAL_DIRECTIONS.
 _DOWN_SIGNAL_TYPES_EXPLICIT = [SignalType.STRONG_BEARISH, SignalType.DISTRIBUTION]

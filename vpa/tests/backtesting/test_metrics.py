@@ -67,9 +67,7 @@ def make_price_series(closes: list[float]) -> list[PricePoint]:
     """
     series: list[PricePoint] = []
     for i, close in enumerate(closes):
-        series.append(
-            PricePoint(date=_iso_date(i), open=close, high=close, low=close, close=close)
-        )
+        series.append(PricePoint(date=_iso_date(i), open=close, high=close, low=close, close=close))
     return series
 
 
@@ -134,15 +132,12 @@ def test_property_9_annualisation_formula_and_guards(
 
     # Req 11.3: Annualised_Return == (1 + Total_Return) ** (1 / years) - 1.
     expected_annualised = (1 + total_ret) ** (1 / years) - 1
-    assert math.isclose(
-        annualised_return(total_ret, price_series), expected_annualised, abs_tol=1e-9
-    )
+    assert math.isclose(annualised_return(total_ret, price_series), expected_annualised, abs_tol=1e-9)
 
     # Req 11.4: Trades_Per_Year == number_of_trades / years.
     expected_trades_per_year = n_trades / years
-    assert math.isclose(
-        trades_per_year(n_trades, price_series), expected_trades_per_year, abs_tol=1e-9
-    )
+    assert math.isclose(trades_per_year(n_trades, price_series), expected_trades_per_year, abs_tol=1e-9)
+
 
 # A single trade generator: an entry/exit date pair (indices into the shared
 # Price_Series span), a signal type drawn from the direction map so the trade is
@@ -227,6 +222,7 @@ def test_property_17_metrics_pipeline_determinism(
     assert equity_1 == equity_2
     assert metrics_1 == metrics_2
 
+
 # Feature: vpa-strategy-backtest-report, Property 10: Sharpe ratio equals the reference computation
 @settings(max_examples=100)
 @given(
@@ -280,6 +276,7 @@ def test_property_10_sharpe_ratio_equals_reference_computation(
 # make_price_series / _iso_date above and builds PricedTrade values directly by
 # wrapping a TradeRecord and setting strategy_return to the desired sign.
 # ---------------------------------------------------------------------------
+
 
 def _priced_trade(
     strategy_return: float,
@@ -453,6 +450,7 @@ def test_req_15_7_empty_price_series_reports_no_trades_and_empty_curve() -> None
     assert result.sharpe_ratio == 0.0
     assert result.max_drawdown == 0.0
     assert result.trades_per_year == 0.0
+
 
 def _reference_max_drawdown(equities: list[float]) -> float:
     """Reference Max_Drawdown via an independent running-peak loop.
@@ -658,20 +656,13 @@ def test_property_14_time_in_market_counts_each_open_day_once(
         # exit strictly after entry, capped at n_dates (one past the last date).
         span_after_entry = n_dates - entry_index
         exit_index = entry_index + 1 + (raw_exit % span_after_entry)
-        priced.append(
-            _priced_trade(0.01, entry_index=entry_index, exit_index=exit_index)
-        )
+        priced.append(_priced_trade(0.01, entry_index=entry_index, exit_index=exit_index))
 
     # Reference: independently build the set of covered Price_Series dates where
     # any trade has entry_date <= d < exit_date. Uses the same _iso_date span so
     # each open day is counted exactly once regardless of overlaps.
     span_dates = {point.date for point in price_series}
-    open_dates = {
-        date
-        for date in span_dates
-        for pt in priced
-        if pt.trade.entry_date <= date < pt.trade.exit_date
-    }
+    open_dates = {date for date in span_dates for pt in priced if pt.trade.entry_date <= date < pt.trade.exit_date}
     expected = len(open_dates) / len(span_dates)
 
     result = time_in_market(priced, price_series)

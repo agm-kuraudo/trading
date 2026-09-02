@@ -49,9 +49,7 @@ def strategy_return(trade: TradeRecord, round_trip_cost: float) -> float:
     return (trade.entry_price / trade.exit_price) - 1 - round_trip_cost
 
 
-def price_trades(
-    trades: list[TradeRecord], round_trip_cost: float
-) -> tuple[list[PricedTrade], list[TradeExclusion]]:
+def price_trades(trades: list[TradeRecord], round_trip_cost: float) -> tuple[list[PricedTrade], list[TradeExclusion]]:
     """Map each trade to a ``PricedTrade``; collect exclusions without raising.
 
     A trade is excluded (never priced) when its ``exit_price`` is zero

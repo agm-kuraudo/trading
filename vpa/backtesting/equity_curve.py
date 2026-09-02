@@ -16,9 +16,7 @@ import math
 from vpa.backtesting.models import EquityPoint, PricedTrade, PricePoint
 
 
-def build_equity_curve(
-    price_series: list[PricePoint], priced_trades: list[PricedTrade]
-) -> list[EquityPoint]:
+def build_equity_curve(price_series: list[PricePoint], priced_trades: list[PricedTrade]) -> list[EquityPoint]:
     """Build the daily Equity_Curve from the Price_Series and priced trades (Req 9).
 
     Produces exactly one ``EquityPoint`` per date in ``price_series``, ordered
@@ -36,9 +34,7 @@ def build_equity_curve(
 
     returns_by_exit_date: dict[str, list[float]] = {}
     for priced in priced_trades:
-        returns_by_exit_date.setdefault(priced.trade.exit_date, []).append(
-            priced.strategy_return
-        )
+        returns_by_exit_date.setdefault(priced.trade.exit_date, []).append(priced.strategy_return)
 
     curve: list[EquityPoint] = []
     capital = 1.0

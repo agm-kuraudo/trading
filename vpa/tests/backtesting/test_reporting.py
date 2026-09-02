@@ -297,6 +297,7 @@ def test_property_16_best_variation_selection(
         else:
             assert best_key > run_key
 
+
 # ---------------------------------------------------------------------------
 # Example tests: CSV row builders, filenames, summary, comparison table, and
 # the tradeability verdict (Req 16.1, 16.4, 17.1, 17.4, 18.1, 18.3, 18.4,
@@ -446,9 +447,7 @@ def test_format_summary_zero_trades_lists_name_and_all_metric_labels() -> None:
 
 def test_format_summary_reports_non_zero_trade_count() -> None:
     """When the run has trades, the number-of-trades line reflects the count (Req 18.3)."""
-    priced = _make_priced_trade_explicit(
-        0, 1, 100.0, 110.0, SignalType.STRONG_BULLISH, SignalDirection.UP, 0.1
-    )
+    priced = _make_priced_trade_explicit(0, 1, 100.0, 110.0, SignalType.STRONG_BULLISH, SignalDirection.UP, 0.1)
     variation = StrategyVariation(name="Has_Trades", signal_filter=_no_op_filter)
     result = BacktestResult(trades=[priced.trade], skipped=[])
     metrics = MetricsResult(

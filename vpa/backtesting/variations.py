@@ -142,9 +142,7 @@ def run_variation(
 
     priced_trades, exclusions = pnl.price_trades(result.trades, variation.round_trip_cost)
     curve = equity_curve.build_equity_curve(price_series, priced_trades)
-    computed_metrics = metrics.calculate(
-        priced_trades, curve, price_series, variation.risk_free_rate
-    )
+    computed_metrics = metrics.calculate(priced_trades, curve, price_series, variation.risk_free_rate)
 
     return VariationRun(
         variation=variation,
@@ -293,9 +291,7 @@ def build_default_variations() -> list[StrategyVariation]:
             StrategyVariation(
                 name=f"Stop_Loss_-{pct}pct",
                 signal_filter=_include_all,
-                exit_strategy_factory=(
-                    lambda t=threshold: StopLossExitStrategy(threshold=t)
-                ),
+                exit_strategy_factory=(lambda t=threshold: StopLossExitStrategy(threshold=t)),
             )
         )
 

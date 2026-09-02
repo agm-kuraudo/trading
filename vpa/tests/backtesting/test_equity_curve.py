@@ -28,9 +28,7 @@ def _make_price_series(count: int) -> list[PricePoint]:
     series: list[PricePoint] = []
     for i in range(count):
         price = 100.0 + i
-        series.append(
-            PricePoint(date=_iso_date(i), open=price, high=price, low=price, close=price)
-        )
+        series.append(PricePoint(date=_iso_date(i), open=price, high=price, low=price, close=price))
     return series
 
 
@@ -71,10 +69,7 @@ def test_property_6_equity_curve_length_and_initial_value(
     Validates: Requirements 9.1, 9.2, 9.6.
     """
     price_series = _make_price_series(date_count)
-    priced_trades = [
-        _make_priced_trade(_iso_date(exit_index), strategy_ret)
-        for exit_index, strategy_ret in trades
-    ]
+    priced_trades = [_make_priced_trade(_iso_date(exit_index), strategy_ret) for exit_index, strategy_ret in trades]
 
     curve = build_equity_curve(price_series, priced_trades)
 
@@ -89,6 +84,7 @@ def test_property_6_equity_curve_length_and_initial_value(
 
     # Req 9.2: the first point's equity equals the starting capital of 1.0.
     assert math.isclose(curve[0].equity, 1.0, abs_tol=1e-9)
+
 
 # Feature: vpa-strategy-backtest-report, Property 7: Same-day compounding is order-independent
 @settings(max_examples=100)
@@ -162,6 +158,7 @@ def test_property_7_same_day_compounding_order_independent(
     for pos in range(1, len(dates)):
         if dates[pos] not in closing_dates:
             assert math.isclose(curve[pos].equity, curve[pos - 1].equity, abs_tol=1e-9)
+
 
 # Feature: vpa-strategy-backtest-report, example test for the empty Price_Series case
 def test_empty_price_series_yields_empty_curve() -> None:
