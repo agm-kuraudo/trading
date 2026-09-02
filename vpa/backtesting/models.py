@@ -85,3 +85,48 @@ class BacktestResult:
 
     trades: list[TradeRecord] = field(default_factory=list)
     skipped: list[SkippedSignal] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class PricedTrade:
+    """A TradeRecord paired with its direction-aware Strategy_Return (SP-333, Req 8.1)."""
+
+    trade: TradeRecord
+    direction: SignalDirection
+    strategy_return: float
+
+
+@dataclass(frozen=True)
+class TradeExclusion:
+    """An indication that a trade was excluded from P&L (SP-333, Req 8.5, 8.6)."""
+
+    trade: TradeRecord
+    reason: str  # "exit_price_zero" | "unknown_direction"
+
+
+@dataclass(frozen=True)
+class EquityPoint:
+    """One day of cumulative strategy capital on the Equity_Curve (SP-333, Req 9.1)."""
+
+    date: str  # ISO 8601 YYYY-MM-DD
+    equity: float
+
+
+@dataclass(frozen=True)
+class MetricsResult:
+    """Complete performance-metrics suite for one Strategy_Variation (SP-333, Req 10-15)."""
+
+    total_return: float
+    annualised_return: float
+    buy_and_hold_return: float
+    sharpe_ratio: float
+    max_drawdown: float
+    win_rate: float
+    profit_factor: float  # may be float("inf") (Req 15.2)
+    average_win: float
+    average_loss: float
+    expectancy: float
+    time_in_market: float
+    number_of_trades: int
+    trades_per_year: float
+    notes: tuple[str, ...] = ()  # zero-denominator / exclusion indications (Req 10.5, 13.5)

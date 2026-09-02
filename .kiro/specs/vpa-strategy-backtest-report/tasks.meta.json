@@ -1,0 +1,818 @@
+{
+  "pbtResults": {
+    "3.2 Write property test for direction-aware P&L": {
+      "status": "passed",
+      "lastRunTimestamp": 1788362999537
+    },
+    "7.2 Write property test for metrics-pipeline determinism": {
+      "status": "passed",
+      "lastRunTimestamp": 1788363657268
+    },
+    "6.7 Write property test for max drawdown": {
+      "status": "passed",
+      "lastRunTimestamp": 1788364248276
+    },
+    "6.9 Write property test for profit factor": {
+      "status": "passed",
+      "lastRunTimestamp": 1788364860688
+    }
+  },
+  "executionHistory": {
+    "1.1 Add new data records to `vpa/backtesting/models.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362695280
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362709225
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362783812
+      }
+    ],
+    "2.1 Implement the path-based stop-loss exit strategy": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696114
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362789221
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362905225
+      }
+    ],
+    "2.2 Write property test for the stop price formula": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696302
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362911813
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363025647
+      }
+    ],
+    "2.3 Write property test for first-breach resolution": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696495
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363032482
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363234260
+      }
+    ],
+    "2.4 Write property test for the no-breach fallback": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696646
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363247778
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363391812
+      }
+    ],
+    "2.5 Write example tests for gap-through, same-day tie, and no-breach cases": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696853
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363401282
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363558039
+      }
+    ],
+    "3.1 Implement `strategy_return`, `direction_for`, and `price_trades`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362696984
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362790647
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362906132
+      }
+    ],
+    "3.2 Write property test for direction-aware P&L": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697063
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362913221
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363022764
+      }
+    ],
+    "3.3 Write property test for cost-applied-once on DOWN trades": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697144
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363034063
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363235670
+      }
+    ],
+    "3.4 Write example tests for P&L exclusions": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697217
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363246744
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363394215
+      }
+    ],
+    "4.1 Implement `build_equity_curve`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697304
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362914190
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363021728
+      }
+    ],
+    "4.2 Write property test for equity-curve length and initial value": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697384
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363034561
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363233316
+      }
+    ],
+    "4.3 Write property test for order-independent same-day compounding": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697450
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363245789
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363390426
+      }
+    ],
+    "4.4 Write example test for the empty Price_Series case": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697516
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363402688
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363560422
+      }
+    ],
+    "5. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697597
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365318525
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365640654
+      }
+    ],
+    "6.1 Implement return/annualisation helpers": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697684
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362791301
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362906924
+      }
+    ],
+    "6.2 Implement `daily_returns`, `sharpe_ratio`, and `max_drawdown`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697809
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362915259
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363024081
+      }
+    ],
+    "6.3 Implement per-trade quality helpers": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697895
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363031539
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363236773
+      }
+    ],
+    "6.4 Write property test for total return and buy-and-hold formulas": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362697977
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363244825
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363392792
+      }
+    ],
+    "6.5 Write property test for annualisation formula and guards": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698063
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363403608
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363559485
+      }
+    ],
+    "6.6 Write property test for the Sharpe ratio": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698130
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363679782
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363845964
+      }
+    ],
+    "6.7 Write property test for max drawdown": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698212
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364179956
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364297633
+      }
+    ],
+    "6.8 Write property test for win rate and expectancy": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698325
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364311498
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364438430
+      }
+    ],
+    "6.9 Write property test for profit factor": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698397
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364768305
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364934655
+      }
+    ],
+    "6.10 Write property test for time in market": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698480
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364941690
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365077812
+      }
+    ],
+    "7.1 Wire the helpers into `calculate`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698551
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363243443
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363394832
+      }
+    ],
+    "7.2 Write property test for metrics-pipeline determinism": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698631
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363567910
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363674661
+      }
+    ],
+    "7.3 Write example tests for all Req 15 metric edge cases": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698703
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363850459
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364025433
+      }
+    ],
+    "8. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698795
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365644589
+      }
+    ],
+    "9.1 Implement `StrategyVariation`, run records, and `to_config`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698896
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363404637
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363561416
+      }
+    ],
+    "9.2 Implement `validate_hold_period` and `run_variation`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362698980
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363678978
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363844847
+      }
+    ],
+    "9.3 Implement `run_variations` with per-variation error isolation": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699045
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364033457
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364170840
+      }
+    ],
+    "9.4 Implement `build_default_variations`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699127
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364311936
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364439349
+      }
+    ],
+    "9.5 Write example tests for variation filters and single-failure isolation": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699232
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364769181
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364933855
+      }
+    ],
+    "10.1 Implement CSV row builders and filename helper": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699317
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364034492
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364169686
+      }
+    ],
+    "10.2 Implement summary, comparison table, best-selection, and verdict": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699433
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364455700
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364621238
+      }
+    ],
+    "10.3 Write property test for per-trade CSV ordering": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699582
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364939863
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365079211
+      }
+    ],
+    "10.4 Write property test for best-variation selection": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699670
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365090362
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365187585
+      }
+    ],
+    "10.5 Write example tests for CSV, summary, comparison, and verdict": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699767
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365193244
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365306488
+      }
+    ],
+    "11. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362699910
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365649605
+      }
+    ],
+    "12.1 Implement `load_spy_dataset` and `main`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362700006
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364631341
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364759275
+      }
+    ],
+    "12.2 Write integration tests for dataset loading": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362700097
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364940789
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365079923
+      }
+    ],
+    "12.3 Write an end-to-end integration test over a synthetic dataset": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362700204
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365193954
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365307410
+      }
+    ],
+    "13. Final checkpoint - Run ruff and the full pytest suite": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362700311
+      },
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365653592
+      }
+    ],
+    "1. Set up new data records": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788362783912
+      }
+    ],
+    "3. Implement direction-aware P&L in `vpa/backtesting/pnl.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363394440
+      }
+    ],
+    "2. Implement `StopLossExitStrategy` in `vpa/backtesting/exit_strategy.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363558129
+      }
+    ],
+    "4. Implement equity-curve construction in `vpa/backtesting/equity_curve.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788363560510
+      }
+    ],
+    "7. Implement the `calculate` orchestrator in `vpa/backtesting/metrics.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364025528
+      }
+    ],
+    "9. Implement strategy configuration and runner in `vpa/backtesting/variations.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788364933937
+      }
+    ],
+    "6. Implement the metrics helper functions in `vpa/backtesting/metrics.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365077946
+      }
+    ],
+    "10. Implement rendering in `vpa/backtesting/reporting.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365306635
+      }
+    ],
+    "12. Implement the CLI in `vpa/backtesting/report_backtest.py`": [
+      {
+        "executionId": "261056d4-fc94-4ebc-80b6-e7dd93ca0715",
+        "chatSessionId": "sess_0b379409-2f40-407a-9561-a475630bda0d",
+        "timestamp": 1788365307529
+      }
+    ]
+  }
+}
