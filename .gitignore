@@ -7,3 +7,7 @@ options/data
 /options/charts/
 .venv
 ml_validation_output/
+.idea/
+.coverage
+.pytest_cache/
+.ruff_cache/

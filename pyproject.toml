@@ -24,3 +24,16 @@ select = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["ig", "options", "utils", "vpa"]
+
+[tool.pytest.ini_options]
+testpaths = ["vpa/tests", "options/tests"]
+norecursedirs = [
+    ".venv",
+    "__pycache__",
+    ".git",
+    ".hypothesis",
+    "ml_validation_output",
+    "test_data",
+    ".ruff_cache",
+    ".pytest_cache",
+]
