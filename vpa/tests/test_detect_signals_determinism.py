@@ -110,13 +110,13 @@ def test_detect_signals_repeated_invocation_is_deterministic(populated_analyzer)
     # Every subsequent invocation must reproduce the first invocation's lists exactly.
     for invocation_index, result in enumerate(results):
         for list_key in _SIGNAL_LIST_KEYS:
-            assert result[list_key] == first[list_key], (
-                f"invocation {invocation_index} differs from invocation 0 for {list_key}"
-            )
+            assert (
+                result[list_key] == first[list_key]
+            ), f"invocation {invocation_index} differs from invocation 0 for {list_key}"
         for score_key in _SCORE_KEYS:
-            assert result[score_key] == pytest.approx(first[score_key]), (
-                f"invocation {invocation_index} differs from invocation 0 for {score_key}"
-            )
+            assert result[score_key] == pytest.approx(
+                first[score_key]
+            ), f"invocation {invocation_index} differs from invocation 0 for {score_key}"
 
 
 # ---------------------------------------------------------------------------
@@ -188,9 +188,7 @@ def _build_populated_analyzer(analyzer_factory):
     volume_pct=_PERCENTILE_RANGE,
     wicks=_WICK_CHOICES,
 )
-def test_detect_signals_is_deterministic_and_idempotent(
-    analyzer_factory, up, spread_pct, volume_pct, wicks
-):
+def test_detect_signals_is_deterministic_and_idempotent(analyzer_factory, up, spread_pct, volume_pct, wicks):
     """Property 1: repeated ``detect_signals`` calls on identical inputs are identical.
 
     For any generated ``this_candle`` (up/down direction, a ``period_one`` spread and
@@ -209,9 +207,7 @@ def test_detect_signals_is_deterministic_and_idempotent(
     upper_wick, lower_wick = wicks
     analyzer = _build_populated_analyzer(analyzer_factory)
 
-    this_candle = make_candle(
-        up=up, volume=1000, spread=1.0, upper_wick=upper_wick, lower_wick=lower_wick
-    )
+    this_candle = make_candle(up=up, volume=1000, spread=1.0, upper_wick=upper_wick, lower_wick=lower_wick)
     # Raise only period_one to the generated buckets; the other periods stay quiet at
     # 50 (below the strict boundaries). Spread is set before volume per the setter.
     spread = {**dict.fromkeys(PERIOD_NAMES, 50), "period_one": spread_pct}

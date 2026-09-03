@@ -356,9 +356,7 @@ _PERCENTILE_RANGE = st.integers(min_value=5, max_value=95)
     volume_pct=_PERCENTILE_RANGE,
     up=st.booleans(),
 )
-def test_wide_spread_high_volume_presence_tracks_70_boundary(
-    neutral_analyzer, period, spread_pct, volume_pct, up
-):
+def test_wide_spread_high_volume_presence_tracks_70_boundary(neutral_analyzer, period, spread_pct, volume_pct, up):
     """Property 2: "Wide Spread"/"High Volume" presence tracks the strict > 70 boundary.
 
     For any candle, chosen period, and up/down direction, "Wide Spread (<period>)"

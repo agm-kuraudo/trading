@@ -76,10 +76,7 @@ def test_deque_and_adx(deque_dictionary, my_data_frame):
             assert len(deque_dictionary["period_three"]) == PERIOD_ONE_LENGTH + 1
             with pytest.raises(ValueError) as context:
                 calculate_adx(deque_dictionary["period_three"])
-            assert (
-                str(context.value)
-                == "Not enough data to calculate ADX. At least 15 periods are required."
-            )
+            assert str(context.value) == "Not enough data to calculate ADX. At least 15 periods are required."
         elif index == PERIOD_TWO_LENGTH + 1:
             assert len(deque_dictionary["period_one"]) == PERIOD_ONE_LENGTH
             assert len(deque_dictionary["period_two"]) == PERIOD_TWO_LENGTH
@@ -127,17 +124,12 @@ def test_bar_counting_logic():
     anomaly_threshold = 20
 
     up_bar_count = sum(1 for candle in my_deque if candle.up_bar)
-    high_spread_count = sum(
-        1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold
-    )
-    high_volume_count = sum(
-        1 for candle in my_deque if candle.volume_percentiles["period_one"] > high_volume_threshold
-    )
+    high_spread_count = sum(1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold)
+    high_volume_count = sum(1 for candle in my_deque if candle.volume_percentiles["period_one"] > high_volume_threshold)
     anomaly_count = sum(
         1
         for candle in my_deque
-        if abs(candle.spread_percentiles["period_one"] - candle.volume_percentiles["period_one"])
-        > anomaly_threshold
+        if abs(candle.spread_percentiles["period_one"] - candle.volume_percentiles["period_one"]) > anomaly_threshold
     )
 
     assert up_bar_count == 5
@@ -147,9 +139,7 @@ def test_bar_counting_logic():
 
     # Test with spread threshold below 50
     high_spread_threshold = 45
-    high_spread_count = sum(
-        1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold
-    )
+    high_spread_count = sum(1 for candle in my_deque if candle.spread_percentiles["period_one"] > high_spread_threshold)
 
     assert high_spread_count == 5
 

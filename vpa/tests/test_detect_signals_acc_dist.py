@@ -421,10 +421,8 @@ from hypothesis import strategies as st  # noqa: E402
     # period_one volume percentile spanning both sides of the strict 50 pass boundary.
     period_one_volume=st.integers(min_value=40, max_value=60),
 )
-def test_acc_dist_test_pass_tracks_65_and_50_boundaries(
-    populated_analyzer, period_one_spread, period_one_volume
-):
-    """"Test Pass" presence tracks the 65 (candidate) and 50 (pass) boundaries.
+def test_acc_dist_test_pass_tracks_65_and_50_boundaries(populated_analyzer, period_one_spread, period_one_volume):
+    """ "Test Pass" presence tracks the 65 (candidate) and 50 (pass) boundaries.
 
     Under an established Accumulation condition, and with a wick-free ``this_candle``
     (so ``is_candle_pattern()`` is False), the Test candidate is governed purely by
