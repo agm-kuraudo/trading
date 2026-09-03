@@ -45,6 +45,19 @@
       "oversold": 5
     }
   },
+  "price_vs_sma": {
+    "enabled": true,
+    "period": 10,
+    "scores": {
+      "above": 5,
+      "below": 5
+    },
+    "detect_crossover": false,
+    "crossover_scores": {
+      "cross_above": 3,
+      "cross_below": 3
+    }
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,
