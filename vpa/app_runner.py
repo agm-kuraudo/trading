@@ -38,6 +38,9 @@ class MarketAnalyzer:
         # Initialize RSI configuration
         self._init_rsi_config()
 
+        # Initialize price vs SMA configuration
+        self._init_price_vs_sma_config()
+
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
             self.load_data()
@@ -166,6 +169,47 @@ class MarketAnalyzer:
 
         self.__rsi_enabled = True
 
+    def _init_price_vs_sma_config(self):
+        """Load and validate the price_vs_sma configuration section.
+
+        Sets self.__price_vs_sma_config (dict) and self.__price_vs_sma_enabled (bool).
+        Uses defaults if the section is missing. Validates that period is a
+        positive integer, logging a warning and disabling the signal otherwise.
+
+        The signal computes its own SMA column (SMA_price_vs) so it works
+        independently of the ma_crossover feature.
+        """
+        price_vs_sma_defaults = {
+            "enabled": True,
+            "period": 10,
+            "scores": {"above": 5, "below": 5},
+            "detect_crossover": False,
+            "crossover_scores": {"cross_above": 3, "cross_below": 3},
+        }
+
+        # Use config section if present, otherwise use defaults
+        if "price_vs_sma" in self.__config:
+            self.__price_vs_sma_config = self.__config["price_vs_sma"]
+        else:
+            self.__price_vs_sma_config = price_vs_sma_defaults
+
+        # Check enabled flag
+        if not self.__price_vs_sma_config.get("enabled", True):
+            self.__price_vs_sma_enabled = False
+            return
+
+        # Validate period: must be a positive integer
+        period = self.__price_vs_sma_config.get("period", 10)
+        if not isinstance(period, int) or period < 1:
+            self.__logger.log(
+                f"price_vs_sma disabled: invalid period ({period}). Period must be a positive integer.",
+                level="WARN",
+            )
+            self.__price_vs_sma_enabled = False
+            return
+
+        self.__price_vs_sma_enabled = True
+
     def _get_data_days(self) -> int:
         """Return the largest data_days across all enabled features."""
         candidates = [100]  # base default
@@ -244,6 +288,18 @@ class MarketAnalyzer:
             rsi_values.append(rsi_val)
 
         self.myDF["RSI"] = rsi_values
+
+    def compute_price_vs_sma_column(self):
+        """Pre-compute the SMA column used by the price_vs_sma signal.
+
+        Adds an ``SMA_price_vs`` column to self.myDF using the configured
+        period. Computed independently of the ma_crossover feature so the
+        signal works on its own. No-op when the signal is disabled.
+        """
+        if not self.__price_vs_sma_enabled:
+            return
+        period = self.__price_vs_sma_config.get("period", 10)
+        self.myDF["SMA_price_vs"] = self.myDF["Close"].rolling(window=period, min_periods=period).mean()
 
     def detect_ma_signals(self, row_index):
         """Detect MA crossover and price position signals for the given row.
@@ -374,6 +430,79 @@ class MarketAnalyzer:
 
         return {"rsi_signals": signals_list, "rsi_signal_score": total_score}
 
+    def detect_price_vs_sma_signals(self, row_index: int) -> dict:
+        """Detect price position relative to the SMA for the given row.
+
+        A close above the SMA contributes a bullish score; a close below
+        contributes a bearish score. When detect_crossover is enabled, a
+        discrete crossover event (close moving from one side of the SMA to
+        the other versus the previous row) adds an extra contribution.
+
+        Args:
+            row_index: Integer positional index into self.myDF.
+
+        Returns:
+            dict with keys: price_vs_sma_signals (list[str]),
+            price_vs_sma_signal_score (float).
+
+        Graceful degradation: returns an empty list and zero score when the
+        signal is disabled, when the SMA column is absent, or when the
+        current SMA/close value is NaN (insufficient data).
+        """
+        empty_result = {"price_vs_sma_signals": [], "price_vs_sma_signal_score": 0.0}
+
+        if not self.__price_vs_sma_enabled:
+            return empty_result
+
+        # SMA column may be absent if compute_price_vs_sma_column() was not run
+        if "SMA_price_vs" not in self.myDF.columns:
+            return empty_result
+
+        current_row = self.myDF.iloc[row_index]
+        sma_value = current_row["SMA_price_vs"]
+        close = current_row["Close"]
+
+        # Insufficient data / NaN guard
+        if pd.isna(sma_value) or pd.isna(close):
+            return empty_result
+
+        scores = self.__price_vs_sma_config.get("scores", {"above": 5, "below": 5})
+
+        signals_list = []
+        total_score = 0.0
+
+        # Position-based signal
+        if close > sma_value:
+            signals_list.append("Price above SMA")
+            total_score += scores.get("above", 5)
+        elif close < sma_value:
+            signals_list.append("Price below SMA")
+            total_score -= scores.get("below", 5)
+
+        # Optional crossover event detection
+        if self.__price_vs_sma_config.get("detect_crossover", False) and row_index > 0:
+            prev_row = self.myDF.iloc[row_index - 1]
+            prev_sma = prev_row["SMA_price_vs"]
+            prev_close = prev_row["Close"]
+
+            if not (pd.isna(prev_sma) or pd.isna(prev_close)):
+                crossover_scores = self.__price_vs_sma_config.get(
+                    "crossover_scores", {"cross_above": 3, "cross_below": 3}
+                )
+                # Cross above: previously at/below, now strictly above
+                if prev_close <= prev_sma and close > sma_value:
+                    signals_list.append("Price crossed above SMA")
+                    total_score += crossover_scores.get("cross_above", 3)
+                # Cross below: previously at/above, now strictly below
+                elif prev_close >= prev_sma and close < sma_value:
+                    signals_list.append("Price crossed below SMA")
+                    total_score -= crossover_scores.get("cross_below", 3)
+
+        if signals_list:
+            self.__logger.log(f"Price vs SMA Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
+
+        return {"price_vs_sma_signals": signals_list, "price_vs_sma_signal_score": total_score}
+
     def process_data(self):
         # Step 2: Loop around each item in the data frame
 
@@ -384,6 +513,9 @@ class MarketAnalyzer:
 
         # Pre-compute RSI column
         self.compute_rsi_column()
+
+        # Pre-compute price vs SMA column
+        self.compute_price_vs_sma_column()
 
         # Get the last index
         last_index = self.myDF.index[-1]
@@ -453,6 +585,11 @@ class MarketAnalyzer:
             signals["rsi_signals"] = rsi_signals["rsi_signals"]
             signals["rsi_signal_score"] = rsi_signals["rsi_signal_score"]
 
+            # Step 6.3: Detect price vs SMA signals
+            price_vs_sma_signals = self.detect_price_vs_sma_signals(row_position)
+            signals["price_vs_sma_signals"] = price_vs_sma_signals["price_vs_sma_signals"]
+            signals["price_vs_sma_signal_score"] = price_vs_sma_signals["price_vs_sma_signal_score"]
+
             self.__logger.log(f"signals: {signals}", level="INFO")
             trade_signal = (
                 signals["single_candle_signal_score"]
@@ -461,6 +598,7 @@ class MarketAnalyzer:
                 + signals["acc_dist_signal_score"]
                 + signals["ma_crossover_signal_score"]
                 + signals["rsi_signal_score"]
+                + signals["price_vs_sma_signal_score"]
             )
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
