@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usr/local/trading/venv/bin/activate
+source /usr/local/trading/.venv/bin/activate
 
 if [[ ":$PYTHONPATH:" != *":/usr/local/trading:"* ]]; then
     export PYTHONPATH="$PYTHONPATH:/usr/local/trading"

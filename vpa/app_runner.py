@@ -662,7 +662,7 @@ class MarketAnalyzer:
                 else:
                     acc_dist_signals.append("Test Fail")
                     # Test fail makes the signal weaker
-                    acc_dist_signal_score -= 2 if acc_or_dist == "Acc" else 2
+                    acc_dist_signal_score += -2 if acc_or_dist == "Acc" else 2
                     self.__logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
             if this_candle.spread_percentiles["period_two"] < 40 and this_candle.volume_percentiles["period_two"] > 60:
                 acc_dist_signals.append("Climax")
