@@ -13,7 +13,7 @@ This project grew in stages, and the signal logic now lives in **two separate pa
 Used for on-demand / live analysis of a single ticker.
 
 ```
-config.json ─► MarketAnalyzer.process_data()
+config.json ─► vpa.config.settings.load_settings() ─► MarketAnalyzer.process_data()
                  ├─ detect_signals()              (single-candle, trend, multiple-bar, acc/dist)
                  ├─ detect_ma_signals()            (MA crossover + price position)
                  ├─ detect_rsi_signals()           (RSI overbought/oversold)
@@ -23,7 +23,7 @@ config.json ─► MarketAnalyzer.process_data()
                  composite `trade_signal` = sum of all the sub-scores
 ```
 
-`process_data()` walks the DataFrame row by row and returns the final scalar `trade_signal`. Each signal follows the same pattern: an `_init_<x>_config()` method (reads its config section, sets an `enabled` flag), a `detect_<x>_signals(row_index)` method returning `{"<x>_signals": [...], "<x>_signal_score": n}`, and a line in the `process_data()` summation.
+`config.json` remains the operator-facing format, while `vpa.config.settings.load_settings()` validates it and exposes typed settings to both application paths. `process_data()` walks the DataFrame row by row and returns the final scalar `trade_signal`. Each signal follows the same pattern: an `_init_<x>_config()` method (reads its typed config section, sets an `enabled` flag), a `detect_<x>_signals(row_index)` method returning `{"<x>_signals": [...], "<x>_signal_score": n}`, and a line in the `process_data()` summation.
 
 **2. ML / backtest path — `VPAFeatureExtractor` (`vpa/ml_validation/feature_extractor.py`)**
 
@@ -74,6 +74,7 @@ Because the two paths are separate implementations, **a signal added to `MarketA
 | `daily_signal.py` | `vpa/ml_validation/daily_signal.py` | Daily generator (Feature_Dataset ► contrarian signals) |
 | `BacktestEngine` | `vpa/backtesting/engine.py` | Simulates trades from a Signal_Log + Price_Series |
 | `run_backtest.py` | `vpa/backtesting/run_backtest.py` | CLI: dataset CSV ► backtest trade-count summary |
+| `settings.py` | `vpa/config/settings.py` | Loads and validates JSON into typed configuration settings |
 | `app.py` | `vpa/app.py` | `Candle`, ADX, accumulation/distribution helpers |
 
 ## Setup
@@ -187,7 +188,8 @@ The signal generator is designed to run daily after US market close (4pm ET / 9p
 ```
 trading/
 +-- vpa/
-|   +-- config/config.json       # VPA configuration (thresholds, periods, signal weights)
+|   +-- config/config.json       # Operator-facing VPA configuration (thresholds, periods, signal weights)
+|   +-- config/settings.py       # Typed configuration models and JSON loader
 |   +-- ml_validation/           # ML / backtest signal path
 |   |   +-- feature_extractor.py # Builds the Feature_Dataset (reimplements signal logic)
 |   |   +-- signal_analysis.py   # Feature columns -> SignalType; hit-rate analysis (SP-314)
