@@ -178,10 +178,21 @@ The signal generator is designed to run daily after US market close (4pm ET / 9p
 
 | Module | Purpose | CLI |
 |--------|---------|-----|
+| `vpa/app_all_shares.py` | SP-500 scan with CSV, HTML, and plain-text reports | `python -m vpa.app_all_shares` |
 | `vpa/ml_validation/run_analysis.py` | ML validation pipeline (XGBoost, walk-forward) | `python -m vpa.ml_validation.run_analysis` |
 | `vpa/ml_validation/run_signal_analysis.py` | Signal-conditional hit-rate analysis | `python -m vpa.ml_validation.run_signal_analysis` |
 | `vpa/app_runner.py` | Core VPA MarketAnalyzer | Import only |
 | `vpa/opportunities.py` | Momentum/drawdown opportunity filter | Import only |
+
+### SP-500 Reports
+
+`python -m vpa.app_all_shares` runs the SP-500 scan and writes three date-stamped files under `vpa/log/`:
+
+- `share_output_YYYYMMDD.csv` contains one row per attempted ticker, including signal components, opportunity values, and failures.
+- `share_output_YYYYMMDD.html` contains the human-readable daily report with top/bottom recommendations, opportunities, counts, and failures.
+- `share_output_YYYYMMDD.txt` preserves the plain-text debugging report.
+
+The scan workflow can also be called from Python with an explicit `output_dir` and injected ticker subset for bounded runs and testing.
 
 ## Project Structure
 

@@ -19,6 +19,7 @@ class MarketAnalyzer:
         self.__config: Settings = self.load_config(config_path)
         self.__logger = DebugLog(level=log_level, file_prefix=log_prefix)
         self.myDF: pd.DataFrame
+        self.__last_signals: dict[str, object] = {}
         # Set up rolling windows for different periods
         self.__deque_dictionary = {
             "period_one": deque(maxlen=self.__config.period_one_length),
@@ -183,6 +184,10 @@ class MarketAnalyzer:
     def get_dataframe(self) -> pd.DataFrame:
         """Public accessor for the loaded DataFrame."""
         return self.myDF
+
+    def get_last_signals(self) -> dict[str, object]:
+        """Return the signal components calculated for the last processed row."""
+        return self.__last_signals.copy()
 
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
@@ -547,6 +552,7 @@ class MarketAnalyzer:
             price_vs_sma_signals = self.detect_price_vs_sma_signals(row_position)
             signals["price_vs_sma_signals"] = price_vs_sma_signals["price_vs_sma_signals"]
             signals["price_vs_sma_signal_score"] = price_vs_sma_signals["price_vs_sma_signal_score"]
+            self.__last_signals = signals.copy()
 
             self.__logger.log(f"signals: {signals}", level="INFO")
             trade_signal = (
