@@ -1,5 +1,4 @@
 import datetime
-import json
 import os
 from collections import deque
 
@@ -9,6 +8,7 @@ import pandas as pd
 import yfinance as yf
 
 from vpa.app import Candle, DebugLog, calculate_adx, identify_acc_or_dist
+from vpa.config import Settings, load_settings
 
 
 # Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
@@ -16,18 +16,18 @@ class MarketAnalyzer:
     def __init__(self, config_path, ticker_symbol=None, log_level="INFO", fixed_df=None, log_prefix="debug_log"):
         # Load configuration from the JSON file
         self.__ticker_symbol = ticker_symbol
-        self.__config = None
-        self.load_config(config_path)
+        self.__config: Settings = self.load_config(config_path)
         self.__logger = DebugLog(level=log_level, file_prefix=log_prefix)
+        self.myDF: pd.DataFrame
         # Set up rolling windows for different periods
         self.__deque_dictionary = {
-            "period_one": deque(maxlen=self.__config["PERIOD_ONE_LENGTH"]),
-            "period_two": deque(maxlen=self.__config["PERIOD_TWO_LENGTH"]),
-            "period_three": deque(maxlen=self.__config["PERIOD_THREE_LENGTH"]),
+            "period_one": deque(maxlen=self.__config.period_one_length),
+            "period_two": deque(maxlen=self.__config.period_two_length),
+            "period_three": deque(maxlen=self.__config.period_three_length),
         }
         # Template variable for storing the current percentile numbers for "spread" and "volume"
         self.__percentiles_store = {"spread": {}, "volume": {}}
-        self.__rolling_window_complete_msg_display = self.__config["rolling_window_complete_msg_display"]
+        self.__rolling_window_complete_msg_display = self.__config.rolling_window_complete_msg_display
 
         # Initialize MA crossover configuration
         self._init_ma_config()
@@ -49,7 +49,7 @@ class MarketAnalyzer:
             self.myDF = fixed_df
             # Check if we have enough data for the long-period SMA
             if self.__ma_enabled:
-                long_period = self.__ma_config.get("ma_periods", {}).get("long", 200)
+                long_period = self.__ma_config.ma_periods.long
                 if len(self.myDF) < long_period:
                     self.__logger.log(
                         f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
@@ -57,10 +57,8 @@ class MarketAnalyzer:
                     )
                     self.__ma_enabled = False
 
-    def load_config(self, config_path):
-        # Load configuration from JSON file
-        with open(config_path) as file:
-            self.__config = json.load(file)
+    def load_config(self, config_path) -> Settings:
+        return load_settings(config_path)
 
     def _init_ma_config(self):
         """Load and validate the ma_crossover configuration section.
@@ -69,30 +67,18 @@ class MarketAnalyzer:
         Uses defaults if the section is missing. Validates period ordering
         and ma_data_days, logging warnings on invalid configuration.
         """
-        ma_defaults = {
-            "enabled": True,
-            "ma_periods": {"short": 10, "medium": 50, "long": 200},
-            "ma_data_days": 300,
-            "crossover_scores": {"short_medium": 5, "short_long": 8, "medium_long": 10},
-            "position_scores": {"above_all": 5, "below_all": 5, "above_two": 2, "below_two": 2},
-        }
-
-        # Use config section if present, otherwise use defaults
-        if "ma_crossover" in self.__config:
-            self.__ma_config = self.__config["ma_crossover"]
-        else:
-            self.__ma_config = ma_defaults
+        self.__ma_config = self.__config.ma_crossover
 
         # Check enabled flag
-        if not self.__ma_config.get("enabled", True):
+        if not self.__ma_config.enabled:
             self.__ma_enabled = False
             return
 
         # Validate period ordering: short < medium < long
-        periods = self.__ma_config.get("ma_periods", ma_defaults["ma_periods"])
-        short = periods.get("short", 10)
-        medium = periods.get("medium", 50)
-        long_period = periods.get("long", 200)
+        periods = self.__ma_config.ma_periods
+        short = periods.short
+        medium = periods.medium
+        long_period = periods.long
 
         if short >= medium or medium >= long_period:
             self.__logger.log(
@@ -104,7 +90,7 @@ class MarketAnalyzer:
             return
 
         # Validate ma_data_days > long period; auto-correct if not
-        ma_data_days = self.__ma_config.get("ma_data_days", ma_defaults["ma_data_days"])
+        ma_data_days = self.__ma_config.ma_data_days
         if ma_data_days <= long_period:
             corrected = long_period + 100
             self.__logger.log(
@@ -112,7 +98,9 @@ class MarketAnalyzer:
                 f"Auto-correcting to {corrected}.",
                 level="WARN",
             )
-            self.__ma_config["ma_data_days"] = corrected
+            from dataclasses import replace
+
+            self.__ma_config = replace(self.__ma_config, ma_data_days=corrected)
 
         self.__ma_enabled = True
 
@@ -123,11 +111,8 @@ class MarketAnalyzer:
         Only needs enabled flag and data_days for determining the data window.
         Full validation of thresholds is handled by load_drawdown_config() at scan time.
         """
-        section = self.__config.get("drawdown_filter", {})
-        self.__drawdown_enabled = section.get("enabled", True)
-        self.__drawdown_config = {
-            "data_days": section.get("data_days", 400),
-        }
+        self.__drawdown_enabled = self.__config.drawdown_filter.enabled
+        self.__drawdown_config = self.__config.drawdown_filter
 
     def _init_rsi_config(self):
         """Load and validate the rsi configuration section.
@@ -137,28 +122,16 @@ class MarketAnalyzer:
         oversold_threshold < overbought_threshold, logging a warning
         and disabling RSI on invalid configuration.
         """
-        rsi_defaults = {
-            "enabled": True,
-            "period": 14,
-            "overbought_threshold": 70,
-            "oversold_threshold": 30,
-            "scores": {"overbought": -5, "oversold": 5},
-        }
-
-        # Use config section if present, otherwise use defaults
-        if "rsi" in self.__config:
-            self.__rsi_config = self.__config["rsi"]
-        else:
-            self.__rsi_config = rsi_defaults
+        self.__rsi_config = self.__config.rsi
 
         # Check enabled flag
-        if not self.__rsi_config.get("enabled", True):
+        if not self.__rsi_config.enabled:
             self.__rsi_enabled = False
             return
 
         # Validate thresholds: oversold must be less than overbought
-        oversold = self.__rsi_config.get("oversold_threshold", 30)
-        overbought = self.__rsi_config.get("overbought_threshold", 70)
+        oversold = self.__rsi_config.oversold_threshold
+        overbought = self.__rsi_config.overbought_threshold
 
         if oversold >= overbought:
             self.__logger.log(
@@ -179,27 +152,15 @@ class MarketAnalyzer:
         The signal computes its own SMA column (SMA_price_vs) so it works
         independently of the ma_crossover feature.
         """
-        price_vs_sma_defaults = {
-            "enabled": True,
-            "period": 10,
-            "scores": {"above": 5, "below": 5},
-            "detect_crossover": False,
-            "crossover_scores": {"cross_above": 3, "cross_below": 3},
-        }
-
-        # Use config section if present, otherwise use defaults
-        if "price_vs_sma" in self.__config:
-            self.__price_vs_sma_config = self.__config["price_vs_sma"]
-        else:
-            self.__price_vs_sma_config = price_vs_sma_defaults
+        self.__price_vs_sma_config = self.__config.price_vs_sma
 
         # Check enabled flag
-        if not self.__price_vs_sma_config.get("enabled", True):
+        if not self.__price_vs_sma_config.enabled:
             self.__price_vs_sma_enabled = False
             return
 
         # Validate period: must be a positive integer
-        period = self.__price_vs_sma_config.get("period", 10)
+        period = self.__price_vs_sma_config.period
         if not isinstance(period, int) or period < 1:
             self.__logger.log(
                 f"price_vs_sma disabled: invalid period ({period}). Period must be a positive integer.",
@@ -214,9 +175,9 @@ class MarketAnalyzer:
         """Return the largest data_days across all enabled features."""
         candidates = [100]  # base default
         if self.__ma_enabled:
-            candidates.append(self.__ma_config["ma_data_days"])
+            candidates.append(self.__ma_config.ma_data_days)
         if self.__drawdown_enabled:
-            candidates.append(self.__drawdown_config["data_days"])
+            candidates.append(self.__drawdown_config.data_days)
         return max(candidates)
 
     def get_dataframe(self) -> pd.DataFrame:
@@ -225,11 +186,11 @@ class MarketAnalyzer:
 
     def load_data(self):
         # Step 1: Get our test data from CSV file or live quant data
-        if self.__config["use_real_data"]:
+        if self.__config.use_real_data:
             # Define the ticker symbol
 
             if self.__ticker_symbol is None:
-                ticker_symbol = self.__config["ticker_symbol"]
+                ticker_symbol = self.__config.ticker_symbol
             else:
                 ticker_symbol = self.__ticker_symbol
             # Get the current date
@@ -238,7 +199,10 @@ class MarketAnalyzer:
             data_days = self._get_data_days()
             start_date = end_date - datetime.timedelta(days=data_days)
             # Fetch the data
-            self.myDF = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
+            downloaded_df = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
+            if downloaded_df is None:
+                raise RuntimeError(f"No data returned for {ticker_symbol}")
+            self.myDF = downloaded_df
             self.myDF = self.myDF.reset_index()
             self.myDF.columns = ["Date", "Close", "High", "Low", "Open", "Volume"]
         else:
@@ -251,7 +215,7 @@ class MarketAnalyzer:
 
         # Check if we have enough data for the long-period SMA
         if self.__ma_enabled:
-            long_period = self.__ma_config.get("ma_periods", {}).get("long", 200)
+            long_period = self.__ma_config.ma_periods.long
             if len(self.myDF) < long_period:
                 self.__logger.log(
                     f"MA crossover disabled: insufficient data ({len(self.myDF)} rows < {long_period} required)",
@@ -263,14 +227,10 @@ class MarketAnalyzer:
         """Pre-compute SMA columns on self.myDF. Called once before row-by-row processing."""
         if not self.__ma_enabled:
             return
-        periods = self.__ma_config["ma_periods"]
-        self.myDF["SMA_short"] = (
-            self.myDF["Close"].rolling(window=periods["short"], min_periods=periods["short"]).mean()
-        )
-        self.myDF["SMA_medium"] = (
-            self.myDF["Close"].rolling(window=periods["medium"], min_periods=periods["medium"]).mean()
-        )
-        self.myDF["SMA_long"] = self.myDF["Close"].rolling(window=periods["long"], min_periods=periods["long"]).mean()
+        periods = self.__ma_config.ma_periods
+        self.myDF["SMA_short"] = self.myDF["Close"].rolling(window=periods.short, min_periods=periods.short).mean()
+        self.myDF["SMA_medium"] = self.myDF["Close"].rolling(window=periods.medium, min_periods=periods.medium).mean()
+        self.myDF["SMA_long"] = self.myDF["Close"].rolling(window=periods.long, min_periods=periods.long).mean()
 
     def compute_rsi_column(self):
         """Pre-compute RSI column on self.myDF."""
@@ -279,7 +239,7 @@ class MarketAnalyzer:
 
         from vpa.rsi import calculate_rsi
 
-        period = self.__rsi_config.get("period", 14)
+        period = self.__rsi_config.period
         closes = self.myDF["Close"].tolist()
         rsi_values = []
 
@@ -298,7 +258,7 @@ class MarketAnalyzer:
         """
         if not self.__price_vs_sma_enabled:
             return
-        period = self.__price_vs_sma_config.get("period", 10)
+        period = self.__price_vs_sma_config.period
         self.myDF["SMA_price_vs"] = self.myDF["Close"].rolling(window=period, min_periods=period).mean()
 
     def detect_ma_signals(self, row_index):
@@ -352,7 +312,7 @@ class MarketAnalyzer:
                 curr_faster = current_row[faster_col]
                 curr_slower = current_row[slower_col]
 
-                crossover_score = self.__ma_config["crossover_scores"][score_key]
+                crossover_score = getattr(self.__ma_config.crossover_scores, score_key)
 
                 # Golden Cross: prev_faster < prev_slower AND curr_faster >= curr_slower
                 if prev_faster < prev_slower and curr_faster >= curr_slower:
@@ -369,20 +329,20 @@ class MarketAnalyzer:
         sma_values = [sma_short, sma_medium, sma_long]
         above_count = sum(1 for sma in sma_values if close > sma)
 
-        position_scores = self.__ma_config["position_scores"]
+        position_scores = self.__ma_config.position_scores
 
         if above_count == 3:
             signals_list.append("Price above_all")
-            total_score += position_scores["above_all"]
+            total_score += position_scores.above_all
         elif above_count == 0:
             signals_list.append("Price below_all")
-            total_score -= position_scores["below_all"]
+            total_score -= position_scores.below_all
         elif above_count == 2:
             signals_list.append("Price above_two")
-            total_score += position_scores["above_two"]
+            total_score += position_scores.above_two
         else:  # above_count == 1
             signals_list.append("Price below_two")
-            total_score -= position_scores["below_two"]
+            total_score -= position_scores.below_two
 
         # Log summary
         self.__logger.log(f"MA Crossover Signals: {signals_list}", level="INFO")
@@ -406,23 +366,23 @@ class MarketAnalyzer:
             return {"rsi_signals": [], "rsi_signal_score": 0.0}
 
         # Check if we have sufficient data for RSI calculation
-        rsi_period = self.__rsi_config.get("period", 14)
+        rsi_period = self.__rsi_config.period
         if row_index < rsi_period:
             return {"rsi_signals": [], "rsi_signal_score": 0.0}
 
-        overbought = self.__rsi_config.get("overbought_threshold", 70)
-        oversold = self.__rsi_config.get("oversold_threshold", 30)
-        scores = self.__rsi_config.get("scores", {"overbought": -5, "oversold": 5})
+        overbought = self.__rsi_config.overbought_threshold
+        oversold = self.__rsi_config.oversold_threshold
+        scores = self.__rsi_config.scores
 
         signals_list = []
         total_score = 0.0
 
         if rsi_value > overbought:
             signals_list.append("RSI Overbought")
-            total_score += scores["overbought"]
+            total_score += scores.overbought
         elif rsi_value < oversold:
             signals_list.append("RSI Oversold")
-            total_score += scores["oversold"]
+            total_score += scores.oversold
 
         self.__logger.log(f"RSI: {rsi_value:.2f}", level="INFO")
         if signals_list:
@@ -466,7 +426,7 @@ class MarketAnalyzer:
         if pd.isna(sma_value) or pd.isna(close):
             return empty_result
 
-        scores = self.__price_vs_sma_config.get("scores", {"above": 5, "below": 5})
+        scores = self.__price_vs_sma_config.scores
 
         signals_list = []
         total_score = 0.0
@@ -474,29 +434,27 @@ class MarketAnalyzer:
         # Position-based signal
         if close > sma_value:
             signals_list.append("Price above SMA")
-            total_score += scores.get("above", 5)
+            total_score += scores.above
         elif close < sma_value:
             signals_list.append("Price below SMA")
-            total_score -= scores.get("below", 5)
+            total_score -= scores.below
 
         # Optional crossover event detection
-        if self.__price_vs_sma_config.get("detect_crossover", False) and row_index > 0:
+        if self.__price_vs_sma_config.detect_crossover and row_index > 0:
             prev_row = self.myDF.iloc[row_index - 1]
             prev_sma = prev_row["SMA_price_vs"]
             prev_close = prev_row["Close"]
 
             if not (pd.isna(prev_sma) or pd.isna(prev_close)):
-                crossover_scores = self.__price_vs_sma_config.get(
-                    "crossover_scores", {"cross_above": 3, "cross_below": 3}
-                )
+                crossover_scores = self.__price_vs_sma_config.crossover_scores
                 # Cross above: previously at/below, now strictly above
                 if prev_close <= prev_sma and close > sma_value:
                     signals_list.append("Price crossed above SMA")
-                    total_score += crossover_scores.get("cross_above", 3)
+                    total_score += crossover_scores.cross_above
                 # Cross below: previously at/above, now strictly below
                 elif prev_close >= prev_sma and close < sma_value:
                     signals_list.append("Price crossed below SMA")
-                    total_score -= crossover_scores.get("cross_below", 3)
+                    total_score -= crossover_scores.cross_below
 
         if signals_list:
             self.__logger.log(f"Price vs SMA Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
@@ -524,7 +482,7 @@ class MarketAnalyzer:
 
         row_position = 0
         for index, row in self.myDF.iterrows():
-            if not self.__config["use_real_data"] and 0 < self.__config["MAX_ROWS"] <= index:
+            if not self.__config.use_real_data and 0 < self.__config.max_rows <= row_position:
                 break
             self.__logger.log(f"Processing row: {index}", level="DEBUG")
             # Step 3: Create a new Candle object with the supplied properties for each new row
@@ -546,10 +504,10 @@ class MarketAnalyzer:
             for key in self.__deque_dictionary.keys():
                 self.__deque_dictionary[key].append(this_candle)
             # Step 4: We keep going without further action until we have enough data for all our rolling windows
-            if len(self.__deque_dictionary["period_three"]) < self.__config["PERIOD_THREE_LENGTH"]:
+            if len(self.__deque_dictionary["period_three"]) < self.__config.period_three_length:
                 row_position += 1
                 continue
-            elif len(self.__deque_dictionary["period_three"]) == self.__config["PERIOD_THREE_LENGTH"]:
+            elif len(self.__deque_dictionary["period_three"]) == self.__config.period_three_length:
                 if self.__rolling_window_complete_msg_display:
                     self.__logger.log("We now have enough data for all our rolling windows", level="INFO")
                     self.__rolling_window_complete_msg_display = False
@@ -614,17 +572,17 @@ class MarketAnalyzer:
             for key in self.__deque_dictionary.keys():
                 stats_list = [getattr(item, prop) for item in self.__deque_dictionary[key]]
                 self.__percentiles_store[prop][key] = np.percentile(
-                    stats_list, range(self.__config["PERCENTILE_START"], 100, self.__config["PERCENTILE_INCREMENTS"])
+                    stats_list, range(self.__config.percentile_start, 100, self.__config.percentile_increments)
                 )
                 self.__logger.log(f"{prop} percentiles for {key}: {self.__percentiles_store[prop][key]}", level="DEBUG")
         # Step 5.2: Update all Candles in our rolling windows with their relevant percentiles
         for key in self.__deque_dictionary.keys():
             for candle in self.__deque_dictionary[key]:
                 for prop in props:
-                    upper_percentile = self.__config["PERCENTILE_START"]
+                    upper_percentile = self.__config.percentile_start
                     for step in self.__percentiles_store[prop][key]:
                         if getattr(candle, prop) <= step:
-                            upper_percentile += self.__config["PERCENTILE_INCREMENTS"]
+                            upper_percentile += self.__config.percentile_increments
                     if prop == "spread":
                         candle.spread_percentiles[key] = upper_percentile
                     elif prop == "volume":
@@ -714,22 +672,22 @@ class MarketAnalyzer:
             "period_three_volume_backed": False,
         }
         for key in self.__deque_dictionary.keys():
+            parameters = getattr(self.__config.trading_parameters, key)
             up_bar_count = sum(1 for candle in self.__deque_dictionary[key] if candle.up_bar)
             high_spread_count = sum(
                 1
                 for candle in self.__deque_dictionary[key]
-                if candle.spread_percentiles[key] > self.__config["trading_parameters"][key]["High_Spread_Threshold"]
+                if candle.spread_percentiles[key] > parameters.high_spread_threshold
             )
             high_volume_count = sum(
                 1
                 for candle in self.__deque_dictionary[key]
-                if candle.volume_percentiles[key] > self.__config["trading_parameters"][key]["High_Volume_Threshold"]
+                if candle.volume_percentiles[key] > parameters.high_volume_threshold
             )
             anomaly_count = sum(
                 1
                 for candle in self.__deque_dictionary[key]
-                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key])
-                > self.__config["trading_parameters"][key]["Anomaly_Threshold"]
+                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key]) > parameters.anomaly_threshold
             )
             bar_counts[key] = {
                 "up_bars": up_bar_count,
@@ -739,19 +697,17 @@ class MarketAnalyzer:
             }
             self.__logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
             # Step 8: Decide whether a signal is being generated on each time period
-            if up_bar_count >= self.__config["trading_parameters"][key]["Signal_Bar_Count"]:
+            if up_bar_count >= parameters.signal_bar_count:
                 signals[f"{key}_bull"] = True
                 self.__logger.log(f"{key} Bullish Signal", level="INFO")
-            elif up_bar_count <= (
-                self.__config["PERIOD_ONE_LENGTH"] - self.__config["trading_parameters"][key]["Signal_Bar_Count"]
-            ):
+            elif up_bar_count <= (self.__config.period_one_length - parameters.signal_bar_count):
                 signals[f"{key}_bear"] = True
                 self.__logger.log(f"{key} Bearish Signal", level="INFO")
             if signals[f"{key}_bear"] or signals[f"{key}_bull"]:
                 if (
-                    high_spread_count >= self.__config["trading_parameters"][key]["High_Spread_Count"]
-                    and high_volume_count >= self.__config["trading_parameters"][key]["High_Volume_Count"]
-                    and anomaly_count <= self.__config["trading_parameters"][key]["Anomaly_Threshold"]
+                    high_spread_count >= parameters.high_spread_count
+                    and high_volume_count >= parameters.high_volume_count
+                    and anomaly_count <= parameters.anomaly_threshold
                 ):
                     signals[f"{key}_volume_backed"] = True
                     self.__logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")

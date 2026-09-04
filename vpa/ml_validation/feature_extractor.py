@@ -1,7 +1,6 @@
 """VPA Feature Extractor - extracts structured feature vectors from MarketAnalyzer."""
 
 import datetime
-import json
 from collections import deque
 
 import numpy as np
@@ -9,6 +8,7 @@ import pandas as pd
 import yfinance as yf
 
 from vpa.app import Candle, calculate_adx, identify_acc_or_dist
+from vpa.config import load_settings
 from vpa.ml_validation.exceptions import InsufficientDataError
 from vpa.rsi import calculate_rsi
 
@@ -64,14 +64,12 @@ class VPAFeatureExtractor:
         self._ticker_symbol = ticker_symbol
         self._enable_extraction = enable_extraction
 
-        # Load configuration
-        with open(config_path) as f:
-            self._config = json.load(f)
+        self._config = load_settings(config_path)
 
         # Store period lengths for up_bar_ratio calculations
-        self._period_one_length = self._config["PERIOD_ONE_LENGTH"]
-        self._period_two_length = self._config["PERIOD_TWO_LENGTH"]
-        self._period_three_length = self._config["PERIOD_THREE_LENGTH"]
+        self._period_one_length = self._config.period_one_length
+        self._period_two_length = self._config.period_two_length
+        self._period_three_length = self._config.period_three_length
 
     def _extract_feature_vector(
         self,
@@ -158,33 +156,24 @@ class VPAFeatureExtractor:
         acc_dist_score = float(signals.get("acc_dist_signal_score", 0))
 
         # RSI calculation
-        rsi_config = self._config.get(
-            "rsi",
-            {
-                "enabled": True,
-                "period": 14,
-                "overbought_threshold": 70,
-                "oversold_threshold": 30,
-                "scores": {"overbought": -5, "oversold": 5},
-            },
-        )
-        rsi_enabled = rsi_config.get("enabled", True)
+        rsi_config = self._config.rsi
+        rsi_enabled = rsi_config.enabled
 
         if rsi_enabled:
             period_three_closes = [c.close for c in deque_dictionary["period_three"]]
-            rsi_period = rsi_config.get("period", 14)
+            rsi_period = rsi_config.period
             rsi_value = calculate_rsi(period_three_closes, rsi_period)
 
             # RSI signal score using same threshold logic as MarketAnalyzer
-            overbought = rsi_config.get("overbought_threshold", 70)
-            oversold = rsi_config.get("oversold_threshold", 30)
-            scores = rsi_config.get("scores", {"overbought": -5, "oversold": 5})
+            overbought = rsi_config.overbought_threshold
+            oversold = rsi_config.oversold_threshold
+            scores = rsi_config.scores
 
             rsi_signal_score = 0.0
             if rsi_value > overbought:
-                rsi_signal_score = float(scores["overbought"])
+                rsi_signal_score = float(scores.overbought)
             elif rsi_value < oversold:
-                rsi_signal_score = float(scores["oversold"])
+                rsi_signal_score = float(scores.oversold)
         else:
             rsi_value = 50.0
             rsi_signal_score = 0.0
@@ -299,8 +288,8 @@ class VPAFeatureExtractor:
         # Percentile storage (mirrors MarketAnalyzer.__percentiles_store)
         percentiles_store = {"spread": {}, "volume": {}}
 
-        percentile_start = self._config["PERCENTILE_START"]
-        percentile_increments = self._config["PERCENTILE_INCREMENTS"]
+        percentile_start = self._config.percentile_start
+        percentile_increments = self._config.percentile_increments
 
         # --- Step 5: Process each row ---
         feature_rows = []
@@ -473,42 +462,42 @@ class VPAFeatureExtractor:
         all_signals["trend_signal_score"] = trend_signal_score
 
         # --- Multiple bar signals ---
-        trading_params = self._config["trading_parameters"]
+        trading_params = self._config.trading_parameters
         signals_flags = {}
 
         for key in deque_dictionary:
+            parameters = getattr(trading_params, key)
             up_bar_count = sum(1 for candle in deque_dictionary[key] if candle.up_bar)
             high_spread_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if candle.spread_percentiles[key] > trading_params[key]["High_Spread_Threshold"]
+                if candle.spread_percentiles[key] > parameters.high_spread_threshold
             )
             high_volume_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if candle.volume_percentiles[key] > trading_params[key]["High_Volume_Threshold"]
+                if candle.volume_percentiles[key] > parameters.high_volume_threshold
             )
             anomaly_count = sum(
                 1
                 for candle in deque_dictionary[key]
-                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key])
-                > trading_params[key]["Anomaly_Threshold"]
+                if abs(candle.spread_percentiles[key] - candle.volume_percentiles[key]) > parameters.anomaly_threshold
             )
 
             signals_flags[f"{key}_bull"] = False
             signals_flags[f"{key}_bear"] = False
             signals_flags[f"{key}_volume_backed"] = False
 
-            if up_bar_count >= trading_params[key]["Signal_Bar_Count"]:
+            if up_bar_count >= parameters.signal_bar_count:
                 signals_flags[f"{key}_bull"] = True
-            elif up_bar_count <= (self._config["PERIOD_ONE_LENGTH"] - trading_params[key]["Signal_Bar_Count"]):
+            elif up_bar_count <= (self._config.period_one_length - parameters.signal_bar_count):
                 signals_flags[f"{key}_bear"] = True
 
             if signals_flags[f"{key}_bear"] or signals_flags[f"{key}_bull"]:
                 if (
-                    high_spread_count >= trading_params[key]["High_Spread_Count"]
-                    and high_volume_count >= trading_params[key]["High_Volume_Count"]
-                    and anomaly_count <= trading_params[key]["Anomaly_Threshold"]
+                    high_spread_count >= parameters.high_spread_count
+                    and high_volume_count >= parameters.high_volume_count
+                    and anomaly_count <= parameters.anomaly_threshold
                 ):
                     signals_flags[f"{key}_volume_backed"] = True
 
