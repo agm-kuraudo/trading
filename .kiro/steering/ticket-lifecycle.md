@@ -30,6 +30,16 @@ Move to **Done** ONLY when the user explicitly confirms:
 3. The only valid automatic transition is: In Progress -> Mostly Done (after PR created).
 4. Done is ALWAYS a user-initiated transition.
 
+## Pre-Mostly-Done Quality Gate
+
+Before moving a ticket to **Mostly Done** (and before creating the PR), always run these checks and act on the results:
+
+1. **Ruff format check** - run `.venv\Scripts\python.exe -m ruff format --check` on the changed Python files. If it reports formatting differences, run `.venv\Scripts\python.exe -m ruff format` on those files and re-stage.
+2. **Ruff lint check** - run `.venv\Scripts\python.exe -m ruff check` on the changed Python files and fix (or `--fix`) any reported issues. Only lint Python files, never `config.json` or other non-Python files.
+3. **README updates** - review whether the change affects anything documented in `README.md` (architecture/data flow, module list, project structure, CLI usage, config sections, signal behaviour). Make the relevant README updates in the same branch/PR.
+
+Do not transition to Mostly Done until the ruff checks pass and any needed README updates are made.
+
 ## After Implementation Tasks Complete
 
 When the final spec task/checkpoint passes, the next steps are:
@@ -39,6 +49,8 @@ When the final spec task/checkpoint passes, the next steps are:
 4. Add completion comment to Jira
 5. Transition to **Mostly Done** (NOT Done)
 6. Tell the user the PR is ready for merge
+
+> Run the **Pre-Mostly-Done Quality Gate** (ruff format/lint + README review) before step 1.
 
 ## After PR Merge / Ticket Closed
 
