@@ -41,6 +41,13 @@ WHERE ticker = %s AND interval = %s AND ts >= %s AND ts <= %s
 ORDER BY ts;
 """
 
+# Number of row upserts committed per transaction (Req 2.1–2.4 scaling fix). Each
+# hypertable chunk touched inside a transaction holds a lock; committing in bounded
+# batches caps the live-lock count so a full-history backfill (~8000 daily bars)
+# cannot exhaust ``max_locks_per_transaction`` (psycopg2 OutOfMemory: out of shared
+# memory). 500 keeps transactions small while limiting round-trip/commit overhead.
+UPSERT_BATCH_SIZE = 500
+
 
 class MarketDataRepository:
     """Access layer over the ``market_data.ohlcv`` table.
@@ -69,7 +76,12 @@ class MarketDataRepository:
         ``ON CONFLICT (ticker, interval, ts) DO UPDATE`` statement per row. Each
         execution returns ``(xmax = 0)`` — TRUE for an inserted row, FALSE for an
         updated one — which is used to tally the two counts. The connection is
-        committed once at the end and always closed (try/finally).
+        committed in batches of :data:`UPSERT_BATCH_SIZE` rows (with a final commit
+        for any remainder) and always closed (try/finally). Batching bounds the
+        number of hypertable chunk locks held per transaction so a full-history
+        backfill cannot exhaust ``max_locks_per_transaction``; because each row is
+        independently idempotent under ``ON CONFLICT``, splitting the commits does
+        not change the counts or the idempotency guarantee.
 
         Re-running with the same bars changes no row count (PK invariant): the
         second run updates every row rather than inserting.
@@ -91,6 +103,7 @@ class MarketDataRepository:
         conn = self._conn_factory()
         try:
             with conn.cursor() as cur:
+                pending = 0  # rows executed since the last commit
                 for row in rows:
                     cur.execute(_UPSERT_SQL, row)
                     was_insert = cur.fetchone()[0]
@@ -98,7 +111,16 @@ class MarketDataRepository:
                         inserted += 1
                     else:
                         updated += 1
-            conn.commit()
+                    pending += 1
+                    # Commit each full batch so the live hypertable-chunk lock count
+                    # stays bounded. psycopg2 keeps the cursor valid across commits
+                    # on the same connection, so we reuse the single cursor.
+                    if pending >= UPSERT_BATCH_SIZE:
+                        conn.commit()
+                        pending = 0
+                # Commit any rows left over in the final partial batch.
+                if pending:
+                    conn.commit()
         finally:
             conn.close()
 

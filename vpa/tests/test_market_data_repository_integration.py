@@ -366,3 +366,64 @@ def test_real_db_idempotency_smoke():  # pragma: no cover - opt-in only
 
     out = repo.get_ohlcv("SPY_TEST", "1d", "2024-01-01", "2024-01-31")
     assert len(out) == 3
+
+
+# ===========================================================================
+# Batched-commit scaling fix (SP-349 Task 12.4 defect): a large backfill must
+# commit in bounded batches rather than one giant transaction, so hypertable
+# chunk locks stay under max_locks_per_transaction. Counts must be unchanged.
+# ===========================================================================
+
+
+def test_large_upsert_commits_in_multiple_batches():
+    from vpa.market_data.repository import UPSERT_BATCH_SIZE
+
+    store, conn_factory = make_conn_factory()
+
+    # Capture the connection objects so we can read the commit counter afterwards.
+    produced = []
+
+    def tracking_factory():
+        conn = conn_factory()
+        produced.append(conn)
+        return conn
+
+    repo = MarketDataRepository(conn_factory=tracking_factory)
+
+    # More than one full batch of distinct business days ensures >1 commit.
+    n = UPSERT_BATCH_SIZE + 250
+    dates = pd.bdate_range(start="2000-01-03", periods=n)
+    assert len(dates) == n  # distinct dates => distinct (ticker, interval, ts) keys
+    df = make_canonical_df(dates)
+
+    result = repo.upsert_bars(df, "SPY", "1d")
+
+    # (a) Counts are correct: every distinct-date row is a fresh insert.
+    assert result == {"inserted": n, "updated": 0}
+    assert len(store) == n
+
+    # (b) The connection committed more than once, proving batched commits.
+    assert len(produced) == 1
+    assert produced[0].commits > 1
+    # Precisely: one commit per full batch plus one for the remainder.
+    expected_commits = (n + UPSERT_BATCH_SIZE - 1) // UPSERT_BATCH_SIZE
+    assert produced[0].commits == expected_commits
+
+
+def test_large_upsert_batching_preserves_idempotency():
+    from vpa.market_data.repository import UPSERT_BATCH_SIZE
+
+    store, conn_factory = make_conn_factory()
+    repo = MarketDataRepository(conn_factory=conn_factory)
+
+    n = UPSERT_BATCH_SIZE + 250
+    dates = pd.bdate_range(start="2000-01-03", periods=n)
+    df = make_canonical_df(dates)
+
+    first = repo.upsert_bars(df, "SPY", "1d")
+    second = repo.upsert_bars(df, "SPY", "1d")
+
+    # Re-running yields inserted=0/updated=n despite committing in batches.
+    assert first == {"inserted": n, "updated": 0}
+    assert second == {"inserted": 0, "updated": n}
+    assert len(store) == n
