@@ -40,7 +40,6 @@ webencodings==0.5.1
 wheel==0.45.1
 yfinance==0.2.58
 mplfinance~=0.12.10b0
-selenium~=4.34.0
 ruff==0.8.6
 pytest==9.1.1
 hypothesis==6.165.10

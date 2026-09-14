@@ -1,0 +1,505 @@
+{
+  "pbtResults": {
+    "2.4 Write property test for malformed buffer length rejection": {
+      "status": "passed",
+      "lastRunTimestamp": 1789382437036
+    },
+    "2.3 Write property test for decode round-trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1789382498788
+    }
+  },
+  "executionHistory": {
+    "1.1 Create the package files and error hierarchy": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382041885
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382049961
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382134139
+      }
+    ],
+    "2.1 Implement `Record` dataclass and `decode_feed` in `vpa/forex_data/decoder.py`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382042479
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382138066
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382242839
+      }
+    ],
+    "2.2 Add test helper `encode_records(records, size)` in the forex_data test module": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382042596
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382254138
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382351145
+      }
+    ],
+    "2.3 Write property test for decode round-trip": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382042731
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382354911
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382519122
+      }
+    ],
+    "2.4 Write property test for malformed buffer length rejection": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382042842
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382355797
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382520071
+      }
+    ],
+    "3.1 Implement `aggregate_to_daily` in `vpa/forex_data/aggregator.py`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043015
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382139185
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382243971
+      }
+    ],
+    "3.2 Write property test for per-day OHLCV aggregation": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043082
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382357208
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382521482
+      }
+    ],
+    "3.4 Write property test for volume preservation": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043155
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382358141
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382522412
+      }
+    ],
+    "5. Checkpoint - pure logic complete": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043221
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382634088
+      }
+    ],
+    "6.1 Implement `fetch_symbol_metadata` and `fetch_feed` in `vpa/forex_data/feed.py`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043332
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382691852
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382792714
+      }
+    ],
+    "7.1 Implement `Forex_Data_Retriever` and `get_daily_dataframe` in `vpa/forex_data/retriever.py`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043399
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382799131
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382955555
+      }
+    ],
+    "7.2 Wire package exports in `vpa/forex_data/__init__.py`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043471
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382960853
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383166466
+      }
+    ],
+    "7.6 Write unit test for a non-GBPUSD pair (multi-pair support)": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043537
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382965384
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383168346
+      }
+    ],
+    "7.7 Write unit tests for sufficiency boundary and orchestrator error mapping": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043609
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383173068
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383268353
+      }
+    ],
+    "8. Checkpoint - retriever complete offline": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043684
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383288095
+      }
+    ],
+    "9.1 Replace the Selenium block with the browserless retriever call": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043750
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384030692
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384148275
+      }
+    ],
+    "9.2 Write signal-threshold and wiring tests for app_forex": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043817
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384153203
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384274837
+      }
+    ],
+    "10.1 Delete `vpa/forex_auto/` and drop `selenium` from `requirements.txt`": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043891
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384154154
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384275653
+      }
+    ],
+    "11. Final checkpoint - full suite green": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382043959
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384600856
+      }
+    ],
+    "12. Deploy and verify on the Raspberry Pi (RUNS ON THE PI — not a code task)": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382044071
+      }
+    ],
+    "1. Create the `vpa/forex_data/` package skeleton and typed error hierarchy": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382134203
+      }
+    ],
+    "4.1 Write property test for decode/aggregation determinism": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382359050
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382523210
+      }
+    ],
+    "2. Implement the pure feed decoder": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382520149
+      }
+    ],
+    "3. Implement the pure daily aggregator": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382522483
+      }
+    ],
+    "4. Add cross-cutting determinism property test for the pure functions": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382523278
+      }
+    ],
+    "2.5 Write unit test for zero-length buffer": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382528156
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382611808
+      }
+    ],
+    "3.3 Write property test for ascending chronological order": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382529097
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382615183
+      }
+    ],
+    "3.5 Write property test for output DataFrame shape invariant": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382530067
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382613205
+      }
+    ],
+    "3.6 Write unit test for empty aggregation": [
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382531001
+      },
+      {
+        "executionId": "d6b7d34e-a1e0-43a6-88a5-12f29595b972",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382614155
+      }
+    ],
+    "6. Implement the network layer": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382792792
+      }
+    ],
+    "6.2 Write mocked unit tests for the network layer error mapping": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382799998
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382954519
+      }
+    ],
+    "7.3 Write property test for symbol normalization and URL derivation": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382962261
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383167355
+      }
+    ],
+    "7.4 Write property test for invalid symbol rejection": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382963218
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383164059
+      }
+    ],
+    "7.5 Write unit test for metadata lookup and default symbol": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789382964590
+      },
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383165013
+      }
+    ],
+    "7. Implement the orchestrator": [
+      {
+        "executionId": "21a3baed-7c95-4572-908a-f6a4783ad1f4",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789383268462
+      }
+    ],
+    "9. Rewrite `vpa/app_forex.py` to use the retriever": [
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384274912
+      }
+    ],
+    "10. Remove the Selenium implementation and dependency": [
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384275740
+      }
+    ],
+    "10.2 Write no-Selenium and cross-platform smoke tests": [
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384280444
+      },
+      {
+        "executionId": "29d813ea-26ad-4918-86a6-fa9732ddcbe9",
+        "chatSessionId": "sess_47e550d6-9f0f-491f-905d-036a4986a2e9",
+        "timestamp": 1789384375334
+      }
+    ]
+  }
+}
