@@ -1,0 +1,660 @@
+{
+  "pbtResults": {
+    "10.1 Property test — idempotency / PK invariant": {
+      "status": "passed",
+      "lastRunTimestamp": 1789400590030
+    },
+    "10.3 Property test — offline read (no network I/O)": {
+      "status": "passed",
+      "lastRunTimestamp": 1789400621447
+    },
+    "10.5 Property test — bootstrap idempotency incl. Timescale objects": {
+      "status": "passed",
+      "lastRunTimestamp": 1789401116922
+    }
+  },
+  "executionHistory": {
+    "1. Add the psycopg2 dependency": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988268
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397280394
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397339212
+      }
+    ],
+    "2.1 Scaffold the package": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988398
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397280538
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397339818
+      }
+    ],
+    "2.2 Implement `vpa/market_data/db.py` (mirrors Betfair `verify_db.py`)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988534
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397344436
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397506690
+      }
+    ],
+    "3.1 Implement `normalise_yf_download(raw)` (pure, no network)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988610
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397513549
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397632589
+      }
+    ],
+    "3.2 Implement `to_store_rows(df, ticker, interval, source, adjusted)`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988822
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397514337
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397633535
+      }
+    ],
+    "3.3 Implement `fetch_yf(ticker, interval, start, end)`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396988954
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397640537
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397763077
+      }
+    ],
+    "4.1 Implement `MarketDataRepository.__init__` and `upsert_bars`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989043
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397643453
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397765269
+      }
+    ],
+    "4.2 Implement `get_ohlcv` (offline read)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989159
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397771541
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397903820
+      }
+    ],
+    "4.3 Implement `load_ohlcv` (read-through, fetch only missing tail)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989407
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397772944
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397901917
+      }
+    ],
+    "4.4 Implement `export_ohlcv` (scoped CSV/Parquet)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989493
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397773859
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397904820
+      }
+    ],
+    "5. Checkpoint — pure logic + repository verified": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989639
+      }
+    ],
+    "6.1 Implement `verify_market_data_db(env_path=None)`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989703
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397774730
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397902878
+      }
+    ],
+    "6.2 Add TimescaleDB provisioning to the DDL": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989787
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397915615
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398106896
+      }
+    ],
+    "6.3 Implement `main()` with exit codes": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396989938
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398116858
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398372277
+      }
+    ],
+    "7.1 Implement backfill CLI": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990016
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397916283
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398106074
+      }
+    ],
+    "8.1 Route `utils.utils.get_live_data_from_yfinance` through the Normaliser": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990147
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398119883
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398375224
+      }
+    ],
+    "8.2 Migrate `VPAFeatureExtractor.generate_dataset`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990224
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398381920
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398596754
+      }
+    ],
+    "8.3 Migrate `MarketAnalyzer.load_data`": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990314
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398382836
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398596005
+      }
+    ],
+    "8.4 Migrate the all-shares scan (`vpa/app_all_shares.py`)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990391
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398603511
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398683936
+      }
+    ],
+    "8.5 Wire backtesting to scoped export": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990473
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398383785
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398594567
+      }
+    ],
+    "9. Checkpoint — scripts + consumer migration verified": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990722
+      }
+    ],
+    "11. Final checkpoint — full store buildable and tested locally": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396990975
+      }
+    ],
+    "12.1 Confirm SP-352 complete and obtain operator go-ahead (operator action)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396991071
+      }
+    ],
+    "12.2 Rebuild `my_postgres` on the TimescaleDB image (operator action, DESTRUCTIVE)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396991152
+      }
+    ],
+    "12.3 Restore both schemas post-rebuild (operator action)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396991253
+      }
+    ],
+    "12.4 Post-rebuild verification on the Pi (operator action)": [
+      {
+        "executionId": "315baefe-a7d8-4902-b858-a5395ce6c330",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789396991342
+      }
+    ],
+    "2.3 Write unit tests for `validate_env` and config reading": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397270551
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397512150
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397634496
+      }
+    ],
+    "3.4 Write unit tests for `normalise_yf_download`": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397270786
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397641473
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397763559
+      }
+    ],
+    "3.5 Write unit tests for `to_store_rows`": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271028
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397642353
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397764378
+      }
+    ],
+    "4.5 Write integration test: idempotency / append": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271173
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397913332
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398108864
+      }
+    ],
+    "4.6 Write integration test: offline read performs no network I/O": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271287
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397914169
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398108287
+      }
+    ],
+    "6.4 Write integration test: bootstrap idempotency (incl. Timescale)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271384
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398117864
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398373227
+      }
+    ],
+    "7.2 Write backfill acceptance test for SPY": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271489
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398118693
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398374104
+      }
+    ],
+    "8.6 Write migration regression tests": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271588
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398684779
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400464879
+      }
+    ],
+    "10.1 Property test — idempotency / PK invariant": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271686
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400472131
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401152194
+      }
+    ],
+    "10.2 Property test — round-trip": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271781
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400473115
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401151458
+      }
+    ],
+    "10.3 Property test — offline read (no network I/O)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271855
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400473993
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401150556
+      }
+    ],
+    "10.4 Property test — read-through completeness": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397271959
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400474933
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401149093
+      }
+    ],
+    "10.5 Property test — bootstrap idempotency incl. Timescale objects": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397272074
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400476010
+      },
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401148822
+      }
+    ],
+    "2. Create the `vpa/market_data` package and DB connection helper": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397634588
+      }
+    ],
+    "3. Implement centralised ingestion/normalisation (`vpa/market_data/ohlcv_ingest.py`)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789397764476
+      }
+    ],
+    "4. Implement the repository (`vpa/market_data/repository.py`)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398109037
+      }
+    ],
+    "6. Implement the verify/bootstrap script (`scripts/verify_market_data_db.py`)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398373337
+      }
+    ],
+    "7. Implement the backfill script (`scripts/backfill_market_data.py`)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789398374192
+      }
+    ],
+    "8. Migrate consumers to the repository": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789400465046
+      }
+    ],
+    "10. Property-based tests for the five correctness properties (hypothesis)": [
+      {
+        "executionId": "0fa299e9-bffb-4c3f-bebe-7022935bf311",
+        "chatSessionId": "sess_341bb9d5-5000-4bd2-b026-67903ec9bc6c",
+        "timestamp": 1789401152310
+      }
+    ]
+  }
+}

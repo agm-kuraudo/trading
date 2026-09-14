@@ -36,7 +36,13 @@ def run_scan(
     analyzer_factory: Callable[..., MarketAnalyzer] = MarketAnalyzer,
     opportunity_evaluator: Callable[..., dict | None] = evaluate_ticker,
 ) -> DailyReport:
-    """Run the SP-500 analysis and return one structured result per ticker."""
+    """Run the SP-500 analysis and return one structured result per ticker.
+
+    Per-ticker bars are sourced through ``MarketAnalyzer`` (built via ``analyzer_factory``),
+    whose ``load_data`` reads through the market-data store (``repo.load_ohlcv``). The store
+    serves stored bars and fetches only the missing tail from yfinance, so warm history is
+    reused and each run persists that day's bars idempotently (SP-349, Req 5.3).
+    """
     config = json.loads(Path(config_path).read_text(encoding="utf-8"))
     drawdown_config = load_drawdown_config(config)
     results: list[TickerScanResult] = []

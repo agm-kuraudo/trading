@@ -5,10 +5,10 @@ from collections import deque
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
 
 from vpa.app import Candle, calculate_adx, identify_acc_or_dist
 from vpa.config import load_settings
+from vpa.market_data.repository import MarketDataRepository
 from vpa.ml_validation.exceptions import InsufficientDataError
 from vpa.rsi import calculate_rsi
 
@@ -219,18 +219,21 @@ class VPAFeatureExtractor:
 
         return feature_vector
 
-    def generate_dataset(self, days: int = 3650) -> pd.DataFrame:
+    def generate_dataset(self, days: int = 3650, repo: MarketDataRepository | None = None) -> pd.DataFrame:
         """
-        Download OHLCV data and produce a labelled feature dataset.
+        Load OHLCV data via the market-data store and produce a labelled feature dataset.
 
-        Downloads at least ``days`` calendar days of daily data from yfinance for
-        self._ticker_symbol, processes each row through the VPA logic (replicating
-        MarketAnalyzer behaviour), extracts feature vectors once rolling windows
-        are full, labels each row with next-day price direction, and returns the
-        resulting DataFrame.
+        Sources at least ``days`` calendar days of daily data for
+        self._ticker_symbol from the market-data repository (read-through: the
+        store serves stored bars and fetches only the missing tail), processes
+        each row through the VPA logic (replicating MarketAnalyzer behaviour),
+        extracts feature vectors once rolling windows are full, labels each row
+        with next-day price direction, and returns the resulting DataFrame.
 
         Args:
-            days: Calendar days of data to download (default 3650 = ~10 years).
+            days: Calendar days of data to load (default 3650 = ~10 years).
+            repo: Optional ``MarketDataRepository`` for dependency injection in
+                tests. Defaults to a new ``MarketDataRepository()``.
 
         Returns:
             DataFrame with one row per trading day (after warm-up), containing
@@ -241,42 +244,15 @@ class VPAFeatureExtractor:
             InsufficientDataError: If fewer than 2000 valid labelled rows after
                 warm-up and final-row exclusion.
         """
-        # --- Step 1: Download data from yfinance ---
+        # --- Step 1: Load data via the market-data repository (read-through) ---
+        # The loader returns the canonical Date,Open,High,Low,Close,Volume DataFrame
+        # already flattened/renamed/dropna'd/sorted, so no inline normalisation is needed.
         end_date = datetime.datetime.now().date()
         start_date = end_date - datetime.timedelta(days=days)
 
-        df = yf.download(
-            self._ticker_symbol,
-            start=start_date,
-            end=end_date,
-            auto_adjust=True,
-            progress=False,
-        )
-
-        # Reset index so Date becomes a column
-        df = df.reset_index()
-
-        # Normalise column names (yfinance may return MultiIndex for single ticker)
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = [col[0] if col[1] == "" else col[0] for col in df.columns]
-
-        # Ensure expected columns exist
-        required_cols = ["Date", "Open", "High", "Low", "Close", "Volume"]
-        # Handle case-insensitive column matching
-        col_map = {c.lower(): c for c in df.columns}
-        rename_map = {}
-        for rc in required_cols:
-            if rc not in df.columns and rc.lower() in col_map:
-                rename_map[col_map[rc.lower()]] = rc
-        if rename_map:
-            df = df.rename(columns=rename_map)
-
-        # --- Step 2: Drop NaN rows in OHLCV columns ---
-        ohlcv_cols = ["Open", "High", "Low", "Close", "Volume"]
-        df = df.dropna(subset=ohlcv_cols)
-
-        # --- Step 3: Sort by date ---
-        df = df.sort_values("Date").reset_index(drop=True)
+        if repo is None:
+            repo = MarketDataRepository()
+        df = repo.load_ohlcv(self._ticker_symbol, "1d", start_date, end_date)
 
         # --- Step 4: Set up rolling deques ---
         deque_dictionary = {

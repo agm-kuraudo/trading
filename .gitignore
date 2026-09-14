@@ -11,3 +11,5 @@ ml_validation_output/
 .coverage
 .pytest_cache/
 .ruff_cache/
+# Environment / secrets (SP-349 market-data store DB connection)
+.env
