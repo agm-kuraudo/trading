@@ -68,9 +68,7 @@ def aggregate_to_daily(records: list[Record]) -> pd.DataFrame:
             "Close": [r.close for r in records],
             "Volume": [r.volume for r in records],
         },
-        index=pd.to_datetime(
-            [r.timestamp_ms for r in records], unit="ms", utc=True
-        ),
+        index=pd.to_datetime([r.timestamp_ms for r in records], unit="ms", utc=True),
     )
 
     # Resample by calendar day (UTC) and apply per-field aggregation, then drop

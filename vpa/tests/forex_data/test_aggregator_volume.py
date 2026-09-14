@@ -10,7 +10,7 @@ Pure and network-free: builds :class:`~vpa.forex_data.decoder.Record` objects
 directly and calls :func:`~vpa.forex_data.aggregator.aggregate_to_daily`.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -22,7 +22,7 @@ from vpa.forex_data.decoder import Record
 _M30_MS = 30 * 60 * 1000
 # Anchor timestamps at 2020-01-01T00:00:00Z so generated records span a small,
 # deterministic window of one or more UTC days.
-_BASE_MS = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+_BASE_MS = int(datetime(2020, 1, 1, tzinfo=UTC).timestamp() * 1000)
 
 
 @st.composite
@@ -59,7 +59,7 @@ def _records(draw: st.DrawFn) -> list[Record]:
             close=1.0,
             volume=vol,
         )
-        for slot, vol in zip(slots, volumes)
+        for slot, vol in zip(slots, volumes, strict=False)
     ]
     # Arbitrary timestamp order: shuffle the generated records.
     return draw(st.permutations(records))
@@ -71,7 +71,7 @@ def _utc_date(timestamp_ms: int):
     Equivalent to ``datetime.utcfromtimestamp(timestamp_ms / 1000).date()`` but
     using the timezone-aware form to avoid the deprecated naive-UTC helper.
     """
-    return datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc).date()
+    return datetime.fromtimestamp(timestamp_ms / 1000, tz=UTC).date()
 
 
 # Feature: replace-selenium-forex-scraping, Property 5: Volume is preserved under aggregation

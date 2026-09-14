@@ -27,11 +27,9 @@ Requirements: 1.1, 7.1, 7.2, 7.3, 10.1, 10.2, 10.3.
 import importlib
 import importlib.util
 import sys
-
 from pathlib import Path
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Repo-root derivation (robust: verify it looks right before using it).
@@ -70,11 +68,7 @@ def test_repo_root_derivation_is_correct():
 
 def _selenium_modules_loaded() -> list[str]:
     """Return any currently-loaded module names that are ``selenium`` or below."""
-    return [
-        name
-        for name in sys.modules
-        if name == "selenium" or name.startswith("selenium.")
-    ]
+    return [name for name in sys.modules if name == "selenium" or name.startswith("selenium.")]
 
 
 def test_importing_forex_stack_pulls_in_no_selenium(monkeypatch):

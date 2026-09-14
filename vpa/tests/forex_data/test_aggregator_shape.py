@@ -12,7 +12,7 @@ Pure and network-free: builds :class:`~vpa.forex_data.decoder.Record` objects
 directly and calls the aggregator.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 from hypothesis import given, settings
@@ -25,7 +25,7 @@ from vpa.forex_data.decoder import Record
 _M30_MS = 30 * 60 * 1000
 # Anchor timestamps at 2020-01-01T00:00:00Z so generated records span arbitrary
 # UTC days from a fixed, deterministic base.
-_BASE_MS = int(datetime(2020, 1, 1, tzinfo=timezone.utc).timestamp() * 1000)
+_BASE_MS = int(datetime(2020, 1, 1, tzinfo=UTC).timestamp() * 1000)
 
 
 @st.composite
@@ -72,7 +72,7 @@ def _records(draw: st.DrawFn) -> list[Record]:
             close=price,
             volume=vol,
         )
-        for slot, price, vol in zip(slots, prices, volumes)
+        for slot, price, vol in zip(slots, prices, volumes, strict=False)
     ]
 
 

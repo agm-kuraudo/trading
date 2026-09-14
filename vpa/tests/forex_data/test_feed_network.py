@@ -22,9 +22,9 @@ Requirements: 6.1, 6.2.
 
 import gzip
 import json
+import urllib.error
 
 import pytest
-import urllib.error
 
 from vpa.forex_data import feed
 from vpa.forex_data.errors import (
@@ -85,9 +85,7 @@ def test_fetch_feed_http_error_maps_to_feed_http_error(monkeypatch):
     """
 
     def handler(request):
-        raise urllib.error.HTTPError(
-            request.full_url, 404, "Not Found", hdrs=None, fp=None
-        )
+        raise urllib.error.HTTPError(request.full_url, 404, "Not Found", hdrs=None, fp=None)
 
     _install_urlopen(monkeypatch, handler)
 
@@ -130,9 +128,7 @@ def test_fetch_feed_happy_path_returns_bytes_and_builds_url(monkeypatch):
     result = feed.fetch_feed("GBPUSD")
 
     assert result == raw_bytes
-    assert captured_urls == [
-        "https://data.forexsb.com/datafeed/data/dukascopy/GBPUSD30.lb.gz"
-    ]
+    assert captured_urls == ["https://data.forexsb.com/datafeed/data/dukascopy/GBPUSD30.lb.gz"]
 
 
 # ---------------------------------------------------------------------------
@@ -156,9 +152,7 @@ def test_fetch_symbol_metadata_http_error_maps_to_feed_http_error(monkeypatch):
     """A non-200 ``HTTPError`` from the metadata endpoint becomes ``FeedHTTPError`` (Req 6.2)."""
 
     def handler(request):
-        raise urllib.error.HTTPError(
-            request.full_url, 500, "Server Error", hdrs=None, fp=None
-        )
+        raise urllib.error.HTTPError(request.full_url, 500, "Server Error", hdrs=None, fp=None)
 
     _install_urlopen(monkeypatch, handler)
 

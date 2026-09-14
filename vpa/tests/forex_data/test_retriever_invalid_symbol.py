@@ -31,9 +31,7 @@ from vpa.forex_data.errors import InvalidSymbolError
 # The retriever normalises by stripping surrounding whitespace, so a symbol is
 # valid iff its stripped form is exactly six alphabetic characters. Any string
 # whose stripped form is NOT exactly six alpha chars is a genuine invalid input.
-_INVALID_SYMBOL = st.text().filter(
-    lambda s: not (len(s.strip()) == 6 and s.strip().isalpha())
-)
+_INVALID_SYMBOL = st.text().filter(lambda s: not (len(s.strip()) == 6 and s.strip().isalpha()))
 
 
 # Feature: replace-selenium-forex-scraping, Property 8: Invalid symbols are rejected before any retrieval
@@ -60,9 +58,7 @@ def test_invalid_symbol_rejected(bad_symbol):
     assume(not (len(bad_symbol.strip()) == 6 and bad_symbol.strip().isalpha()))
 
     def _no_fetch(*args, **kwargs):
-        raise AssertionError(
-            "no fetch must occur for an invalid symbol; validation is pre-fetch"
-        )
+        raise AssertionError("no fetch must occur for an invalid symbol; validation is pre-fetch")
 
     with MonkeyPatch.context() as patch:
         patch.setattr(retriever.feed, "fetch_symbol_metadata", _no_fetch)

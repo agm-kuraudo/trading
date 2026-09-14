@@ -68,9 +68,7 @@ def test_metadata_lookup_applies_price_scale(monkeypatch):
     """
     metadata = {"GBPUSD": {"priceScale": _PRICE_SCALE, "volumeScale": _VOLUME_SCALE}}
     monkeypatch.setattr(feed, "fetch_symbol_metadata", lambda: metadata)
-    monkeypatch.setattr(
-        feed, "fetch_feed", lambda symbol, period=30: _single_bar_feed()
-    )
+    monkeypatch.setattr(feed, "fetch_feed", lambda symbol, period=30: _single_bar_feed())
 
     result = Forex_Data_Retriever(min_bars=1).get_daily_dataframe("GBPUSD")
 

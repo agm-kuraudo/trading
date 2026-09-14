@@ -113,15 +113,11 @@ class Forex_Data_Retriever:
         metadata = self._get_metadata()
         entry = metadata.get(symbol) if isinstance(metadata, dict) else None
         if not isinstance(entry, dict):
-            raise SymbolMetadataError(
-                f"Symbol metadata does not contain an entry for {symbol!r}"
-            )
+            raise SymbolMetadataError(f"Symbol metadata does not contain an entry for {symbol!r}")
         price_scale = entry.get("priceScale")
         volume_scale = entry.get("volumeScale")
         if price_scale is None or volume_scale is None:
-            raise SymbolMetadataError(
-                f"Symbol metadata for {symbol!r} is missing priceScale/volumeScale"
-            )
+            raise SymbolMetadataError(f"Symbol metadata for {symbol!r} is missing priceScale/volumeScale")
         return price_scale, volume_scale
 
     def get_daily_dataframe(self, symbol: str = DEFAULT_SYMBOL) -> pd.DataFrame:
@@ -178,15 +174,12 @@ class Forex_Data_Retriever:
 
         # A non-empty feed that yields no daily bars is still an empty feed.
         if daily.empty:
-            raise EmptyFeedError(
-                f"Feed for {normalized!r} produced zero daily bars"
-            )
+            raise EmptyFeedError(f"Feed for {normalized!r} produced zero daily bars")
 
         # 7. Sufficiency check; never return a partial set (Requirements 5.1, 5.2).
         if len(daily) < self.min_bars:
             raise InsufficientDataError(
-                f"Only {len(daily)} daily bars available for {normalized!r}; "
-                f"at least {self.min_bars} are required"
+                f"Only {len(daily)} daily bars available for {normalized!r}; " f"at least {self.min_bars} are required"
             )
 
         # 8. Return the Analysis_DataFrame.

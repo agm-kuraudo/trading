@@ -76,16 +76,13 @@ def decode_feed(
             break
     else:
         raise FeedDecodeError(
-            f"Decompressed feed length {len(buf)} is not a multiple of a "
-            f"supported record size {RECORD_SIZES}"
+            f"Decompressed feed length {len(buf)} is not a multiple of a " f"supported record size {RECORD_SIZES}"
         )
 
     # 4. Decode each record's leading six Int32 fields (Requirement 2.5).
     records: list[Record] = []
     for offset in range(0, len(buf), record_size):
-        time_field, open_i, high_i, low_i, close_i, volume_i = _FIELD_STRUCT.unpack_from(
-            buf, offset
-        )
+        time_field, open_i, high_i, low_i, close_i, volume_i = _FIELD_STRUCT.unpack_from(buf, offset)
         records.append(
             Record(
                 timestamp_ms=EPOCH_BASE_MS + time_field * 60000,  # Requirement 2.6

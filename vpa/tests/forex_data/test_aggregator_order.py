@@ -11,7 +11,7 @@ directly with UNORDERED timestamps spanning multiple UTC days and calls
 :func:`~vpa.forex_data.aggregator.aggregate_to_daily`.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
@@ -25,9 +25,7 @@ _MS_PER_DAY = 86_400_000
 _MS_PER_MINUTE = 60_000
 # Anchor at 2015-01-01T00:00:00Z: within the era of the real Dukascopy feed and
 # comfortably timezone-representable.
-_BASE_MIDNIGHT_MS = int(
-    datetime(2015, 1, 1, tzinfo=timezone.utc).timestamp() * 1000
-)
+_BASE_MIDNIGHT_MS = int(datetime(2015, 1, 1, tzinfo=UTC).timestamp() * 1000)
 
 # Arbitrary small forex-like prices, rounded to 5-digit feed precision.
 _prices = st.floats(

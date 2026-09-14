@@ -96,7 +96,7 @@ def test_decode_round_trip_recovers_field_values(feed_inputs):
     # Count is preserved (Requirements 2.1, 2.5).
     assert len(decoded) == len(records)
 
-    for source, result in zip(records, decoded):
+    for source, result in zip(records, decoded, strict=False):
         time_field, open_i, high_i, low_i, close_i, volume_i = source
 
         # Timestamp derivation (Requirements 2.2, 2.6).

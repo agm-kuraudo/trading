@@ -9,7 +9,7 @@ as the last bar. This module owns only Property 3; the other aggregator
 properties live in their own test files (order/volume/shape/units).
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from hypothesis import given, settings
@@ -24,9 +24,7 @@ _MS_PER_DAY = 86_400_000
 _MS_PER_MINUTE = 60_000
 # Base UTC midnight to offset day generation from: 2010-01-01T00:00:00Z, which
 # matches the era of the real Dukascopy feed and is comfortably tz-representable.
-_BASE_MIDNIGHT_MS = int(
-    datetime(2010, 1, 1, tzinfo=timezone.utc).timestamp() * 1000
-)
+_BASE_MIDNIGHT_MS = int(datetime(2010, 1, 1, tzinfo=UTC).timestamp() * 1000)
 
 
 # A realistic small forex price, e.g. GBPUSD around 0.5 - 2.5, rounded to the
@@ -52,9 +50,7 @@ def _records_spanning_multiple_days(draw) -> list[Record]:
     is shuffled so the aggregator sees an arbitrary (unordered) input order.
     Always yields at least one record so the frame is non-empty.
     """
-    day_offsets = draw(
-        st.lists(st.integers(min_value=0, max_value=40), min_size=1, max_size=6, unique=True)
-    )
+    day_offsets = draw(st.lists(st.integers(min_value=0, max_value=40), min_size=1, max_size=6, unique=True))
 
     records: list[Record] = []
     for day_offset in day_offsets:
@@ -87,7 +83,7 @@ def _records_spanning_multiple_days(draw) -> list[Record]:
 
 def _utc_date(timestamp_ms: int):
     """Return the UTC calendar date for a millisecond timestamp."""
-    return datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc).date()
+    return datetime.fromtimestamp(timestamp_ms / 1000, tz=UTC).date()
 
 
 def _expected_daily_ohlcv(records: list[Record]) -> dict:

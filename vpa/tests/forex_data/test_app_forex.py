@@ -55,12 +55,30 @@ def _synthetic_df() -> pd.DataFrame:
     """
     return pd.DataFrame(
         [
-            {"Date": pd.Timestamp("2024-01-01"), "Open": 1.30, "High": 1.31,
-             "Low": 1.29, "Close": 1.305, "Volume": 100},
-            {"Date": pd.Timestamp("2024-01-02"), "Open": 1.305, "High": 1.32,
-             "Low": 1.30, "Close": 1.315, "Volume": 120},
-            {"Date": pd.Timestamp("2024-01-03"), "Open": 1.315, "High": 1.33,
-             "Low": 1.31, "Close": 1.325, "Volume": 140},
+            {
+                "Date": pd.Timestamp("2024-01-01"),
+                "Open": 1.30,
+                "High": 1.31,
+                "Low": 1.29,
+                "Close": 1.305,
+                "Volume": 100,
+            },
+            {
+                "Date": pd.Timestamp("2024-01-02"),
+                "Open": 1.305,
+                "High": 1.32,
+                "Low": 1.30,
+                "Close": 1.315,
+                "Volume": 120,
+            },
+            {
+                "Date": pd.Timestamp("2024-01-03"),
+                "Open": 1.315,
+                "High": 1.33,
+                "Low": 1.31,
+                "Close": 1.325,
+                "Volume": 140,
+            },
         ],
         columns=_DAILY_COLUMNS,
     )
