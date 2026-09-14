@@ -7,9 +7,13 @@ Tests:
 - Warm-up period skipping (no features before period_three is full)
 
 Requirements: 1.2, 1.3, 2.4
-"""
 
-from unittest.mock import patch
+SP-349 (Task 8.2/8.6): ``VPAFeatureExtractor.generate_dataset`` now sources bars from
+``MarketDataRepository.load_ohlcv`` instead of calling ``yf.download`` directly. These
+tests therefore deliver the SAME synthetic OHLCV data through the repository seam
+(``generate_dataset(days=..., repo=fake_repo)``) rather than patching yfinance. The
+inputs, assertions, and expected outputs are unchanged.
+"""
 
 import numpy as np
 import pandas as pd
@@ -20,6 +24,21 @@ from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
 TICKER = "SPY"
+
+
+class _FakeRepo:
+    """Stub ``MarketDataRepository`` returning a fixed canonical OHLCV frame.
+
+    ``load_ohlcv`` mirrors the real signature and returns the same
+    ``Date, Open, High, Low, Close, Volume`` DataFrame the tests previously produced
+    through the mocked ``yf.download``. It performs no network I/O.
+    """
+
+    def __init__(self, df: pd.DataFrame):
+        self._df = df
+
+    def load_ohlcv(self, ticker, interval, start, end) -> pd.DataFrame:
+        return self._df.copy()
 
 
 # --- Helper to generate synthetic OHLCV data ---
@@ -103,8 +122,7 @@ class TestEnableExtractionFlag:
 class TestMinimumRowBoundary:
     """Test the 2000-row minimum check boundary."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_exactly_2000_rows_passes(self, mock_yf_download):
+    def test_exactly_2000_rows_passes(self):
         """A dataset producing exactly 2000 labelled rows after processing should pass.
 
         With PERIOD_THREE_LENGTH=50, warm-up skips 49 rows. After warm-up we get
@@ -113,7 +131,6 @@ class TestMinimumRowBoundary:
         """
         n_raw = 2050
         mock_df = _make_ohlcv_dataframe(n_raw)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -121,7 +138,7 @@ class TestMinimumRowBoundary:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         # Should not raise and should have >= 2000 rows
         assert len(result) >= 2000
@@ -139,8 +156,7 @@ class TestMinimumRowBoundary:
 class TestInsufficientDataError:
     """Test that fewer than 2000 labelled rows raises InsufficientDataError."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_1999_rows_raises_error(self, mock_yf_download):
+    def test_1999_rows_raises_error(self):
         """A dataset producing fewer than 2000 labelled rows should raise InsufficientDataError.
 
         With PERIOD_THREE_LENGTH=50, warm-up skips 49 rows (deque needs 50 items
@@ -150,7 +166,6 @@ class TestInsufficientDataError:
         """
         n_raw = 2049
         mock_df = _make_ohlcv_dataframe(n_raw)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -159,16 +174,14 @@ class TestInsufficientDataError:
         )
 
         with pytest.raises(InsufficientDataError) as exc_info:
-            extractor.generate_dataset(days=3650)
+            extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         assert "1999" in str(exc_info.value) or "Insufficient" in str(exc_info.value)
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_empty_download_raises_error(self, mock_yf_download):
-        """An empty yfinance download should raise InsufficientDataError."""
+    def test_empty_download_raises_error(self):
+        """A repository returning very few rows should raise InsufficientDataError."""
         # Return a DataFrame with very few rows (less than period_three_length)
         mock_df = _make_ohlcv_dataframe(10)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -177,7 +190,7 @@ class TestInsufficientDataError:
         )
 
         with pytest.raises(InsufficientDataError):
-            extractor.generate_dataset(days=3650)
+            extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
 
 # --- Test 4: Warm-up period skipping ---
@@ -186,8 +199,7 @@ class TestInsufficientDataError:
 class TestWarmUpPeriodSkipping:
     """Test that rows before period_three is full produce no features."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_warmup_rows_excluded(self, mock_yf_download):
+    def test_warmup_rows_excluded(self):
         """Features should only be produced once period_three deque is full.
 
         With PERIOD_THREE_LENGTH=50, the condition `len < 50` skips the first
@@ -197,7 +209,6 @@ class TestWarmUpPeriodSkipping:
         # Use enough rows to pass the 2000 minimum
         n_raw = 2100
         mock_df = _make_ohlcv_dataframe(n_raw)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -205,20 +216,18 @@ class TestWarmUpPeriodSkipping:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         # With 2100 raw rows: 2100 - 49 (warm-up) - 1 (final row) = 2050 labelled rows
         expected_rows = n_raw - 49 - 1
         assert len(result) == expected_rows
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_first_feature_date_is_after_warmup(self, mock_yf_download):
+    def test_first_feature_date_is_after_warmup(self):
         """The first feature row's date should correspond to the row where
         period_three deque first becomes full (row index 49, the 50th row).
         """
         n_raw = 2100
         mock_df = _make_ohlcv_dataframe(n_raw)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -226,7 +235,7 @@ class TestWarmUpPeriodSkipping:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         # The first feature should be from row index 49 in mock_df
         # (period_three deque has maxlen=50, first full after 50 appends)
@@ -239,12 +248,10 @@ class TestWarmUpPeriodSkipping:
 
         assert first_feature_date == expected_date_str
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_no_features_with_only_warmup_rows(self, mock_yf_download):
+    def test_no_features_with_only_warmup_rows(self):
         """If data has fewer rows than PERIOD_THREE_LENGTH, no features are produced."""
         # Only 49 rows - not enough to fill period_three (50)
         mock_df = _make_ohlcv_dataframe(49)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -253,4 +260,4 @@ class TestWarmUpPeriodSkipping:
         )
 
         with pytest.raises(InsufficientDataError):
-            extractor.generate_dataset(days=3650)
+            extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))

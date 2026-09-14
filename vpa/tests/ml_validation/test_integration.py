@@ -7,6 +7,14 @@ Tests:
    conclusion, date range)
 
 Requirements: 7.1, 7.2, 7.3, 8.3, 8.4
+
+SP-349 (Task 8.3/8.6): the feature extractor now sources bars from
+``MarketDataRepository.load_ohlcv`` rather than ``yf.download``. ``run_analysis.main``
+builds its own extractor and calls ``generate_dataset`` with no injected repo, so these
+tests patch ``vpa.ml_validation.feature_extractor.MarketDataRepository`` with a stub
+whose ``load_ohlcv`` returns the same synthetic OHLCV frame the tests previously fed
+through the mocked ``yf.download``. The pipeline stays offline and deterministic and all
+assertions are unchanged.
 """
 
 from unittest.mock import patch
@@ -18,6 +26,30 @@ import pytest
 from vpa.ml_validation.run_analysis import main
 
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
+
+
+class _FakeRepo:
+    """Stub ``MarketDataRepository`` returning a fixed canonical OHLCV frame.
+
+    Instantiated with no args (matching ``MarketDataRepository()`` inside
+    ``generate_dataset``) but reads the module-level ``_FAKE_REPO_DF`` set by each test
+    via ``_patch_repo``. Performs no network I/O.
+    """
+
+    def load_ohlcv(self, ticker, interval, start, end) -> pd.DataFrame:
+        return _FAKE_REPO_DF.copy()
+
+
+# Module-level frame the patched repository serves; set by _patch_repo() per test.
+_FAKE_REPO_DF: pd.DataFrame | None = None
+
+
+def _patch_repo(df: pd.DataFrame):
+    """Return a patch context that makes the feature extractor's repository seam
+    serve ``df`` offline (no network). Use as ``with _patch_repo(df):``."""
+    global _FAKE_REPO_DF
+    _FAKE_REPO_DF = df
+    return patch("vpa.ml_validation.feature_extractor.MarketDataRepository", _FakeRepo)
 
 
 # --- Helper to generate synthetic OHLCV data ---
@@ -68,35 +100,33 @@ def _make_ohlcv_dataframe(n_rows: int, start_date: str = "2010-01-04") -> pd.Dat
 class TestEndToEndPipeline:
     """Test that the full pipeline runs end-to-end with mocked data."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_pipeline_completes_without_error(self, mock_yf_download, tmp_path):
-        """Run main() with mocked yfinance data and verify it completes.
+    def test_pipeline_completes_without_error(self, tmp_path):
+        """Run main() with store-sourced data and verify it completes.
 
         Uses 2100+ rows to ensure the dataset exceeds the 2000-row minimum
         after warm-up (PERIOD_THREE_LENGTH=50 skips 49 rows, then final row
         excluded: 2100 - 49 - 1 = 2050 labelled rows).
         """
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
         # Should not raise any exception
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_pipeline_prints_summary_to_stdout(self, mock_yf_download, tmp_path, capsys):
+    def test_pipeline_prints_summary_to_stdout(self, tmp_path, capsys):
         """Pipeline should print summary information to stdout."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         captured = capsys.readouterr()
         # Key output lines should be present
@@ -112,62 +142,58 @@ class TestEndToEndPipeline:
 class TestOutputFileCreation:
     """Test that output files are created with correct names and structure."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_dataset_csv_exists(self, mock_yf_download, tmp_path):
+    def test_dataset_csv_exists(self, tmp_path):
         """The pipeline should create {ticker}_vpa_features.csv."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         dataset_path = tmp_path / "SPY_vpa_features.csv"
         assert dataset_path.exists(), "Dataset CSV file was not created"
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_feature_importance_csv_exists(self, mock_yf_download, tmp_path):
+    def test_feature_importance_csv_exists(self, tmp_path):
         """The pipeline should create {ticker}_feature_importance.csv."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         importance_path = tmp_path / "SPY_feature_importance.csv"
         assert importance_path.exists(), "Feature importance CSV file was not created"
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_summary_txt_exists(self, mock_yf_download, tmp_path):
+    def test_summary_txt_exists(self, tmp_path):
         """The pipeline should create {ticker}_analysis_summary.txt."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         summary_path = tmp_path / "SPY_analysis_summary.txt"
         assert summary_path.exists(), "Analysis summary text file was not created"
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_dataset_csv_headers(self, mock_yf_download, tmp_path):
+    def test_dataset_csv_headers(self, tmp_path):
         """Dataset CSV should have all 27 feature columns plus metadata and label."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         dataset_path = tmp_path / "SPY_vpa_features.csv"
         df = pd.read_csv(dataset_path)
@@ -185,17 +211,16 @@ class TestOutputFileCreation:
         # Label column
         assert "next_day_direction" in df.columns
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_feature_importance_csv_headers(self, mock_yf_download, tmp_path):
+    def test_feature_importance_csv_headers(self, tmp_path):
         """Feature importance CSV should have feature_name and importance_score columns."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         importance_path = tmp_path / "SPY_feature_importance.csv"
         df = pd.read_csv(importance_path)
@@ -205,17 +230,16 @@ class TestOutputFileCreation:
         # Should have exactly 29 features (including rsi_value and rsi_signal_score)
         assert len(df) == 29
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_feature_importance_scores_sum_to_one(self, mock_yf_download, tmp_path):
+    def test_feature_importance_scores_sum_to_one(self, tmp_path):
         """Feature importance scores should sum to approximately 1.0."""
         mock_df = _make_ohlcv_dataframe(2150)
-        mock_yf_download.return_value = mock_df
 
-        main(
-            ticker="SPY",
-            output_dir=str(tmp_path),
-            config_path=CONFIG_PATH,
-        )
+        with _patch_repo(mock_df):
+            main(
+                ticker="SPY",
+                output_dir=str(tmp_path),
+                config_path=CONFIG_PATH,
+            )
 
         importance_path = tmp_path / "SPY_feature_importance.csv"
         df = pd.read_csv(importance_path)
@@ -233,10 +257,8 @@ class TestSummaryFileContent:
     @pytest.fixture
     def summary_content(self, tmp_path):
         """Run the pipeline and return the summary file content."""
-        with patch("vpa.ml_validation.feature_extractor.yf.download") as mock_yf:
-            mock_df = _make_ohlcv_dataframe(2150)
-            mock_yf.return_value = mock_df
-
+        mock_df = _make_ohlcv_dataframe(2150)
+        with _patch_repo(mock_df):
             main(
                 ticker="SPY",
                 output_dir=str(tmp_path),

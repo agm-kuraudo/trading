@@ -5,10 +5,10 @@ from collections import deque
 import mplfinance as mpf
 import numpy as np
 import pandas as pd
-import yfinance as yf
 
 from vpa.app import Candle, DebugLog, calculate_adx, identify_acc_or_dist
 from vpa.config import Settings, load_settings
+from vpa.market_data.repository import MarketDataRepository
 
 
 # Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
@@ -203,13 +203,12 @@ class MarketAnalyzer:
             # Determine data window using max across all enabled features
             data_days = self._get_data_days()
             start_date = end_date - datetime.timedelta(days=data_days)
-            # Fetch the data
-            downloaded_df = yf.download(ticker_symbol, start=start_date, end=end_date, auto_adjust=True, progress=False)
-            if downloaded_df is None:
-                raise RuntimeError(f"No data returned for {ticker_symbol}")
-            self.myDF = downloaded_df
-            self.myDF = self.myDF.reset_index()
-            self.myDF.columns = ["Date", "Close", "High", "Low", "Open", "Volume"]
+            # Read through the repository: it serves stored bars and fetches only the
+            # missing tail from yfinance, persisting it idempotently (SP-349, Req 5.2/4.4).
+            # load_ohlcv returns the canonical Date, Open, High, Low, Close, Volume frame;
+            # downstream code accesses columns by name, so the canonical ordering is safe.
+            repo = MarketDataRepository()
+            self.myDF = repo.load_ohlcv(ticker_symbol, "1d", start_date, end_date)
         else:
             absolute_path = os.path.dirname(__file__)
             relative_path = "data/"

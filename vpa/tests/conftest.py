@@ -230,13 +230,15 @@ class _NullLogger:
 def no_network(monkeypatch):
     """Fail loudly if any code path reaches ``yf.download`` during a test.
 
-    Monkeypatches ``vpa.app_runner.yf.download`` (the exact use site in
-    ``MarketAnalyzer.load_data``) so an accidental live-data load raises
-    ``AssertionError("network access attempted")`` instead of making a request.
-    This is defence-in-depth: analyzer construction through
-    :func:`analyzer_factory` always supplies a ``fixed_df``, so the network path is
-    never taken -- but if a future test forgets, it fails deterministically rather
-    than hitting the network.
+    Since SP-349 the consumers no longer call ``yf.download`` directly:
+    ``MarketAnalyzer.load_data`` reads through ``MarketDataRepository.load_ohlcv``,
+    and the only remaining network use site is ``vpa.market_data.ohlcv_ingest.fetch_yf``
+    (``yf.download``). This fixture monkeypatches that use site so an accidental
+    live-data load raises ``AssertionError("network access attempted")`` instead of
+    making a request. This is defence-in-depth: analyzer construction through
+    :func:`analyzer_factory` always supplies a ``fixed_df`` (so ``load_data`` is never
+    called), but if a future test forgets, it fails deterministically rather than
+    hitting the network.
 
     Serves Requirements 6.6, 6.7.
     """
@@ -244,7 +246,7 @@ def no_network(monkeypatch):
     def _raise_on_download(*args, **kwargs):
         raise AssertionError("network access attempted")
 
-    monkeypatch.setattr("vpa.app_runner.yf.download", _raise_on_download)
+    monkeypatch.setattr("vpa.market_data.ohlcv_ingest.yf.download", _raise_on_download)
 
 
 @pytest.fixture

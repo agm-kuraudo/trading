@@ -7,6 +7,8 @@ import pandas as pd
 import yfinance as yf
 from scipy.optimize import newton
 
+from vpa.market_data.ohlcv_ingest import normalise_yf_download
+
 
 def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, end_days_ago: int = 0) -> pd.DataFrame:
     # Get the current date
@@ -19,18 +21,16 @@ def get_live_data_from_yfinance(ticker: str = "SPY", start_days_ago: int = 365, 
     warnings.filterwarnings("ignore", message="The default value of auto_adjust will be changed to True")
 
     # Fetch the data for the last year
-    myDF = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
+    raw = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True)
 
-    myDF = myDF.reset_index()
+    # Route flatten/rename through the centralised normaliser (single source of truth).
+    # It flattens the MultiIndex and renames BY NAME (case-insensitive), returning the
+    # canonical [Date, Open, High, Low, Close, Volume] frame.
+    normalised = normalise_yf_download(raw)
 
-    myDF.columns = myDF.columns.get_level_values(0)
-
-    # print(myDF.shape)
-    #
-    # print(myDF.iloc[0].to_dict())
-
-    myDF.columns = ["Date", "Close", "High", "Low", "Open", "Volume"]
-    return myDF
+    # Preserve this function's historical OUTPUT CONTRACT: callers expect the columns
+    # in the order [Date, Close, High, Low, Open, Volume] (Close before High, Open late).
+    return normalised[["Date", "Close", "High", "Low", "Open", "Volume"]]
 
 
 def return_sample_data():

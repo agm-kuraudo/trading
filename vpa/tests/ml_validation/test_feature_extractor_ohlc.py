@@ -6,15 +6,13 @@ SP-335 change WILL introduce: ``generate_dataset`` must emit ``date``, ``open``,
 hold the RAW yfinance values - NOT the synthesised candle open (previous close)
 and NOT the clamped high/low used internally for VPA candle logic.
 
-Until the SP-335 production change lands, these tests are EXPECTED TO FAIL
-because ``open``/``high``/``low`` are not emitted as columns.
-
-yfinance is mocked so the tests are offline and deterministic.
+SP-349 (Task 8.2/8.6): bars are now sourced from ``MarketDataRepository.load_ohlcv``
+rather than ``yf.download``. The same synthetic OHLCV data is delivered through the
+repository seam (``generate_dataset(days=..., repo=fake_repo)``); the raw-vs-synthesised
+assertions are unchanged and remain offline and deterministic.
 
 Requirements: SP-335 DoD (raw OHLC in dataset); Design: Part A, SP-335 Tests.
 """
-
-from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -24,6 +22,21 @@ from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
 TICKER = "SPY"
+
+
+class _FakeRepo:
+    """Stub ``MarketDataRepository`` returning a fixed canonical OHLCV frame.
+
+    Delivers the same ``Date, Open, High, Low, Close, Volume`` DataFrame the tests
+    previously produced through the mocked ``yf.download`` and performs no network I/O.
+    """
+
+    def __init__(self, df: pd.DataFrame):
+        self._df = df
+
+    def load_ohlcv(self, ticker, interval, start, end) -> pd.DataFrame:
+        return self._df.copy()
+
 
 # PERIOD_THREE_LENGTH=50 -> warm-up skips the first 49 rows; the final row is
 # excluded (no next-day label). 2050 raw rows -> 2050 - 49 - 1 = 2000 labelled
@@ -89,13 +102,9 @@ def _make_distinct_ohlcv_dataframe(n_rows: int, start_date: str = "2010-01-04") 
 class TestRawOhlcMetadataColumns:
     """SP-335: generate_dataset emits raw open/high/low alongside date/close."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_dataset_includes_raw_ohlc_metadata_columns(self, mock_yf_download):
-        """After SP-335 the DataFrame must include date, open, high, low, close.
-
-        EXPECTED TO FAIL before the SP-335 change (open/high/low absent)."""
+    def test_dataset_includes_raw_ohlc_metadata_columns(self):
+        """The DataFrame must include date, open, high, low, close."""
         mock_df = _make_distinct_ohlcv_dataframe(N_RAW_ROWS)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -103,19 +112,15 @@ class TestRawOhlcMetadataColumns:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         for col in ("date", "open", "high", "low", "close"):
             assert col in result.columns, f"expected metadata column '{col}' to be present"
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_emitted_open_high_low_are_raw_yfinance_values(self, mock_yf_download):
+    def test_emitted_open_high_low_are_raw_yfinance_values(self):
         """open/high/low must equal the RAW yfinance inputs, not the synthesised
-        candle open (previous close) nor a clamped high/low.
-
-        EXPECTED TO FAIL before the SP-335 change (open/high/low absent)."""
+        candle open (previous close) nor a clamped high/low."""
         mock_df = _make_distinct_ohlcv_dataframe(N_RAW_ROWS)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -123,7 +128,7 @@ class TestRawOhlcMetadataColumns:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         # Map each emitted row back to its source raw row by date so we compare
         # against the exact raw yfinance values regardless of warm-up offset.
@@ -176,12 +181,10 @@ class TestRawOhlcMetadataColumns:
 class TestSynthesisedFeatureComputationUnchanged:
     """SP-335 must not change the synthesised-candle feature computation."""
 
-    @patch("vpa.ml_validation.feature_extractor.yf.download")
-    def test_feature_columns_and_labels_still_present_and_populated(self, mock_yf_download):
+    def test_feature_columns_and_labels_still_present_and_populated(self):
         """The full FEATURE_COLUMNS set, close, and next_day_direction must still
         exist and be populated (no NaNs), proving feature computation is intact."""
         mock_df = _make_distinct_ohlcv_dataframe(N_RAW_ROWS)
-        mock_yf_download.return_value = mock_df
 
         extractor = VPAFeatureExtractor(
             config_path=CONFIG_PATH,
@@ -189,7 +192,7 @@ class TestSynthesisedFeatureComputationUnchanged:
             enable_extraction=True,
         )
 
-        result = extractor.generate_dataset(days=3650)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
 
         for col in VPAFeatureExtractor.FEATURE_COLUMNS:
             assert col in result.columns, f"feature column '{col}' must remain present"
