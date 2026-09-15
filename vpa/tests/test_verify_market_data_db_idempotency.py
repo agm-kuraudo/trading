@@ -125,6 +125,32 @@ def test_ensure_timescale_appends_all_in_order_when_nothing_exists():
     assert sum("add_compression_policy" in sql for sql in cursor.executed) == 1
 
 
+def test_ensure_timescale_sets_one_year_chunk_interval():
+    """SP-353 — create_hypertable must set a 1-year chunk_time_interval.
+
+    Regression guard for the OutOfMemory bug: TimescaleDB's default 7-day chunk
+    interval over-chunks daily bars (~2388 chunks for full SPY history), so a
+    full-range ``get_ohlcv`` read exhausts ``max_locks_per_transaction``. The
+    bootstrap must pin a coarser interval (1 year, ~33 chunks) on fresh provisions so
+    this does not regress the next time the hypertable is created from scratch.
+    """
+    cursor = FakeTimescaleCursor(
+        extension_exists=False,
+        hypertable_exists=False,
+        policy_exists=False,
+    )
+
+    _ensure_timescale(cursor, [])
+
+    hypertable_calls = [sql for sql in cursor.executed if "create_hypertable" in sql]
+    assert len(hypertable_calls) == 1
+    call = hypertable_calls[0]
+    # The chunk interval must be explicitly set (not left at the 7-day default) and
+    # sized for daily bars.
+    assert "chunk_time_interval" in call
+    assert "INTERVAL '1 year'" in call
+
+
 # ---------------------------------------------------------------------------
 # Gated real-DB integration test — never runs by default.
 #

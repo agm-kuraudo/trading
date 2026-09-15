@@ -135,12 +135,26 @@ def _ensure_timescale(cursor, created: list) -> None:
 
     # --- Hypertable: append "hypertable" only if ohlcv was not already a hypertable.
     # ``create_hypertable(..., if_not_exists => TRUE)`` is safe to call regardless.
+    #
+    # ``chunk_time_interval`` is set to 1 year (SP-353). TimescaleDB defaults to a
+    # 7-day chunk interval, which is far too granular for daily bars (~52 chunks/yr):
+    # a full-history SPY series (1993->today) produced ~2388 chunks, and a full-range
+    # ``get_ohlcv`` read locks one chunk each, exhausting the default
+    # ``max_locks_per_transaction`` (64) with a ``psycopg2 OutOfMemory: out of shared
+    # memory`` error. A 1-year interval yields ~33 chunks for the same history, well
+    # under the lock budget, while still keeping chunks small enough for compression
+    # and retention to work sensibly. NOTE: ``chunk_time_interval`` only applies to
+    # chunks created *after* this call — it does not re-chunk existing data, so an
+    # already over-chunked table must be recreated (drop + recreate + re-backfill).
     cursor.execute(
         "SELECT 1 FROM timescaledb_information.hypertables "
         "WHERE hypertable_schema = 'market_data' AND hypertable_name = 'ohlcv'"
     )
     hypertable_existed = cursor.fetchone() is not None
-    cursor.execute("SELECT create_hypertable('market_data.ohlcv', 'ts', if_not_exists => TRUE)")
+    cursor.execute(
+        "SELECT create_hypertable('market_data.ohlcv', 'ts', "
+        "chunk_time_interval => INTERVAL '1 year', if_not_exists => TRUE)"
+    )
     if not hypertable_existed:
         created.append("hypertable")
 
