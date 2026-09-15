@@ -13,8 +13,10 @@ set -uo pipefail
 
 source /usr/local/trading/.venv/bin/activate
 
-if [[ ":$PYTHONPATH:" != *":/usr/local/trading:"* ]]; then
-    export PYTHONPATH="$PYTHONPATH:/usr/local/trading"
+# Use ${PYTHONPATH:-} so `set -u` does not abort when PYTHONPATH is unset (it is
+# often unset under the Rundeck job's environment).
+if [[ ":${PYTHONPATH:-}:" != *":/usr/local/trading:"* ]]; then
+    export PYTHONPATH="${PYTHONPATH:-}:/usr/local/trading"
 fi
 
 cd /usr/local/trading/vpa
