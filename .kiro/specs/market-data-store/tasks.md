@@ -92,7 +92,7 @@ migration — only the Pi deployment/verification is blocked on SP-352.
     - Patch `yf.download` to raise if called; assert `get_ohlcv` and `export_ohlcv` succeed without invoking it.
     - _Requirements: 3.1, 3.6_
 
-- [~] 5. Checkpoint — pure logic + repository verified
+- [x] 5. Checkpoint — pure logic + repository verified
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 6. Implement the verify/bootstrap script (`scripts/verify_market_data_db.py`)
@@ -151,7 +151,7 @@ migration — only the Pi deployment/verification is blocked on SP-352.
     - Assert `generate_dataset` still raises `InsufficientDataError` under 2000 rows; assert migrated consumers do not call `yf.download` directly (patched to raise) when the store is warm.
     - _Requirements: 5.1, 5.2, 5.3_
 
-- [~] 9. Checkpoint — scripts + consumer migration verified
+- [x] 9. Checkpoint — scripts + consumer migration verified
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 10. Property-based tests for the five correctness properties (hypothesis)
@@ -175,7 +175,7 @@ migration — only the Pi deployment/verification is blocked on SP-352.
     - **Property 5: Bootstrap idempotency (incl. Timescale)** — on an already-provisioned state, `verify_market_data_db` creates nothing (`created == []`), keeps `ohlcv` a hypertable on `ts`, and adds no duplicate compression policy.
     - **Validates: Requirements 11.5, 7.6, 7.7, 8.2, 8.3**
 
-- [~] 11. Final checkpoint — full store buildable and tested locally
+- [x] 11. Final checkpoint — full store buildable and tested locally
   - Ensure all unit, integration, and property-based tests pass locally (against a local Postgres/TimescaleDB or a mocked connection). At this point the entire store code is complete and verified **without** the Pi rebuild; only the shared-server deployment/verification below remains.
   - Ensure all tests pass, ask the user if questions arise.
 
@@ -199,21 +199,21 @@ migration — only the Pi deployment/verification is blocked on SP-352.
 > built and unit/integration/property-tested locally. Only the Pi deployment and its
 > post-rebuild verification depend on SP-352.
 
-- [~] 12.1 Confirm SP-352 complete and obtain operator go-ahead (operator action)
+- [x] 12.1 Confirm SP-352 complete and obtain operator go-ahead (operator action)
   - Verify SP-352 has landed (image swap in `postgres_build.sh`; `quality_*` tables in `create_database.sql` + `verify_db.py`).
   - Obtain explicit operator confirmation to proceed with the destructive, shared-resource rebuild. Do not proceed without it.
   - _Requirements: 10.1, 10.2, 10.3_
 
-- [~] 12.2 Rebuild `my_postgres` on the TimescaleDB image (operator action, DESTRUCTIVE)
+- [x] 12.2 Rebuild `my_postgres` on the TimescaleDB image (operator action, DESTRUCTIVE)
   - On the Pi, run `postgres_build.sh` to recreate the container on the Timescale arm64 image; this DROPS the server databases (acceptable per operator — Betfair data disposable). Preserve/recreate `my_trading_network` and `my_pgadmin` (the script already does this).
   - _Requirements: 10.1, 10.2_
 
-- [~] 12.3 Restore both schemas post-rebuild (operator action)
+- [x] 12.3 Restore both schemas post-rebuild (operator action)
   - Run Betfair `scripts/verify_db.py` to recreate all six `bf` tables (original four plus reconciled `bf.quality_run` and `bf.quality_match_result`).
   - Run trading `scripts/verify_market_data_db.py` to create the `market_data` database + schema + `ohlcv` hypertable + compression.
   - _Requirements: 10.4, 10.5_
 
-- [~] 12.4 Post-rebuild verification on the Pi (operator action)
+- [x] 12.4 Post-rebuild verification on the Pi (operator action)
   - Confirm `CREATE EXTENSION timescaledb` succeeds; `market_data.ohlcv` is a hypertable; a smoke SPY backfill followed by an offline read works; Betfair capture still connects.
   - _Requirements: 10.6_
 

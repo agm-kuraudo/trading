@@ -7,5 +7,10 @@
     }
   },
   "ruff.importStrategy": "useBundled",
-  "ruff.configurationPreference": "filesystemFirst"
+  "ruff.configurationPreference": "filesystemFirst",
+  "python.testing.pytestArgs": [
+    "vpa"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
