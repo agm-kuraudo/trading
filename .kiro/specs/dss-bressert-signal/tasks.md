@@ -57,7 +57,7 @@ sub-step, not an automatable task).
     - Tag: `# Feature: dss-bressert-signal, Property 5`; `@settings(max_examples=100)`
     - **Validates: Requirements 1.7**
 
-  - [ ] 1.7 Write unit/reference tests for the calculator chain
+  - [x] 1.7 Write unit/reference tests for the calculator chain
     - Hand-computed small series compared to expected oscillator/trigger values, verifying the exact `ema(stoch(ema(stoch(...))))` chain and `trigger = ema(oscillator, TriggerLen)` (Req 1.9)
     - Flat (constant) price series -> oscillator exactly `50.0` (Req 1.6)
     - Series shorter than warmup -> oscillator exactly `50.0` (Req 9.2)
@@ -74,12 +74,12 @@ sub-step, not an automatable task).
     - Add a `dss_bressert: DSSBressertSettings` field to the `Settings` dataclass
     - _Requirements: 2.1, 2.2, 2.3_
 
-  - [ ] 3.2 Implement `_dss_bressert_settings` loader and wire into `load_settings`
+  - [x] 3.2 Implement `_dss_bressert_settings` loader and wire into `load_settings`
     - Add `_dss_bressert_settings(raw)` reusing `_section`, `_optional`, `_number`, matching the `_price_vs_sma_settings` pattern (no deep-range validation at load time)
     - In `load_settings()`, add `dss_bressert=_dss_bressert_settings(_section(raw, "dss_bressert", "dss_bressert"))` to the `Settings(...)` construction so an absent block yields the Req 2.3 defaults
     - _Requirements: 2.1, 2.3, 2.4_
 
-  - [ ] 3.3 Add the `dss_bressert` block to `config/config.json`
+  - [x] 3.3 Add the `dss_bressert` block to `config/config.json`
     - Add the block shaped like `rsi` / `ma_crossover`: `enabled`, `stochastic_period` 10, `smoothing_period` 9, `trigger_period` 5, `overbought_threshold` 80, `oversold_threshold` 20, and a `scores` sub-block (all `0`)
     - _Requirements: 2.1, 2.2_
 
