@@ -967,6 +967,69 @@ class MarketAnalyzer:
             # Save raw data to CSV with 2 decimal places
             df.round(1).to_csv(csv_filename)
 
+    def graph_dss_bressert(self, show_chart: bool = False):
+        """Render a candlestick chart with the DSS oscillator/trigger in a lower panel.
+
+        Reuses the graph_intervals() mplfinance approach (type="candle",
+        style="charles", volume=True). Reads the already-computed DSS and
+        DSS_Trigger columns verbatim and does NOT recompute the indicator
+        (Req 10.4); compute_dss_bressert_columns() runs inside process_data().
+
+        - The DSS oscillator and trigger line are drawn together in a distinct
+          lower panel (panel 2, below price panel 0 and volume panel 1) as two
+          series distinguished by colour and label (Req 10.1, 10.3).
+        - Two horizontal reference lines at the overbought and oversold
+          thresholds are drawn in the same lower panel (Req 10.2).
+        - A PNG is saved under log/ (Req 10.5) and optionally displayed when
+          show_chart is True.
+        - When the signal is disabled or the DSS/DSS_Trigger columns are absent,
+          it falls back to a price-only chart and completes without error
+          (Req 10.6).
+        """
+        # mplfinance requires a DatetimeIndex; build a plotting copy from myDF.
+        df = self.myDF.copy()
+        df["Date"] = pd.to_datetime(df["Date"])
+        df = df.set_index("Date")
+
+        # Guard: disabled or missing columns -> price-only chart, no error (Req 10.6).
+        addplots = []
+        panel_ratios = (6, 2)
+        if self.__dss_bressert_enabled and {"DSS", "DSS_Trigger"}.issubset(df.columns):
+            cfg = self.__dss_bressert_config
+            overbought = cfg.overbought_threshold
+            oversold = cfg.oversold_threshold
+            panel = 2  # below price (0) and volume (1)
+            # Two distinct, colour/label-distinguished series (Req 10.3) plus the
+            # two horizontal threshold reference lines (Req 10.2), all in the
+            # lower panel.
+            addplots = [
+                mpf.make_addplot(df["DSS"], panel=panel, color="blue", ylabel="DSS", ylim=(0, 100)),
+                mpf.make_addplot(df["DSS_Trigger"], panel=panel, color="red"),
+                mpf.make_addplot([overbought] * len(df), panel=panel, color="green", linestyle="--"),
+                mpf.make_addplot([oversold] * len(df), panel=panel, color="red", linestyle="--"),
+            ]
+            panel_ratios = (6, 2, 2)
+
+        # Ensure the output directory exists before saving.
+        os.makedirs("log", exist_ok=True)
+        chart_filename = f"log/{self.__ticker_symbol}_dss_bressert.png"
+
+        plot_kwargs = dict(
+            type="candle",
+            style="charles",
+            title=f"{self.__ticker_symbol} - DSS Bressert",
+            volume=True,
+            panel_ratios=panel_ratios,
+            tight_layout=True,
+        )
+        if addplots:
+            plot_kwargs["addplot"] = addplots
+
+        mpf.plot(df, savefig=chart_filename, **plot_kwargs)
+
+        if show_chart:
+            mpf.plot(df, **plot_kwargs)
+
     def log(self, log_message):
         self.__logger.log(log_message, level="INFO")
 

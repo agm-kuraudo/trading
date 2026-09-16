@@ -202,7 +202,7 @@ sub-step, not an automatable task).
     - _Requirements: 6.1_
 
 - [ ] 8. Add the DSS Bressert chart (`MarketAnalyzer.graph_dss_bressert` in `vpa/app_runner.py`)
-  - [ ] 8.1 Implement `graph_dss_bressert`
+  - [x] 8.1 Implement `graph_dss_bressert`
     - Build a plotting copy of `self.myDF` with `Date` parsed to datetime and set as the index (mplfinance requires a `DatetimeIndex`)
     - Reuse the `graph_intervals()` mplfinance approach (`mpf.plot(..., type="candle", style="charles", volume=True)`); route `DSS` and `DSS_Trigger` to a distinct lower panel via `make_addplot(..., panel=2)`, distinguished by colour and label (Req 10.1, 10.3)
     - Draw two horizontal reference lines in the lower panel at `overbought_threshold` and `oversold_threshold` (Req 10.2)
@@ -211,7 +211,7 @@ sub-step, not an automatable task).
     - Fall back to a price-only chart with no error when disabled or when the columns are absent (Req 10.6)
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ]* 8.2 Write smoke tests for the chart
+  - [x]* 8.2 Write smoke tests for the chart
     - Enabled with `DSS`/`DSS_Trigger` present -> PNG produced under `log/` without raising (Req 10.5)
     - Disabled, and columns absent -> price-only chart produced without an exception (Req 10.6)
     - Note: manual TradingView visual comparison of the lower panel is a manual verification step (see task 9), not automatable
