@@ -42,6 +42,9 @@ class MarketAnalyzer:
         # Initialize price vs SMA configuration
         self._init_price_vs_sma_config()
 
+        # Initialize DSS Bressert configuration
+        self._init_dss_bressert_config()
+
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
             self.load_data()
@@ -172,6 +175,50 @@ class MarketAnalyzer:
 
         self.__price_vs_sma_enabled = True
 
+    def _init_dss_bressert_config(self):
+        """Load and validate the dss_bressert configuration section.
+
+        Sets self.__dss_bressert_config (DSSBressertSettings) and
+        self.__dss_bressert_enabled (bool). Uses defaults if the section is
+        absent. Disables the signal (with a WARN log) when the enabled flag is
+        false/absent, when a period is not an int in 1..500, or when the
+        thresholds are outside 0..100 or oversold >= overbought.
+        """
+        self.__dss_bressert_config = self.__config.dss_bressert
+        cfg = self.__dss_bressert_config
+
+        # Req 7.5: disabled (or absent/non-boolean, already coerced by Settings) -> skip.
+        if not cfg.enabled:
+            self.__dss_bressert_enabled = False
+            return
+
+        # Req 2.6: periods must be integers in 1..500 (bool is rejected as a non-int).
+        for name, value in (
+            ("stochastic_period", cfg.stochastic_period),
+            ("smoothing_period", cfg.smoothing_period),
+            ("trigger_period", cfg.trigger_period),
+        ):
+            if isinstance(value, bool) or not isinstance(value, int) or not (1 <= value <= 500):
+                self.__logger.log(
+                    f"DSS Bressert disabled: invalid {name} ({value}). Must be an integer in 1..500.",
+                    level="WARN",
+                )
+                self.__dss_bressert_enabled = False
+                return
+
+        # Req 2.7: thresholds must be numbers in 0..100 with oversold < overbought.
+        oversold = cfg.oversold_threshold
+        overbought = cfg.overbought_threshold
+        if not (0 <= oversold <= 100) or not (0 <= overbought <= 100) or oversold >= overbought:
+            self.__logger.log(
+                f"DSS Bressert disabled: invalid thresholds (oversold={oversold}, overbought={overbought}).",
+                level="WARN",
+            )
+            self.__dss_bressert_enabled = False
+            return
+
+        self.__dss_bressert_enabled = True
+
     def _get_data_days(self) -> int:
         """Return the largest data_days across all enabled features."""
         candidates = [100]  # base default
@@ -264,6 +311,33 @@ class MarketAnalyzer:
             return
         period = self.__price_vs_sma_config.period
         self.myDF["SMA_price_vs"] = self.myDF["Close"].rolling(window=period, min_periods=period).mean()
+
+    def compute_dss_bressert_columns(self):
+        """Pre-compute DSS and DSS_Trigger columns on self.myDF. No-op when disabled.
+
+        Reads High/Low/Close from self.myDF and calls the pure calculator with
+        the configured periods, materialising the oscillator and trigger series
+        as the DSS and DSS_Trigger columns (mirrors compute_rsi_column).
+        """
+        if not self.__dss_bressert_enabled:
+            return
+
+        from vpa.dss_bressert import calculate_dss_bressert
+
+        cfg = self.__dss_bressert_config
+        highs = self.myDF["High"].tolist()
+        lows = self.myDF["Low"].tolist()
+        closes = self.myDF["Close"].tolist()
+        oscillator, trigger = calculate_dss_bressert(
+            highs,
+            lows,
+            closes,
+            cfg.stochastic_period,
+            cfg.smoothing_period,
+            cfg.trigger_period,
+        )
+        self.myDF["DSS"] = oscillator
+        self.myDF["DSS_Trigger"] = trigger
 
     def detect_ma_signals(self, row_index):
         """Detect MA crossover and price position signals for the given row.
@@ -465,6 +539,77 @@ class MarketAnalyzer:
 
         return {"price_vs_sma_signals": signals_list, "price_vs_sma_signal_score": total_score}
 
+    def detect_dss_bressert_signals(self, row_index: int) -> dict:
+        """Detect DSS Bressert crossover and zone signals for the given row.
+
+        Returns:
+            dict with keys: dss_bressert_signals (list[str]),
+            dss_bressert_signal_score (float).
+
+        Graceful degradation: returns an empty list and zero score when the
+        signal is disabled (Req 7.1-7.3), when the DSS/DSS_Trigger columns are
+        absent, when the row index is below the warmup length (Req 8.3), or when
+        the current DSS/DSS_Trigger value is NaN/non-finite (Req 4.4, 8.4).
+        Sign convention: a bullish crossover adds the bullish-crossover score; a
+        bearish crossover subtracts the bearish-crossover score; oversold adds
+        the (positive) oversold score; overbought adds the (negative) overbought
+        score (Req 3, Req 4).
+        """
+        empty_result = {"dss_bressert_signals": [], "dss_bressert_signal_score": 0.0}
+
+        if not self.__dss_bressert_enabled:
+            return empty_result
+
+        if "DSS" not in self.myDF.columns or "DSS_Trigger" not in self.myDF.columns:
+            return empty_result
+
+        cfg = self.__dss_bressert_config
+        warmup = cfg.stochastic_period + cfg.smoothing_period + cfg.trigger_period - 2
+        if row_index < warmup:
+            return empty_result
+
+        current = self.myDF.iloc[row_index]
+        dss = current["DSS"]
+        trig = current["DSS_Trigger"]
+
+        # Insufficient data / NaN / non-finite guard (Req 3.6, 4.4, 8.4).
+        if pd.isna(dss) or pd.isna(trig) or not np.isfinite(dss) or not np.isfinite(trig):
+            return empty_result
+
+        scores = cfg.scores
+        signals_list = []
+        total_score = 0.0
+
+        # Crossover detection (Req 3) - needs a previous row with valid values.
+        if row_index > 0:
+            prev = self.myDF.iloc[row_index - 1]
+            prev_dss = prev["DSS"]
+            prev_trig = prev["DSS_Trigger"]
+            if not (pd.isna(prev_dss) or pd.isna(prev_trig)):
+                # Bullish: prev DSS <= prev trigger AND curr DSS > curr trigger.
+                if prev_dss <= prev_trig and dss > trig:
+                    signals_list.append("DSS Bullish Crossover")
+                    total_score += scores.bullish_crossover
+                # Bearish: prev DSS >= prev trigger AND curr DSS < curr trigger.
+                elif prev_dss >= prev_trig and dss < trig:
+                    signals_list.append("DSS Bearish Crossover")
+                    total_score -= scores.bearish_crossover
+
+        # Zone detection (Req 4) - thresholds already validated at init.
+        if dss <= cfg.oversold_threshold:
+            signals_list.append("DSS Oversold")
+            total_score += scores.oversold
+        elif dss >= cfg.overbought_threshold:
+            signals_list.append("DSS Overbought")
+            total_score += scores.overbought
+
+        if signals_list:
+            self.__logger.log(
+                f"DSS Bressert Signals: {signals_list}, Score: {total_score:.2f}", level="INFO"
+            )
+
+        return {"dss_bressert_signals": signals_list, "dss_bressert_signal_score": total_score}
+
     def process_data(self):
         # Step 2: Loop around each item in the data frame
 
@@ -478,6 +623,9 @@ class MarketAnalyzer:
 
         # Pre-compute price vs SMA column
         self.compute_price_vs_sma_column()
+
+        # Pre-compute DSS Bressert columns
+        self.compute_dss_bressert_columns()
 
         # Get the last index
         last_index = self.myDF.index[-1]
@@ -551,6 +699,11 @@ class MarketAnalyzer:
             price_vs_sma_signals = self.detect_price_vs_sma_signals(row_position)
             signals["price_vs_sma_signals"] = price_vs_sma_signals["price_vs_sma_signals"]
             signals["price_vs_sma_signal_score"] = price_vs_sma_signals["price_vs_sma_signal_score"]
+
+            # Step 6.4: Detect DSS Bressert signals
+            dss_signals = self.detect_dss_bressert_signals(row_position)
+            signals["dss_bressert_signals"] = dss_signals["dss_bressert_signals"]
+            signals["dss_bressert_signal_score"] = dss_signals["dss_bressert_signal_score"]
             self.__last_signals = signals.copy()
 
             self.__logger.log(f"signals: {signals}", level="INFO")
@@ -562,6 +715,7 @@ class MarketAnalyzer:
                 + signals["ma_crossover_signal_score"]
                 + signals["rsi_signal_score"]
                 + signals["price_vs_sma_signal_score"]
+                + signals["dss_bressert_signal_score"]
             )
             direction = "BUY" if trade_signal > 0 else "SELL"
             self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")

@@ -213,6 +213,16 @@ def _include_contrarian(entry: SignalEntry) -> bool:
     return entry.signal_type in _CONTRARIAN_SIGNAL_TYPES
 
 
+# The two DSS Bressert crossover signal types (SP-325, Req 6.1). DSS_BULLISH maps to
+# SignalDirection.UP and DSS_BEARISH to SignalDirection.DOWN in SIGNAL_DIRECTIONS.
+_DSS_SIGNAL_TYPES = frozenset({SignalType.DSS_BULLISH, SignalType.DSS_BEARISH})
+
+
+def _include_dss(entry: SignalEntry) -> bool:
+    """DSS_Bressert_Only filter: accept only DSS_BULLISH / DSS_BEARISH (Req 6.1)."""
+    return entry.signal_type in _DSS_SIGNAL_TYPES
+
+
 def _include_known_direction(entry: SignalEntry) -> bool:
     """All_Signals filter: accept entries whose type is in ``SIGNAL_DIRECTIONS`` (Req 5.1).
 
@@ -301,6 +311,15 @@ def build_default_variations() -> list[StrategyVariation]:
             name="Signal_Stacking",
             signal_filter=_include_all,
             position_mode=PositionMode.STACKING,
+        )
+    )
+
+    # DSS_Bressert_Only: only the two DSS crossover signal types (SP-325, Req 6.1).
+    # Reuses the existing engine unchanged via run_variation (Req 6.3).
+    variations.append(
+        StrategyVariation(
+            name="DSS_Bressert_Only",
+            signal_filter=_include_dss,
         )
     )
 

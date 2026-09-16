@@ -89,7 +89,7 @@ sub-step, not an automatable task).
     - _Requirements: 2.1, 2.2, 2.3_
 
 - [ ] 4. Wire the DSS Bressert signal into `MarketAnalyzer` (`vpa/app_runner.py`)
-  - [ ] 4.1 Implement `_init_dss_bressert_config` with validation and call it from `__init__`
+  - [x] 4.1 Implement `_init_dss_bressert_config` with validation and call it from `__init__`
     - Set `self.__dss_bressert_config` / `self.__dss_bressert_enabled`, mirroring `_init_rsi_config`
     - Disabled when `enabled` is false/absent/non-boolean (Req 7.5)
     - WARN + disable when any period is not an int in `1..500` (Req 2.6)
@@ -97,18 +97,18 @@ sub-step, not an automatable task).
     - Add `self._init_dss_bressert_config()` alongside the existing `_init_*_config()` calls in `__init__`
     - _Requirements: 2.5, 2.6, 2.7, 7.5_
 
-  - [ ] 4.2 Implement `compute_dss_bressert_columns`
+  - [x] 4.2 Implement `compute_dss_bressert_columns`
     - Pre-compute `DSS` and `DSS_Trigger` columns on `self.myDF` from `High`/`Low`/`Close` via `calculate_dss_bressert`, using the configured periods; no-op when disabled (mirrors `compute_rsi_column`)
     - _Requirements: 2.4, 8.1, 8.2_
 
-  - [ ] 4.3 Implement `detect_dss_bressert_signals(row_index)`
+  - [x] 4.3 Implement `detect_dss_bressert_signals(row_index)`
     - Return exactly `{"dss_bressert_signals": list[str], "dss_bressert_signal_score": float}`
     - Crossover detection against `iloc[row_index - 1]`: bullish (prev DSS <= prev trig AND curr DSS > curr trig) adds `bullish_crossover`; bearish (prev DSS >= prev trig AND curr DSS < curr trig) subtracts `bearish_crossover` (Req 3.1-3.5)
     - Zone scoring: DSS <= oversold adds `oversold` score; DSS >= overbought adds `overbought` score; strictly between -> no zone signal (Req 4.1-4.3)
     - Graceful degradation: empty list + `0.0` when disabled (Req 7.1-7.3), when `row_index < warmup` (Req 8.3), or when current/previous DSS or trigger is NaN/non-finite (Req 3.6, 4.4, 8.4)
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4, 5.5, 7.1, 7.2, 7.3, 8.3, 8.4_
 
-  - [ ] 4.4 Edit `process_data` to compute, detect, merge, and sum
+  - [x] 4.4 Edit `process_data` to compute, detect, merge, and sum
     - Call `self.compute_dss_bressert_columns()` beside the other `compute_*` calls
     - Add Step 6.4: call `detect_dss_bressert_signals(row_position)` and merge both entries into `signals`
     - Add `+ signals["dss_bressert_signal_score"]` to the `trade_signal` summation (single additive term, no weighting/scaling/ordering dependency)
@@ -179,7 +179,7 @@ sub-step, not an automatable task).
     - Extend `classify_signals(df)` with two `notna`-masked reads of `dss_bullish_cross` / `dss_bearish_cross` (value `== 1` marks a matched row); absent columns default to empty lists
     - _Requirements: 6.1, 6.4_
 
-  - [ ] 6.2 Add `_include_dss` filter and `DSS_Bressert_Only` variation in `vpa/backtesting/variations.py`
+  - [x] 6.2 Add `_include_dss` filter and `DSS_Bressert_Only` variation in `vpa/backtesting/variations.py`
     - Define `_DSS_SIGNAL_TYPES = frozenset({SignalType.DSS_BULLISH, SignalType.DSS_BEARISH})` and `_include_dss(entry)` accepting only those types
     - Append a `StrategyVariation(name="DSS_Bressert_Only", signal_filter=_include_dss)` inside `build_default_variations()`; reuse the existing engine unchanged (no modify/subclass/monkeypatch)
     - _Requirements: 6.1, 6.3_
