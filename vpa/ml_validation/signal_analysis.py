@@ -28,6 +28,8 @@ class SignalType(Enum):
     ACCUMULATION = "accumulation"
     DISTRIBUTION = "distribution"
     ACCUMULATION_TEST_PASS = "accumulation_test_pass"
+    DSS_BULLISH = "dss_bullish"
+    DSS_BEARISH = "dss_bearish"
 
 
 class SignalDirection(Enum):
@@ -47,6 +49,8 @@ SIGNAL_DIRECTIONS: dict[SignalType, SignalDirection] = {
     SignalType.ACCUMULATION: SignalDirection.UP,
     SignalType.DISTRIBUTION: SignalDirection.DOWN,
     SignalType.ACCUMULATION_TEST_PASS: SignalDirection.UP,
+    SignalType.DSS_BULLISH: SignalDirection.UP,
+    SignalType.DSS_BEARISH: SignalDirection.DOWN,
 }
 
 FORWARD_HORIZONS: list[int] = [3, 5, 10]
@@ -185,6 +189,15 @@ class SignalConditionalAnalyzer:
         # Accumulation Test Pass: accumulation conditions + acc_dist_score >= threshold
         acc_test_pass_mask = acc_base_mask & acc_score_valid & (df["acc_dist_score"] >= self.ACC_DIST_SCORE_THRESHOLD)
         result[SignalType.ACCUMULATION_TEST_PASS] = df.index[acc_test_pass_mask].tolist()
+
+        # DSS crossover columns (present when the DSS feature is emitted). Absent
+        # columns leave the already-initialised empty lists untouched.
+        if "dss_bullish_cross" in df.columns:
+            dss_bull_mask = df["dss_bullish_cross"].notna() & (df["dss_bullish_cross"] == 1)
+            result[SignalType.DSS_BULLISH] = df.index[dss_bull_mask].tolist()
+        if "dss_bearish_cross" in df.columns:
+            dss_bear_mask = df["dss_bearish_cross"].notna() & (df["dss_bearish_cross"] == 1)
+            result[SignalType.DSS_BEARISH] = df.index[dss_bear_mask].tolist()
 
         return result
 

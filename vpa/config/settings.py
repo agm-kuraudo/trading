@@ -110,6 +110,25 @@ class PriceVsSMASettings:
 
 
 @dataclass(frozen=True)
+class DSSScores:
+    bullish_crossover: float = 0
+    bearish_crossover: float = 0
+    oversold: float = 0
+    overbought: float = 0
+
+
+@dataclass(frozen=True)
+class DSSBressertSettings:
+    enabled: bool = True
+    stochastic_period: int = 10
+    smoothing_period: int = 9
+    trigger_period: int = 5
+    overbought_threshold: float = 80
+    oversold_threshold: float = 20
+    scores: DSSScores = DSSScores()
+
+
+@dataclass(frozen=True)
 class PeriodTradingParameters:
     high_spread_threshold: float = 55
     high_volume_threshold: float = 55
@@ -143,6 +162,7 @@ class Settings:
     rsi: RSISettings
     price_vs_sma: PriceVsSMASettings
     trading_parameters: TradingParameters
+    dss_bressert: DSSBressertSettings = DSSBressertSettings()
 
 
 def _value(data: dict[str, Any], key: str, path: str, expected_type: type) -> Any:
