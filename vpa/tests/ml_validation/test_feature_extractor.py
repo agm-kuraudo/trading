@@ -15,6 +15,8 @@ tests therefore deliver the SAME synthetic OHLCV data through the repository sea
 inputs, assertions, and expected outputs are unchanged.
 """
 
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -261,3 +263,43 @@ class TestWarmUpPeriodSkipping:
 
         with pytest.raises(InsufficientDataError):
             extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
+
+    def test_dss_crossovers_are_neutral_before_configured_warmup(self, tmp_path):
+        """DSS crossover columns stay zero before the configured DSS warmup."""
+        mock_df = _make_ohlcv_dataframe(2100)
+        config = json.loads(open(CONFIG_PATH, encoding="utf-8").read())
+        config["dss_bressert"]["stochastic_period"] = 100
+        config_path = tmp_path / "dss-config.json"
+        config_path.write_text(json.dumps(config), encoding="utf-8")
+
+        extractor = VPAFeatureExtractor(config_path=str(config_path), ticker_symbol=TICKER)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
+
+        # DSS warmup is 100 + 9 + 5 - 2 = 112. Feature extraction starts at
+        # raw row 49, so the first 63 emitted rows are pre-warmup.
+        assert result["dss_bullish_cross"].iloc[:63].eq(0).all()
+        assert result["dss_bearish_cross"].iloc[:63].eq(0).all()
+
+    def test_dss_crossover_columns_capture_calculated_crossovers(self, monkeypatch):
+        """Feature extraction records bullish and bearish DSS crossovers."""
+        mock_df = _make_ohlcv_dataframe(2100)
+        oscillator = [50.0] * len(mock_df)
+        trigger = [50.0] * len(mock_df)
+        oscillator[112] = 60.0
+        trigger[112] = 50.0
+        oscillator[113] = 40.0
+        trigger[113] = 50.0
+
+        def fake_calculator(high, low, close, stochastic_period, smoothing_period, trigger_period):
+            return oscillator, trigger
+
+        monkeypatch.setattr("vpa.dss_bressert.calculate_dss_bressert", fake_calculator)
+        extractor = VPAFeatureExtractor(config_path=CONFIG_PATH, ticker_symbol=TICKER)
+        result = extractor.generate_dataset(days=3650, repo=_FakeRepo(mock_df))
+
+        # Emitted features begin at raw row 49, so raw rows 112 and 113 map to
+        # result rows 63 and 64 respectively.
+        assert result.loc[63, "dss_bullish_cross"] == 1
+        assert result.loc[63, "dss_bearish_cross"] == 0
+        assert result.loc[64, "dss_bullish_cross"] == 0
+        assert result.loc[64, "dss_bearish_cross"] == 1

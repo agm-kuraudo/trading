@@ -27,7 +27,7 @@ sub-step, not an automatable task).
     - Return all-`50.0`/all-`50.0` when the series is shorter than warmup, or when any period is not an integer `>= 1` (no error raised); deterministic and side-effect free
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 8.1, 8.2_
 
-  - [ ]* 1.2 Write property test for oscillator/trigger bounds
+  - [x]* 1.2 Write property test for oscillator/trigger bounds
     - **Property 1: Oscillator and trigger are bounded**
     - Random OHLC series (length >= warmup) with valid periods; assert every oscillator and trigger value in `[0.0, 100.0]`
     - Tag: `# Feature: dss-bressert-signal, Property 1`; `@settings(max_examples=100)`
@@ -39,19 +39,19 @@ sub-step, not an automatable task).
     - Tag: `# Feature: dss-bressert-signal, Property 2`; `@settings(max_examples=100)`
     - **Validates: Requirements 1.4, 1.5**
 
-  - [ ]* 1.4 Write property test for warmup-neutral behaviour
+  - [x]* 1.4 Write property test for warmup-neutral behaviour
     - **Property 3: Series shorter than or earlier than warmup are neutral**
     - Series shorter than warmup -> all `50.0`; series >= warmup -> every index below warmup equals `50.0`
     - Tag: `# Feature: dss-bressert-signal, Property 3`; `@settings(max_examples=100)`
     - **Validates: Requirements 8.1, 8.2, 8.3**
 
-  - [ ]* 1.5 Write property test for determinism
+  - [x]* 1.5 Write property test for determinism
     - **Property 4: Determinism**
     - Any OHLC series; assert two invocations return identical oscillator and trigger lists
     - Tag: `# Feature: dss-bressert-signal, Property 4`; `@settings(max_examples=100)`
     - **Validates: Requirements 1.8**
 
-  - [ ]* 1.6 Write property test for invalid periods
+  - [x]* 1.6 Write property test for invalid periods
     - **Property 5: Invalid periods yield a neutral series with no error**
     - Draw invalid period values (0, negatives, floats); assert all-`50.0` and no exception
     - Tag: `# Feature: dss-bressert-signal, Property 5`; `@settings(max_examples=100)`
@@ -83,7 +83,7 @@ sub-step, not an automatable task).
     - Add the block shaped like `rsi` / `ma_crossover`: `enabled`, `stochastic_period` 10, `smoothing_period` 9, `trigger_period` 5, `overbought_threshold` 80, `oversold_threshold` 20, and a `scores` sub-block (all `0`)
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 3.4 Write unit tests for config defaults and typing
+  - [x] 3.4 Write unit tests for config defaults and typing
     - Settings loaded with no `dss_bressert` block -> documented Req 2.3 defaults
     - Settings loaded with a full block -> values round-trip onto `DSSBressertSettings` / `DSSScores`
     - _Requirements: 2.1, 2.2, 2.3_
@@ -162,7 +162,7 @@ sub-step, not an automatable task).
     - Tag: `# Feature: dss-bressert-signal, Property 13`; `@settings(max_examples=100)`
     - **Validates: Requirements 5.2**
 
-  - [ ] 4.13 Write example tests for NaN guards, config validation, and disabled behaviour
+  - [x] 4.13 Write example tests for NaN guards, config validation, and disabled behaviour
     - NaN/inf DSS or trigger on current/previous row -> empty list + `0.0` (Req 3.6, 4.4, 8.4)
     - Invalid periods and inverted/out-of-range thresholds -> signal disabled, WARN logged (Req 2.6, 2.7)
     - Disabled config -> empty list + `0.0` (Req 9.7)
@@ -184,7 +184,7 @@ sub-step, not an automatable task).
     - Append a `StrategyVariation(name="DSS_Bressert_Only", signal_filter=_include_dss)` inside `build_default_variations()`; reuse the existing engine unchanged (no modify/subclass/monkeypatch)
     - _Requirements: 6.1, 6.3_
 
-  - [ ] 6.3 Write integration tests for the isolated backtest
+  - [x] 6.3 Write integration tests for the isolated backtest
     - DSS-only run: fixture signal log (DSS + non-DSS entries) + price series -> `run_variation` calls `BacktestEngine().run(...)` once via its public API, only DSS entries priced, full `MetricsResult` suite produced (total/annualised/buy-and-hold return, Sharpe, max drawdown, win rate, profit factor, avg win, avg loss, expectancy, time in market, num trades, trades/year) (Req 6.1, 6.2, 6.3)
     - Zero matches: log with no DSS entries -> completes without error, `num_trades == 0`, every trade-derived metric `0.0` (Req 6.4)
     - Failure isolation: a deliberately failing variation in a batch -> `VariationFailure(name, error)` recorded, other variations still run (Req 6.5)
@@ -197,7 +197,7 @@ sub-step, not an automatable task).
     - In `_extract_feature_vector`, populate each from `detect_dss_bressert_signals(row_index)`: `1` when the respective crossover signal name is present in `dss_bressert_signals`, else `0`
     - _Requirements: 6.1_
 
-  - [ ]* 7.2 Write unit test for feature-extractor DSS columns
+  - [x]* 7.2 Write unit test for feature-extractor DSS columns
     - Assert both columns are emitted and set to `1` on crafted crossover rows, `0` otherwise
     - _Requirements: 6.1_
 

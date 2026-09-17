@@ -22,7 +22,7 @@ examples.
 """
 
 import pandas as pd
-from hypothesis import given, settings
+from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from vpa.forex_data.aggregator import aggregate_to_daily
@@ -37,7 +37,9 @@ _int32 = st.integers(min_value=_INT32_MIN, max_value=_INT32_MAX)
 # The time field is kept non-negative and modest so the derived millisecond
 # timestamps stay in a sane, valid range (EPOCH_BASE_MS + time_field * 60000).
 # ~5.6M minutes is well over a decade of M1 bars, which spans many UTC days.
-_time_field = st.integers(min_value=0, max_value=5_600_000)
+# Keep decoded timestamps inside Pandas' supported nanosecond range. The
+# decoder's epoch is 2000-01-01 and each unit is one minute.
+_time_field = st.integers(min_value=0, max_value=1_000_000)
 
 
 @st.composite
@@ -85,6 +87,7 @@ def test_decode_and_aggregation_are_deterministic(feed_inputs):
     decoded_first = decode_feed(buf, price_scale, volume_scale)
     decoded_second = decode_feed(buf, price_scale, volume_scale)
     assert decoded_first == decoded_second
+    assume(all(0 <= record.timestamp_ms <= 9_000_000_000_000 for record in decoded_first))
 
     # Two aggregation invocations on the SAME records return identical frames in
     # count, ordering, and per-bar field values (Req 9.2).

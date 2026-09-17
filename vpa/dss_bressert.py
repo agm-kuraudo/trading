@@ -114,9 +114,7 @@ def calculate_dss_bressert(
 
     # Invalid periods -> neutral series, no error (Req 1.7).
     if not (
-        _is_valid_period(stochastic_period)
-        and _is_valid_period(smoothing_period)
-        and _is_valid_period(trigger_period)
+        _is_valid_period(stochastic_period) and _is_valid_period(smoothing_period) and _is_valid_period(trigger_period)
     ):
         neutral = [NEUTRAL_VALUE] * n
         return (neutral, list(neutral))

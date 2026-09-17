@@ -72,9 +72,7 @@ def _ref_dss_bressert(
     """Independent re-derivation of the full DSS Bressert chain with warmup neutralisation."""
     n = len(close)
     x_pre_calc = _ref_ema(_ref_stochastic(high, low, close, stochastic_period), smoothing_period)
-    oscillator = _ref_ema(
-        _ref_stochastic(x_pre_calc, x_pre_calc, x_pre_calc, stochastic_period), smoothing_period
-    )
+    oscillator = _ref_ema(_ref_stochastic(x_pre_calc, x_pre_calc, x_pre_calc, stochastic_period), smoothing_period)
     trigger = _ref_ema(oscillator, trigger_period)
 
     warmup = _warmup(stochastic_period, smoothing_period, trigger_period)

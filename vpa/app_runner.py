@@ -604,9 +604,7 @@ class MarketAnalyzer:
             total_score += scores.overbought
 
         if signals_list:
-            self.__logger.log(
-                f"DSS Bressert Signals: {signals_list}, Score: {total_score:.2f}", level="INFO"
-            )
+            self.__logger.log(f"DSS Bressert Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
 
         return {"dss_bressert_signals": signals_list, "dss_bressert_signal_score": total_score}
 
