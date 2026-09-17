@@ -9,6 +9,7 @@
   "PERCENTILE_START": 5,
   "PERCENTILE_INCREMENTS": 5,
   "ticker_symbol": "SPY",
+  "log_tail_size": 3,
   "ma_crossover": {
     "enabled": true,
     "ma_periods": {

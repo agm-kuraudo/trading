@@ -162,6 +162,7 @@ class Settings:
     rsi: RSISettings
     price_vs_sma: PriceVsSMASettings
     trading_parameters: TradingParameters
+    log_tail_size: int = 3
     dss_bressert: DSSBressertSettings = DSSBressertSettings()
 
 
@@ -338,6 +339,7 @@ def load_settings(config_path: str | Path) -> Settings:
         percentile_start=percentile_start,
         percentile_increments=percentile_increments,
         ticker_symbol=_value(raw, "ticker_symbol", "ticker_symbol", str),
+        log_tail_size=_optional(raw, "log_tail_size", 3, "log_tail_size", int),
         ma_crossover=_ma_settings(_section(raw, "ma_crossover", "ma_crossover")),
         drawdown_filter=DrawdownSettings(
             enabled=_optional(
