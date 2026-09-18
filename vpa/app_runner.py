@@ -718,7 +718,7 @@ class MarketAnalyzer:
 
             if row_position >= log_start_index:
                 self.__logger.log(f"signals: {signals}", level="INFO")
-            
+
             trade_signal = (
                 signals["single_candle_signal_score"]
                 + signals["trend_signal_score"]
@@ -730,7 +730,7 @@ class MarketAnalyzer:
                 + signals["dss_bressert_signal_score"]
             )
             direction = "BUY" if trade_signal > 0 else "SELL"
-            
+
             if row_position >= log_start_index:
                 self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
