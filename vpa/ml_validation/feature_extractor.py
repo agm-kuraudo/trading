@@ -16,7 +16,7 @@ from vpa.rsi import calculate_rsi
 class VPAFeatureExtractor:
     """Extracts VPA intermediate features as a structured vector for ML analysis."""
 
-    # Fixed column order for the 29-feature vector
+    # Fixed column order for the 31-feature vector
     FEATURE_COLUMNS = [
         "spread_pct_p1",
         "spread_pct_p2",
@@ -45,6 +45,8 @@ class VPAFeatureExtractor:
         "acc_dist_score",
         "rsi_value",
         "rsi_signal_score",
+        "dss_bullish_cross",
+        "dss_bearish_cross",
         "composite_score",
         "up_bar_current",
     ]
@@ -78,6 +80,8 @@ class VPAFeatureExtractor:
         adx_values: list,
         acc_dist_result: tuple,
         deque_dictionary: dict,
+        dss_bullish_cross: int = 0,
+        dss_bearish_cross: int = 0,
     ) -> dict:
         """
         Build a single feature vector dict from intermediate MarketAnalyzer state.
@@ -213,6 +217,8 @@ class VPAFeatureExtractor:
             "acc_dist_score": acc_dist_score,
             "rsi_value": rsi_value,
             "rsi_signal_score": rsi_signal_score,
+            "dss_bullish_cross": int(dss_bullish_cross),
+            "dss_bearish_cross": int(dss_bearish_cross),
             "composite_score": composite_score,
             "up_bar_current": up_bar_current,
         }
@@ -254,6 +260,45 @@ class VPAFeatureExtractor:
             repo = MarketDataRepository()
         df = repo.load_ohlcv(self._ticker_symbol, "1d", start_date, end_date)
 
+        # --- Step 3b: Pre-compute DSS Bressert oscillator/trigger over the whole frame ---
+        # Mirrors MarketAnalyzer.compute_dss_bressert_columns + _init_dss_bressert_config:
+        # only enabled when the flag is true AND periods are ints in 1..500 AND
+        # thresholds are numbers in 0..100 with oversold < overbought. When not valid,
+        # dss_osc/dss_trig stay None and the crossover columns are 0 for every row.
+        dss_osc: list[float] | None = None
+        dss_trig: list[float] | None = None
+        dss_warmup = 0
+        dss_cfg = self._config.dss_bressert
+
+        def _valid_period(value: object) -> bool:
+            return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 500
+
+        def _valid_threshold(value: object) -> bool:
+            return isinstance(value, int | float) and not isinstance(value, bool) and 0 <= value <= 100
+
+        dss_enabled = (
+            bool(dss_cfg.enabled)
+            and _valid_period(dss_cfg.stochastic_period)
+            and _valid_period(dss_cfg.smoothing_period)
+            and _valid_period(dss_cfg.trigger_period)
+            and _valid_threshold(dss_cfg.oversold_threshold)
+            and _valid_threshold(dss_cfg.overbought_threshold)
+            and dss_cfg.oversold_threshold < dss_cfg.overbought_threshold
+        )
+
+        if dss_enabled:
+            from vpa.dss_bressert import calculate_dss_bressert
+
+            dss_osc, dss_trig = calculate_dss_bressert(
+                df["High"].tolist(),
+                df["Low"].tolist(),
+                df["Close"].tolist(),
+                dss_cfg.stochastic_period,
+                dss_cfg.smoothing_period,
+                dss_cfg.trigger_period,
+            )
+            dss_warmup = dss_cfg.stochastic_period + dss_cfg.smoothing_period + dss_cfg.trigger_period - 2
+
         # --- Step 4: Set up rolling deques ---
         deque_dictionary = {
             "period_one": deque(maxlen=self._period_one_length),
@@ -271,7 +316,7 @@ class VPAFeatureExtractor:
         feature_rows = []
         previous_close = 0
 
-        for _, row in df.iterrows():
+        for pos, (_, row) in enumerate(df.iterrows()):
             # Create Candle (matching MarketAnalyzer open-price logic)
             if previous_close != 0:
                 open_price = previous_close
@@ -334,6 +379,17 @@ class VPAFeatureExtractor:
                 list(deque_dictionary["period_one"]),
             )
 
+            dss_bullish_cross = 0
+            dss_bearish_cross = 0
+            if dss_enabled and dss_osc is not None and dss_trig is not None and pos >= dss_warmup and pos > 0:
+                current_dss = dss_osc[pos]
+                current_trigger = dss_trig[pos]
+                previous_dss = dss_osc[pos - 1]
+                previous_trigger = dss_trig[pos - 1]
+                if all(np.isfinite(value) for value in (current_dss, current_trigger, previous_dss, previous_trigger)):
+                    dss_bullish_cross = int(previous_dss <= previous_trigger and current_dss > current_trigger)
+                    dss_bearish_cross = int(previous_dss >= previous_trigger and current_dss < current_trigger)
+
             # --- Step 10: Extract feature vector ---
             feature_vector = self._extract_feature_vector(
                 candle=this_candle,
@@ -341,6 +397,8 @@ class VPAFeatureExtractor:
                 adx_values=adx_values,
                 acc_dist_result=acc_dist_result,
                 deque_dictionary=deque_dictionary,
+                dss_bullish_cross=dss_bullish_cross,
+                dss_bearish_cross=dss_bearish_cross,
             )
 
             # Add metadata

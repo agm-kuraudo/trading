@@ -183,6 +183,49 @@ def test_to_config_creates_fresh_exit_strategy_per_call() -> None:
     assert first is not second
 
 
+def test_dss_bressert_variation_filters_only_dss_signals() -> None:
+    variation = _variation_by_name("DSS_Bressert_Only")
+
+    for signal_type in SignalType:
+        entry = _signal(_iso(1), signal_type)
+        expected = signal_type in {SignalType.DSS_BULLISH, SignalType.DSS_BEARISH}
+        assert variation.signal_filter(entry) is expected
+
+    assert SIGNAL_DIRECTIONS[SignalType.DSS_BULLISH] is SignalDirection.UP
+    assert SIGNAL_DIRECTIONS[SignalType.DSS_BEARISH] is SignalDirection.DOWN
+
+
+def test_dss_bressert_variation_runs_through_metrics_pipeline() -> None:
+    variation = _variation_by_name("DSS_Bressert_Only")
+    prices = _make_price_series([100.0 + (index % 4) for index in range(30)])
+    signals = [
+        _signal(_iso(0), SignalType.DSS_BULLISH),
+        _signal(_iso(1), SignalType.STRONG_BULLISH),
+        _signal(_iso(15), SignalType.DSS_BEARISH),
+    ]
+
+    run = run_variation(variation, signals, prices)
+
+    assert len(run.result.trades) == 2
+    assert run.metrics.number_of_trades == 2
+    assert all(
+        trade.trade.signal_type in {SignalType.DSS_BULLISH, SignalType.DSS_BEARISH}
+        for trade in run.priced_trades
+    )
+
+
+def test_dss_bressert_variation_handles_zero_matches() -> None:
+    variation = _variation_by_name("DSS_Bressert_Only")
+    prices = _make_price_series([100.0 + (index % 3) for index in range(30)])
+
+    run = run_variation(variation, [_signal(_iso(0), SignalType.STRONG_BULLISH)], prices)
+
+    assert run.metrics.number_of_trades == 0
+    assert run.metrics.total_return == 0.0
+    assert run.metrics.sharpe_ratio == 0.0
+    assert run.metrics.max_drawdown == 0.0
+
+
 # ---------------------------------------------------------------------------
 # run_variation (Req 1.1, 1.2, 1.3, 5.1)
 # ---------------------------------------------------------------------------

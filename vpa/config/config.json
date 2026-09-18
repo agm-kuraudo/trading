@@ -58,6 +58,20 @@
       "cross_below": 3
     }
   },
+  "dss_bressert": {
+    "enabled": true,
+    "stochastic_period": 10,
+    "smoothing_period": 9,
+    "trigger_period": 5,
+    "overbought_threshold": 80,
+    "oversold_threshold": 20,
+    "scores": {
+      "bullish_crossover": 0,
+      "bearish_crossover": 0,
+      "oversold": 0,
+      "overbought": 0
+    }
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,

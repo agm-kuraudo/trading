@@ -227,8 +227,9 @@ class TestOutputFileCreation:
 
         assert "feature_name" in df.columns
         assert "importance_score" in df.columns
-        # Should have exactly 29 features (including rsi_value and rsi_signal_score)
-        assert len(df) == 29
+        # DSS adds bullish/bearish crossover features to the existing feature set.
+        assert len(df) == 31
+        assert {"dss_bullish_cross", "dss_bearish_cross"} <= set(df["feature_name"])
 
     def test_feature_importance_scores_sum_to_one(self, tmp_path):
         """Feature importance scores should sum to approximately 1.0."""

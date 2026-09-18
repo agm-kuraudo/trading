@@ -110,6 +110,25 @@ class PriceVsSMASettings:
 
 
 @dataclass(frozen=True)
+class DSSScores:
+    bullish_crossover: float = 0
+    bearish_crossover: float = 0
+    oversold: float = 0
+    overbought: float = 0
+
+
+@dataclass(frozen=True)
+class DSSBressertSettings:
+    enabled: bool = True
+    stochastic_period: int = 10
+    smoothing_period: int = 9
+    trigger_period: int = 5
+    overbought_threshold: float = 80
+    oversold_threshold: float = 20
+    scores: DSSScores = DSSScores()
+
+
+@dataclass(frozen=True)
 class PeriodTradingParameters:
     high_spread_threshold: float = 55
     high_volume_threshold: float = 55
@@ -143,6 +162,7 @@ class Settings:
     rsi: RSISettings
     price_vs_sma: PriceVsSMASettings
     trading_parameters: TradingParameters
+    dss_bressert: DSSBressertSettings = DSSBressertSettings()
 
 
 def _value(data: dict[str, Any], key: str, path: str, expected_type: type) -> Any:
@@ -232,6 +252,24 @@ def _price_vs_sma_settings(raw: dict[str, Any]) -> PriceVsSMASettings:
         crossover_scores=PriceVsSMACrossoverScores(
             cross_above=_number(crossover_scores, "cross_above", 3, "price_vs_sma.crossover_scores.cross_above"),
             cross_below=_number(crossover_scores, "cross_below", 3, "price_vs_sma.crossover_scores.cross_below"),
+        ),
+    )
+
+
+def _dss_bressert_settings(raw: dict[str, Any]) -> DSSBressertSettings:
+    scores = _section(raw, "scores", "dss_bressert.scores")
+    return DSSBressertSettings(
+        enabled=_optional(raw, "enabled", True, "dss_bressert.enabled", bool),
+        stochastic_period=_optional(raw, "stochastic_period", 10, "dss_bressert.stochastic_period", int),
+        smoothing_period=_optional(raw, "smoothing_period", 9, "dss_bressert.smoothing_period", int),
+        trigger_period=_optional(raw, "trigger_period", 5, "dss_bressert.trigger_period", int),
+        overbought_threshold=_number(raw, "overbought_threshold", 80, "dss_bressert.overbought_threshold"),
+        oversold_threshold=_number(raw, "oversold_threshold", 20, "dss_bressert.oversold_threshold"),
+        scores=DSSScores(
+            bullish_crossover=_number(scores, "bullish_crossover", 0, "dss_bressert.scores.bullish_crossover"),
+            bearish_crossover=_number(scores, "bearish_crossover", 0, "dss_bressert.scores.bearish_crossover"),
+            oversold=_number(scores, "oversold", 0, "dss_bressert.scores.oversold"),
+            overbought=_number(scores, "overbought", 0, "dss_bressert.scores.overbought"),
         ),
     )
 
@@ -343,4 +381,5 @@ def load_settings(config_path: str | Path) -> Settings:
         ),
         price_vs_sma=_price_vs_sma_settings(_section(raw, "price_vs_sma", "price_vs_sma")),
         trading_parameters=_trading_parameters(trading_raw),
+        dss_bressert=_dss_bressert_settings(_section(raw, "dss_bressert", "dss_bressert")),
     )
