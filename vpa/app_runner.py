@@ -339,7 +339,7 @@ class MarketAnalyzer:
         self.myDF["DSS"] = oscillator
         self.myDF["DSS_Trigger"] = trigger
 
-    def detect_ma_signals(self, row_index):
+    def detect_ma_signals(self, row_index, log=True):
         """Detect MA crossover and price position signals for the given row.
 
         Args:
@@ -362,9 +362,10 @@ class MarketAnalyzer:
             return {"ma_crossover_signals": [], "ma_crossover_signal_score": 0}
 
         # Log SMA values
-        self.__logger.log(
-            f"SMA_Short: {sma_short:.2f}, SMA_Medium: {sma_medium:.2f}, SMA_Long: {sma_long:.2f}", level="INFO"
-        )
+        if log:
+            self.__logger.log(
+                f"SMA_Short: {sma_short:.2f}, SMA_Medium: {sma_medium:.2f}, SMA_Long: {sma_long:.2f}", level="INFO"
+            )
 
         signals_list = []
         total_score = 0
@@ -396,12 +397,14 @@ class MarketAnalyzer:
                 if prev_faster < prev_slower and curr_faster >= curr_slower:
                     signals_list.append(f"Golden Cross ({pair_name})")
                     total_score += crossover_score
-                    self.__logger.log(f"Golden Cross detected ({pair_name})", level="INFO")
+                    if log:
+                        self.__logger.log(f"Golden Cross detected ({pair_name})", level="INFO")
                 # Death Cross: prev_faster > prev_slower AND curr_faster <= curr_slower
                 elif prev_faster > prev_slower and curr_faster <= curr_slower:
                     signals_list.append(f"Death Cross ({pair_name})")
                     total_score -= crossover_score
-                    self.__logger.log(f"Death Cross detected ({pair_name})", level="INFO")
+                    if log:
+                        self.__logger.log(f"Death Cross detected ({pair_name})", level="INFO")
 
         # Price position - count how many SMAs the close is strictly above
         sma_values = [sma_short, sma_medium, sma_long]
@@ -423,12 +426,13 @@ class MarketAnalyzer:
             total_score -= position_scores.below_two
 
         # Log summary
-        self.__logger.log(f"MA Crossover Signals: {signals_list}", level="INFO")
-        self.__logger.log(f"MA Crossover Signal Score: {total_score}", level="INFO")
+        if log:
+            self.__logger.log(f"MA Crossover Signals: {signals_list}", level="INFO")
+            self.__logger.log(f"MA Crossover Signal Score: {total_score}", level="INFO")
 
         return {"ma_crossover_signals": signals_list, "ma_crossover_signal_score": total_score}
 
-    def detect_rsi_signals(self, row_index: int) -> dict:
+    def detect_rsi_signals(self, row_index: int, log=True) -> dict:
         """Detect RSI overbought/oversold signals for the given row.
 
         Returns:
@@ -462,13 +466,14 @@ class MarketAnalyzer:
             signals_list.append("RSI Oversold")
             total_score += scores.oversold
 
-        self.__logger.log(f"RSI: {rsi_value:.2f}", level="INFO")
-        if signals_list:
-            self.__logger.log(f"RSI Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
+        if log:
+            self.__logger.log(f"RSI: {rsi_value:.2f}", level="INFO")
+            if signals_list:
+                self.__logger.log(f"RSI Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
 
         return {"rsi_signals": signals_list, "rsi_signal_score": total_score}
 
-    def detect_price_vs_sma_signals(self, row_index: int) -> dict:
+    def detect_price_vs_sma_signals(self, row_index: int, log=True) -> dict:
         """Detect price position relative to the SMA for the given row.
 
         A close above the SMA contributes a bullish score; a close below
@@ -534,12 +539,12 @@ class MarketAnalyzer:
                     signals_list.append("Price crossed below SMA")
                     total_score -= crossover_scores.cross_below
 
-        if signals_list:
+        if log and signals_list:
             self.__logger.log(f"Price vs SMA Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
 
         return {"price_vs_sma_signals": signals_list, "price_vs_sma_signal_score": total_score}
 
-    def detect_dss_bressert_signals(self, row_index: int) -> dict:
+    def detect_dss_bressert_signals(self, row_index: int, log=True) -> dict:
         """Detect DSS Bressert crossover and zone signals for the given row.
 
         Returns:
@@ -603,7 +608,7 @@ class MarketAnalyzer:
             signals_list.append("DSS Overbought")
             total_score += scores.overbought
 
-        if signals_list:
+        if log and signals_list:
             self.__logger.log(f"DSS Bressert Signals: {signals_list}, Score: {total_score:.2f}", level="INFO")
 
         return {"dss_bressert_signals": signals_list, "dss_bressert_signal_score": total_score}
@@ -631,10 +636,16 @@ class MarketAnalyzer:
         previous_close = 0
 
         row_position = 0
+        total_rows = len(self.myDF)
+        log_start_index = max(0, total_rows - self.__config.log_tail_size)
+
         for index, row in self.myDF.iterrows():
             if not self.__config.use_real_data and 0 < self.__config.max_rows <= row_position:
                 break
-            self.__logger.log(f"Processing row: {index}", level="DEBUG")
+
+            if row_position >= log_start_index:
+                self.__logger.log(f"Processing row: {index}", level="DEBUG")
+
             # Step 3: Create a new Candle object with the supplied properties for each new row
 
             if previous_close != 0:
@@ -649,7 +660,8 @@ class MarketAnalyzer:
             this_candle = Candle(row["Date"], row["Volume"], open_price, high, low, row["Close"])
             previous_close = this_candle.close
 
-            self.__logger.log(f"New candle created: {this_candle}", level="DEBUG")
+            if row_position >= log_start_index:
+                self.__logger.log(f"New candle created: {this_candle}", level="DEBUG")
             # Step 3.1: The candle is added to each of our rolling windows
             for key in self.__deque_dictionary.keys():
                 self.__deque_dictionary[key].append(this_candle)
@@ -681,30 +693,32 @@ class MarketAnalyzer:
                     self.__logger.log(f"{key} change: {percentage_change:.2f}%", level="INFO")
 
             # Step 6: Detect signals based on the updated data
-            signals = self.detect_signals(this_candle)
+            signals = self.detect_signals(this_candle, log=row_position >= log_start_index)
 
             # Step 6.1: Detect MA crossover signals
-            ma_signals = self.detect_ma_signals(row_position)
+            ma_signals = self.detect_ma_signals(row_position, log=row_position >= log_start_index)
             signals["ma_crossover_signals"] = ma_signals["ma_crossover_signals"]
             signals["ma_crossover_signal_score"] = ma_signals["ma_crossover_signal_score"]
 
             # Step 6.2: Detect RSI signals
-            rsi_signals = self.detect_rsi_signals(row_position)
+            rsi_signals = self.detect_rsi_signals(row_position, log=row_position >= log_start_index)
             signals["rsi_signals"] = rsi_signals["rsi_signals"]
             signals["rsi_signal_score"] = rsi_signals["rsi_signal_score"]
 
             # Step 6.3: Detect price vs SMA signals
-            price_vs_sma_signals = self.detect_price_vs_sma_signals(row_position)
+            price_vs_sma_signals = self.detect_price_vs_sma_signals(row_position, log=row_position >= log_start_index)
             signals["price_vs_sma_signals"] = price_vs_sma_signals["price_vs_sma_signals"]
             signals["price_vs_sma_signal_score"] = price_vs_sma_signals["price_vs_sma_signal_score"]
 
             # Step 6.4: Detect DSS Bressert signals
-            dss_signals = self.detect_dss_bressert_signals(row_position)
+            dss_signals = self.detect_dss_bressert_signals(row_position, log=row_position >= log_start_index)
             signals["dss_bressert_signals"] = dss_signals["dss_bressert_signals"]
             signals["dss_bressert_signal_score"] = dss_signals["dss_bressert_signal_score"]
             self.__last_signals = signals.copy()
 
-            self.__logger.log(f"signals: {signals}", level="INFO")
+            if row_position >= log_start_index:
+                self.__logger.log(f"signals: {signals}", level="INFO")
+
             trade_signal = (
                 signals["single_candle_signal_score"]
                 + signals["trend_signal_score"]
@@ -716,7 +730,9 @@ class MarketAnalyzer:
                 + signals["dss_bressert_signal_score"]
             )
             direction = "BUY" if trade_signal > 0 else "SELL"
-            self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
+
+            if row_position >= log_start_index:
+                self.__logger.log(f"{this_candle.time} - trade_signal: {direction} : {trade_signal}", level="INFO")
 
             row_position += 1
 
@@ -746,7 +762,7 @@ class MarketAnalyzer:
                         candle.volume_percentiles[key] = upper_percentile
                 self.__logger.log(f"Updated candle: {candle}", level="DEBUG")
 
-    def detect_signals(self, this_candle):
+    def detect_signals(self, this_candle, log=True):
         all_signals = {}
 
         single_candle_signals = []
@@ -776,8 +792,9 @@ class MarketAnalyzer:
             single_candle_signal_score += 3
 
         # Log the results
-        self.__logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
-        self.__logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
+        if log:
+            self.__logger.log(f"Single Candle Signals: {single_candle_signals}", level="INFO")
+            self.__logger.log(f"Single Candle Signal Score: {single_candle_signal_score}", level="INFO")
 
         all_signals["single_candle_signals"] = single_candle_signals
         all_signals["single_candle_signal_score"] = single_candle_signal_score
@@ -787,30 +804,35 @@ class MarketAnalyzer:
 
         # Step 6: Understand if the market is trending and if so, in what direction
         adx_values = calculate_adx(self.__deque_dictionary["period_three"])
-        self.__logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
-        self.__logger.log(
-            "ADX - over 25 is trending.  Average True Range - Higher is more volatile.  "
-            "DM+ swings upward. DM- Swings downwards",
-            level="INFO",
-        )
+        if log:
+            self.__logger.log(f"{this_candle.time} - ADX values: {adx_values}", level="INFO")
+            self.__logger.log(
+                "ADX - over 25 is trending.  Average True Range - Higher is more volatile.  "
+                "DM+ swings upward. DM- Swings downwards",
+                level="INFO",
+            )
         trending = adx_values[0] > 25
         trending_up = adx_values[2] > adx_values[3]
         trending_down = adx_values[3] > adx_values[2]
         if trending:
-            self.__logger.log("Market is trending", level="INFO")
+            if log:
+                self.__logger.log("Market is trending", level="INFO")
             trend_signals.append("Market is trending")
             if trending_up:
-                self.__logger.log("Market is trending up", level="INFO")
+                if log:
+                    self.__logger.log("Market is trending up", level="INFO")
                 trend_signals.append("Trending Up")
                 trend_signal_score += 5
             if trending_down:
-                self.__logger.log("Market is trending down", level="INFO")
+                if log:
+                    self.__logger.log("Market is trending down", level="INFO")
                 trend_signals.append("Trending Down")
                 trend_signal_score -= 5
 
         # Log the results
-        self.__logger.log(f"Trend Signals: {trend_signals}", level="INFO")
-        self.__logger.log(f"Trend Signal Score: {trend_signal_score}", level="INFO")
+        if log:
+            self.__logger.log(f"Trend Signals: {trend_signals}", level="INFO")
+            self.__logger.log(f"Trend Signal Score: {trend_signal_score}", level="INFO")
 
         all_signals["trend_signals"] = trend_signals
         all_signals["trend_signal_score"] = trend_signal_score
@@ -852,14 +874,17 @@ class MarketAnalyzer:
                 "high_volume_count": high_volume_count,
                 "anomaly_count": anomaly_count,
             }
-            self.__logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
+            if log:
+                self.__logger.log(f"{key} Bar Counts: {bar_counts[key]}", level="DEBUG")
             # Step 8: Decide whether a signal is being generated on each time period
             if up_bar_count >= parameters.signal_bar_count:
                 signals[f"{key}_bull"] = True
-                self.__logger.log(f"{key} Bullish Signal", level="INFO")
+                if log:
+                    self.__logger.log(f"{key} Bullish Signal", level="INFO")
             elif up_bar_count <= (self.__config.period_one_length - parameters.signal_bar_count):
                 signals[f"{key}_bear"] = True
-                self.__logger.log(f"{key} Bearish Signal", level="INFO")
+                if log:
+                    self.__logger.log(f"{key} Bearish Signal", level="INFO")
             if signals[f"{key}_bear"] or signals[f"{key}_bull"]:
                 if (
                     high_spread_count >= parameters.high_spread_count
@@ -867,7 +892,8 @@ class MarketAnalyzer:
                     and anomaly_count <= parameters.anomaly_threshold
                 ):
                     signals[f"{key}_volume_backed"] = True
-                    self.__logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
+                    if log:
+                        self.__logger.log(f"{this_candle.time} {key} Volume Backed Signal", level="INFO")
 
         # Initialize multiple bar signals and score
         multiple_bar_signals = []
@@ -886,8 +912,9 @@ class MarketAnalyzer:
                         multiple_bar_signal_score += score_adjustment
 
         # Log the results
-        self.__logger.log(f"Multiple Bar Signals: {multiple_bar_signals}", level="INFO")
-        self.__logger.log(f"Multiple Bar Signal Score: {multiple_bar_signal_score}", level="INFO")
+        if log:
+            self.__logger.log(f"Multiple Bar Signals: {multiple_bar_signals}", level="INFO")
+            self.__logger.log(f"Multiple Bar Signal Score: {multiple_bar_signal_score}", level="INFO")
 
         all_signals["multiple_bar_signals"] = multiple_bar_signals
         all_signals["multiple_bar_signal_score"] = multiple_bar_signal_score
@@ -903,26 +930,32 @@ class MarketAnalyzer:
         if acc_or_dist_bool:
             acc_dist_signals.append(f"Possible {acc_or_dist}")
             acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
-            self.__logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
+            if log:
+                self.__logger.log(f"{this_candle.time} Possible {acc_or_dist} IDENTIFIED #####", level="INFO")
             if this_candle.spread_percentiles["period_one"] > 65 or this_candle.is_candle_pattern():
-                self.__logger.log("Potential Test IDENTIFIED ##########", level="DEBUG")
+                if log:
+                    self.__logger.log("Potential Test IDENTIFIED ##########", level="DEBUG")
                 if this_candle.volume_percentiles["period_one"] < 50:
                     acc_dist_signals.append("Test Pass")
                     acc_dist_signal_score += 5 if acc_or_dist == "Acc" else -5
-                    self.__logger.log("Potential TEST PASS IDENTIFIED ##########", level="INFO")
+                    if log:
+                        self.__logger.log("Potential TEST PASS IDENTIFIED ##########", level="INFO")
                 else:
                     acc_dist_signals.append("Test Fail")
                     # Test fail makes the signal weaker
                     acc_dist_signal_score += -2 if acc_or_dist == "Acc" else 2
-                    self.__logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
+                    if log:
+                        self.__logger.log("Potential TEST FAIL IDENTIFIED ##########", level="INFO")
             if this_candle.spread_percentiles["period_two"] < 40 and this_candle.volume_percentiles["period_two"] > 60:
                 acc_dist_signals.append("Climax")
                 acc_dist_signal_score += 10 if acc_or_dist == "Acc" else -10
-                self.__logger.log("Potential Climax IDENTIFIED ##########", level="INFO")
+                if log:
+                    self.__logger.log("Potential Climax IDENTIFIED ##########", level="INFO")
 
         # Log the results
-        self.__logger.log(f"Accumulation/Distribution Signals: {acc_dist_signals}", level="INFO")
-        self.__logger.log(f"Accumulation/Distribution Signal Score: {acc_dist_signal_score}", level="INFO")
+        if log:
+            self.__logger.log(f"Accumulation/Distribution Signals: {acc_dist_signals}", level="INFO")
+            self.__logger.log(f"Accumulation/Distribution Signal Score: {acc_dist_signal_score}", level="INFO")
 
         all_signals["acc_dist_signals"] = acc_dist_signals
         all_signals["acc_dist_signal_score"] = acc_dist_signal_score

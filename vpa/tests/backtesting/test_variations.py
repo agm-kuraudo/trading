@@ -209,8 +209,7 @@ def test_dss_bressert_variation_runs_through_metrics_pipeline() -> None:
     assert len(run.result.trades) == 2
     assert run.metrics.number_of_trades == 2
     assert all(
-        trade.trade.signal_type in {SignalType.DSS_BULLISH, SignalType.DSS_BEARISH}
-        for trade in run.priced_trades
+        trade.trade.signal_type in {SignalType.DSS_BULLISH, SignalType.DSS_BEARISH} for trade in run.priced_trades
     )
 
 
