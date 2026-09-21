@@ -1,0 +1,24 @@
+{
+  "SPY": {
+    "distribution": {
+      "confidence_level": "High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "strong_bearish": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "strong_bullish": {
+      "confidence_level": "Low-Medium",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "accumulation": {
+      "confidence_level": "Low",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    }
+  }
+}

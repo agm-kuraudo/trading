@@ -82,35 +82,57 @@ CSV_COLUMNS: list[str] = [
 # ---------------------------------------------------------------------------
 
 
-def build_signal_records(ticker: str, date: str, signal_types: set[SignalType]) -> list[SignalRecord]:
+def build_signal_records(
+    ticker: str,
+    date: str,
+    signal_types: set[SignalType],
+    ticker_config: dict | None = None,
+) -> list[SignalRecord]:
     """Build sorted SignalRecords from classified signal types.
 
-    Filters out excluded signals (ACCUMULATION_TEST_PASS), creates one
-    SignalRecord per remaining type with contrarian inversion (all signals
-    become BUY), and sorts by confidence descending (High first).
+    Filters out excluded signals (ACCUMULATION_TEST_PASS), applies
+    ticker-specific configuration overrides if available, and sorts
+    by confidence descending (High first).
 
     Args:
         ticker: The ticker symbol (e.g. "SPY", "AAPL").
         date: ISO 8601 date string (YYYY-MM-DD) for the signal.
         signal_types: Set of classified SignalType values from the latest candle.
+        ticker_config: Optional dictionary containing ticker-specific overrides.
 
     Returns:
         List of SignalRecord sorted by confidence (High → Low), empty if no
         actionable signals remain after filtering.
     """
     actionable = signal_types - EXCLUDED_SIGNALS
+    ticker_rules = (ticker_config or {}).get(ticker, {})
 
     records: list[SignalRecord] = []
     for sig_type in actionable:
+        # Determine rules: either from ticker_config or default
+        rule = ticker_rules.get(sig_type.value)
+
+        if rule:
+            if rule.get("adjusted_direction") == "NONE":
+                continue
+            confidence = rule.get("confidence_level", "Low")
+            direction = rule.get("adjusted_direction", "BUY")
+            hold_days = rule.get("suggested_hold_days", 10)
+        else:
+            # Fallback to default
+            confidence = CONFIDENCE_MAP.get(sig_type, "Low")
+            direction = "BUY"
+            hold_days = 10
+
         records.append(
             SignalRecord(
                 ticker=ticker,
                 date=date,
                 signal_type=sig_type.value,
                 original_direction=SIGNAL_DIRECTIONS[sig_type].value,
-                adjusted_direction="BUY",
-                confidence_level=CONFIDENCE_MAP[sig_type],
-                suggested_hold_days=10,
+                adjusted_direction=direction,
+                confidence_level=confidence,
+                suggested_hold_days=hold_days,
             )
         )
 
@@ -202,6 +224,7 @@ class DailySignalGenerator:
 
     # Config path relative to working directory (matches Req 8.1)
     _CONFIG_PATH: str = str(Path("vpa") / "config" / "config.json")
+    _TICKER_SIGNALS_PATH: str = str(Path("vpa") / "config" / "ticker_signals.json")
 
     def __init__(
         self,
@@ -219,6 +242,18 @@ class DailySignalGenerator:
         self.output_dir = output_dir
         self.lookback_days = lookback_days
         self.ticker = ticker
+        self.ticker_config = self._load_ticker_config()
+
+    def _load_ticker_config(self) -> dict:
+        """Load ticker-specific signals configuration."""
+        config_path = Path(self._TICKER_SIGNALS_PATH)
+        if not config_path.exists():
+            return {}
+        try:
+            with open(config_path, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
 
     def run(self) -> list[SignalRecord]:
         """Execute the full signal generation pipeline.
@@ -433,7 +468,7 @@ class DailySignalGenerator:
             signal_date = str(signal_date)[:10]
 
         # --- Step 9: Build contrarian-inverted signal records ---
-        records = build_signal_records(self.ticker, signal_date, signal_types)
+        records = build_signal_records(self.ticker, signal_date, signal_types, ticker_config=self.ticker_config)
 
         return records
 

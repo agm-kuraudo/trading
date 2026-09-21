@@ -125,7 +125,22 @@ Signals are based on VPA classification with contrarian inversion applied:
 | Acc Test Pass | No signal | Inconclusive | - |
 
 > **Note:** Confidence levels are derived from SPY-specific analysis. Other tickers
-> use the same rules as defaults until per-ticker config is available (SP-322).
+> use the same rules as defaults until a per-ticker config is generated via 
+> `import_ticker_signals.py` (see below).
+
+### Ticker-Specific Configuration
+
+You can customize signal behavior for individual tickers using `vpa/config/ticker_signals.json`.
+
+**Workflow to add a new ticker:**
+
+1. **Extract features**: Ensure feature data is generated for the ticker.
+2. **Analyze results**: Run `python -m vpa.ml_validation.run_signal_analysis` to generate `{ticker}_signal_analysis.csv`.
+3. **Import config**: Run the import utility to map findings to the JSON config:
+   ```bash
+   python scripts/import_ticker_signals.py --ticker <TICKER> --analysis-csv <PATH_TO_CSV>
+   ```
+   This automatically maps contrarian edges, strong signals, and noise based on statistical significance.
 
 ### Output
 
