@@ -47,6 +47,23 @@ def test_build_signal_records_fallback():
     assert records[0].confidence_level == "High"  # Default for Distribution
 
 
+def test_build_signal_records_unknown_confidence_sorts_last():
+    # A config supplying a confidence_level outside CONFIDENCE_ORDER must not
+    # crash the sort; it should sort after the known-confidence record.
+    config = {
+        "AAPL": {
+            "distribution": {"confidence_level": "Weird", "adjusted_direction": "BUY", "suggested_hold_days": 3},
+            "strong_bearish": {"confidence_level": "High", "adjusted_direction": "BUY", "suggested_hold_days": 5},
+        }
+    }
+    signal_types = {SignalType.DISTRIBUTION, SignalType.STRONG_BEARISH}
+    records = build_signal_records("AAPL", "2026-09-18", signal_types, ticker_config=config)
+
+    assert len(records) == 2
+    assert records[0].confidence_level == "High"  # known value first
+    assert records[1].confidence_level == "Weird"  # unknown value last
+
+
 def test_select_row_prefers_lowest_significant_pvalue():
     # Three horizons for one signal type; only two are significant.
     rows = pd.DataFrame(

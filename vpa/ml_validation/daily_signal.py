@@ -136,8 +136,18 @@ def build_signal_records(
             )
         )
 
-    records.sort(key=lambda r: CONFIDENCE_ORDER.index(r.confidence_level))
+    # Sort by confidence (High first). A config-supplied confidence_level that
+    # isn't in CONFIDENCE_ORDER sorts last rather than raising ValueError.
+    records.sort(key=lambda r: _confidence_rank(r.confidence_level))
     return records
+
+
+def _confidence_rank(confidence_level: str) -> int:
+    """Return the sort rank for a confidence level (unknown values sort last)."""
+    try:
+        return CONFIDENCE_ORDER.index(confidence_level)
+    except ValueError:
+        return len(CONFIDENCE_ORDER)
 
 
 # ---------------------------------------------------------------------------
