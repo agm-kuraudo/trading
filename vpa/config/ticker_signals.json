@@ -20,5 +20,34 @@
       "adjusted_direction": "BUY",
       "suggested_hold_days": 10
     }
+  },
+  "AAPL": {
+    "accumulation": {
+      "adjusted_direction": "NONE"
+    },
+    "accumulation_test_pass": {
+      "adjusted_direction": "NONE"
+    },
+    "distribution": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 3
+    },
+    "dss_bearish": {
+      "confidence_level": "High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 5
+    },
+    "dss_bullish": {
+      "adjusted_direction": "NONE"
+    },
+    "strong_bearish": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 3
+    },
+    "strong_bullish": {
+      "adjusted_direction": "NONE"
+    }
   }
 }
