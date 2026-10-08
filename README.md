@@ -125,7 +125,40 @@ Signals are based on VPA classification with contrarian inversion applied:
 | Acc Test Pass | No signal | Inconclusive | - |
 
 > **Note:** Confidence levels are derived from SPY-specific analysis. Other tickers
-> use the same rules as defaults until per-ticker config is available (SP-322).
+> use the same rules as defaults until a per-ticker config is generated via 
+> `import_ticker_signals.py` (see below).
+
+### Ticker-Specific Configuration
+
+You can customize signal behavior for individual tickers using `vpa/config/ticker_signals.json`.
+
+**Workflow to add a new ticker:**
+
+The simplest path runs all three steps in one command:
+
+```bash
+python scripts/extract_features.py --ticker <TICKER> --import-config
+```
+
+This extracts features, runs single-ticker signal analysis, and imports the
+result into `vpa/config/ticker_signals.json`.
+
+To run the steps individually:
+
+1. **Extract features**: `python scripts/extract_features.py --ticker <TICKER>`
+   writes `ml_validation_output/<TICKER>/<TICKER>_vpa_features.csv` (SPY is
+   written to the output root).
+2. **Analyze results**: `python -m vpa.ml_validation.run_signal_analysis --ticker <TICKER>`
+   generates `ml_validation_output/<TICKER>_signal_analysis.csv`.
+3. **Import config**: Map the findings into the JSON config:
+   ```bash
+   python scripts/import_ticker_signals.py --ticker <TICKER> --analysis-csv <PATH_TO_CSV>
+   ```
+   The analysis CSV holds one row per (signal type, horizon). The importer
+   collapses those to one rule per signal type, choosing the horizon with the
+   lowest significant p-value (tie-broken by event count) and setting
+   `suggested_hold_days` from that horizon. Signal types whose best horizon is
+   insignificant or sits in the 45-55% noise band are marked `NONE`.
 
 ### Output
 
