@@ -148,7 +148,7 @@ interpreter.
 | 6 | Backtesting (backtest runner) | `python -m vpa.backtesting.run_backtest --ticker SPY` | documented |
 | 7 | Market-data backfill | `python scripts/backfill_market_data.py --ticker SPY --interval 1d` | documented |
 | 8 | Market-data store verify/bootstrap | `python scripts/verify_market_data_db.py` | documented |
-| 9 | IG/forex tooling | `python ig/ig_poc.py` + `python -m vpa.app_forex` | documented |
+| 9 | Forex analysis (GBPUSD data strand) | `python -m vpa.app_forex` | documented |
 | 10 | Ticker-signal config import | `python scripts/import_ticker_signals.py --ticker SPY --analysis-csv <path>` | documented |
 | 11 | Options tooling | _(removed in SP-348 task 3)_ | undetermined |
 | 12 | MLL | _(archived; no run process in the Trading_Repo)_ | undetermined |
@@ -380,43 +380,37 @@ gate on it. Entry point: `scripts/verify_market_data_db.py`.
 | Verification result block (`reachable`, `missing_config`, `db_ready`, `schema_ready`, `created`, `error`) | stdout; failure messages to stderr |
 | Exit code (`0` ok, `1` unreachable, `2` missing config) | process exit status |
 
-### 9. IG/forex tooling
+### 9. Forex analysis (GBPUSD data strand)
 
-The IG/forex tooling is two cooperating runnable pieces: the IG REST
-proof-of-concept (`ig/ig_poc.py`) that authenticates against the IG demo API and
-searches an instrument, and the forex VPA entry point (`vpa/app_forex.py`) that
-retrieves daily GBPUSD bars via the browserless Dukascopy retriever and runs the
-VPA analysis. Both are standalone scripts (the IG PoC is intentionally not
-imported anywhere).
+The forex strand of the analysis stack: `vpa/app_forex.py` retrieves daily
+GBPUSD bars via the browserless Dukascopy retriever (`vpa.forex_data`) and runs
+the same VPA `MarketAnalyzer` used for equities. Forex is simply another data
+source feeding the one analysis stack — not a standalone concern.
+
+> **IG proof-of-concept — archived (SP-348).** A separate IG REST PoC
+> (`ig/ig_poc.py`) that authenticated against the IG demo API was a one-off that
+> did not go anywhere and was **removed from the working tree in SP-348**
+> (recoverable from Git history; it also carried hard-coded demo credentials).
+> The forex analysis app below never depended on it. Reframing forex as a pure
+> data strand (and the related package naming) is tracked under Epic SP-364
+> (SP-365).
 
 - **Status:** `documented`
-- **Invocation:**
-  - IG PoC: `python ig/ig_poc.py`
-  - Forex VPA: `python -m vpa.app_forex`
-  - Neither takes CLI arguments.
+- **Invocation:** `python -m vpa.app_forex`
+  - Takes no CLI arguments.
 
 **Required inputs**
 
 | Input | Source | Mandatory/Optional |
 |---|---|---|
-| IG demo API credentials (`identifier`, `password`, `X-IG-API-KEY`) | currently hard-coded literals in `ig/ig_poc.py` | Mandatory for the IG PoC — the demo API session must accept them (see blocking note below) |
-| IG demo API reachability | `https://demo-api.ig.com` (network) | Mandatory for the IG PoC |
-| VPA config | `config/config.json` (resolved relative to the working dir) | Mandatory for the forex VPA app |
-| Daily GBPUSD OHLCV bars (≥200 daily bars) | browserless Dukascopy feed (`data.forexsb.com`) via `vpa.forex_data.get_daily_dataframe` (network) | Mandatory for the forex VPA app |
+| VPA config | `config/config.json` (resolved relative to the working dir) | Mandatory |
+| Daily GBPUSD OHLCV bars (≥200 daily bars) | browserless Dukascopy feed (`data.forexsb.com`) via `vpa.forex_data.get_daily_dataframe` (network) | Mandatory |
 
 **Produced outputs**
 
 | Output | Destination |
 |---|---|
-| IG session tokens (CST, X-SECURITY-TOKEN), account IDs, balance, GBP/SPY market search result | stdout (IG PoC; exits code 1 on login failure) |
-| VPA trade signal + BUY/SELL/DO-NOT-TRADE recommendation and interval charts | the `MarketAnalyzer` log / chart output under `vpa/log/` (forex VPA app) |
-
-> **Note (IG PoC credentials):** `ig/ig_poc.py` contains hard-coded demo-API
-> credentials and an API key rather than reading them from `.env`. The forex VPA
-> app (`vpa.app_forex`) has no such dependency and is fully runnable. The IG PoC
-> remains `documented` because its invocation and I/O are known and non-blank;
-> running it against a live IG demo session depends on those embedded
-> credentials still being valid. These should be moved to `.env` in future work.
+| VPA trade signal + BUY/SELL/DO-NOT-TRADE recommendation and interval charts | the `MarketAnalyzer` log / chart output under `vpa/log/` |
 
 ### 10. Ticker-signal config import
 
