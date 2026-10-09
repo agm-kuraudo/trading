@@ -27,6 +27,11 @@ known-first-party = ["ig", "options", "utils", "vpa"]
 
 [tool.pytest.ini_options]
 testpaths = ["vpa/tests", "options/tests"]
+# Default run is the fast path: slow tests (real XGBoost training / full-pipeline
+# runs in vpa/tests/ml_validation/) are deselected. Run the full suite explicitly
+# before a final push / release with:  pytest -m ""   (or  pytest -m slow  for only
+# the slow tests). SP-339.
+addopts = "-m 'not slow'"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"'). Applied to the ml_validation tests that train real XGBoost models or run the full pipeline.",
 ]
