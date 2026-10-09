@@ -12,13 +12,82 @@ which links here.
 
 ## MLL Decision Record
 
-> _Placeholder — populated by task 5.1. This section will record the single
-> recorded decision on the fate of the separate MLL_Project (`d:\projects\MLL`),
-> the three measured evidence criteria (file overlap, functionality overlap,
-> shared dependencies), the decision date in ISO 8601, and the decision-specific
-> fields._
+**Decision:** `archive` — archive the entire MLL_Project (`d:\projects\MLL`) and
+migrate nothing into the Trading_Repo.
 
-_Not yet recorded._
+**Decision date:** 2026-07-27
+
+**MLL_Project status at evaluation:** accessible and non-empty (normal evaluation
+path; the Req 3.7 inaccessible/empty edge case does not apply). The stock-ML
+source evaluated is the three scripts `get_data.py`, `model_trainer.py`, and
+`predictor.py` (plus `config/predictor_up_down.json`); the remaining MLL content
+is TensorFlow-course learning material and regenerable stock-data artefacts
+(see the File Classification section).
+
+### Measured evidence
+
+| Criterion | Measurement | Result |
+|---|---|---|
+| **File overlap** | % of MLL source files whose **name AND content** duplicate a Trading_Repo file | **0%** (0 of 3) |
+| **Functionality overlap** | Count of MLL capabilities already provided by the Trading_Repo | **3 of 3** |
+| **Shared dependencies** | Count of third-party packages used by **both** | **6** |
+
+**File overlap — 0% (0 of 3).** The three MLL stock-ML source files
+(`get_data.py`, `model_trainer.py`, `predictor.py`) have no name match in the
+Trading_Repo (filename search returns only the MLL copies) and therefore no
+name-and-content duplicate. The Trading_Repo also contains no TensorFlow/Keras
+code at all (`grep tensorflow|keras` across `trading/**/*.py` → zero hits), so no
+content match is possible either.
+
+**Functionality overlap — 3 of 3.** Every stock-ML capability in MLL is already
+provided by the Trading_Repo, in a form that supersedes it:
+
+| MLL capability (file) | Trading_Repo equivalent | Relationship |
+|---|---|---|
+| Download + normalise stock OHLCV (`get_data.py`, yfinance → MinMax-scaled combined CSV) | `vpa/ml_validation/feature_extractor.py` (`VPAFeatureExtractor.generate_dataset`) + yfinance ingest / `vpa/market_data` | superseded — richer VPA feature dataset instead of raw OHLCV + scaler |
+| Train a next-direction (UP/DOWN) stock model (`model_trainer.py`, TensorFlow/Keras GRU + Keras-Tuner) | `vpa/ml_validation/walk_forward.py` + `run_analysis.py` (XGBoost `TimeSeriesSplit` walk-forward training) | **superseded** — the XGBoost walk-forward validator is the current, maintained, test-covered direction-model trainer |
+| Predict next direction/price from recent data (`predictor.py`) | walk-forward model + `vpa/ml_validation/daily_signal.py` prediction path | superseded — prediction is produced by the same XGBoost pipeline |
+
+The XGBoost-based ML work in `vpa/ml_validation/` (`run_analysis.py`,
+`walk_forward.py`) is the maintained successor to MLL's older TensorFlow/Keras
+GRU stock-prediction attempts. All three MLL capabilities are already met, so
+there is no distinct stock-ML purpose left in MLL to migrate.
+
+**Shared dependencies — 6.** Third-party packages used by both the MLL stock-ML
+source and the Trading_Repo: `numpy`, `pandas`, `scikit-learn`, `joblib`,
+`matplotlib`, `yfinance`. The only MLL-specific dependencies are `tensorflow`,
+`keras-tuner`, and `sqlalchemy` — i.e. the TensorFlow/Keras GRU stack that the
+Trading_Repo's XGBoost pipeline deliberately replaces, plus a Postgres/SQLAlchemy
+path the Trading_Repo covers with `psycopg2` directly. The high dependency
+overlap on the shared data-science stack, combined with MLL's unique deps being
+exactly the retired TF stack, reinforces that MLL adds no capability the
+Trading_Repo lacks.
+
+### Rationale
+
+The three criteria agree: MLL duplicates no Trading_Repo file, every one of its
+stock-ML capabilities is already provided by the Trading_Repo, and its only
+non-shared dependencies are the TensorFlow/Keras stack that the current XGBoost
+pipeline supersedes. MLL therefore retains no distinct stock-ML purpose. The
+settled design direction allowed migrating relevant parts, but on the measured
+evidence there is nothing worth migrating — the newer `vpa/ml_validation`
+XGBoost work replaces MLL's GRU approach outright. The decision is therefore to
+archive all of MLL and migrate nothing.
+
+### Disposition
+
+- **Migrated components:** none. Nothing from MLL is migrated into the
+  Trading_Repo.
+- **Remainder disposition:** `archive` — the entire MLL_Project (the three
+  stock-ML scripts and their config, the TensorFlow-course learning material, and
+  the regenerable stock-data artefacts) is archived.
+- **Archive location / meaning:** removed from the Kiro workspace and no longer
+  maintained (optionally the MLL GitHub repository is archived). This is **not**
+  an in-repo `archive/` path in the Trading_Repo.
+
+> Because this is an archive-all decision, Workstream 4 (migration, tasks 6.x) has
+> no components to migrate; the Migration Record below records "no components
+> migrated".
 
 ---
 
