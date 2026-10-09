@@ -501,6 +501,26 @@ scratch working for the rationalisation (task 3) and the MLL decision (task 5);
 **task 2.1 performs classification only — nothing is removed, archived, or moved
 here.**
 
+> **Actual task-3 outcome (recorded after rationalisation — supersedes the
+> "proposed actions" in the Trading_Repo tables below).** On the Maintainer''s
+> decision, the options tooling was removed **in full** rather than archived
+> piecemeal: the entire `options/` package (all 7 exploratory `options/*.py`
+> scripts, the shared `options_payoffs.py`, and both `options/tests/` files) and
+> the two legacy tracked CSVs (`options/data/forex_data.csv`,
+> `options/data/vix_data.csv`) were deleted via `git rm`
+> (commits `306dab3`, `ebbfa59`). Because that left the option-pricing helpers in
+> `utils/utils.py` orphaned (used only by the deleted options tests), those were
+> also removed, trimming `utils/utils.py` down to `trading_days_between` (still
+> used by `vpa.market_data`). All removals are recoverable from Git history. The
+> gitignored generated artefacts (`ml_validation_output/`, `log/`, `vpa/log/`,
+> `test_data/`, `options/charts/`) were cleaned from the working tree (no commit
+> needed). No `Dead_Code` was found, so nothing was removed on that basis. The
+> `retained`-labelled first-party `vpa/`, `scripts/`, `ig/`, and remaining
+> `utils/` source is unchanged. The per-path tables below are the task-2.1
+> *classification* and are preserved as the audit trail of what was reviewed; the
+> options rows'' "proposed" dispositions were escalated to full deletion as noted
+> here.
+
 **Labels** (per design Component 2 / glossary):
 
 | Label | Meaning |
