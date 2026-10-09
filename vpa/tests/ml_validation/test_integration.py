@@ -25,6 +25,11 @@ import pytest
 
 from vpa.ml_validation.run_analysis import main
 
+# The full pipeline trains a real XGBoost model and extracts VPA features over 2000+
+# rows, costing ~6s per run. These tests are marked slow so day-to-day runs can skip
+# them with `-m "not slow"`; CI runs the full suite. See SP-339.
+pytestmark = pytest.mark.slow
+
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
 
 
@@ -94,46 +99,82 @@ def _make_ohlcv_dataframe(n_rows: int, start_date: str = "2010-01-04") -> pd.Dat
     )
 
 
+# --- Shared pipeline run ---
+#
+# main() is deterministic (fixed synthetic input + seeded RNG + XGBoost random_state),
+# so a single run produces the canonical outputs every assertion below needs. Running it
+# once per test class instead of once per test cuts ~13 pipeline runs down to 3, saving
+# ~60s off the suite (SP-339). Each class gets its own run via a class-scoped fixture.
+
+
+def _run_pipeline(output_dir):
+    """Run the full pipeline once into ``output_dir`` with deterministic synthetic data.
+
+    Uses 2150 rows so the dataset clears the 2000-row minimum after warm-up
+    (2150 - 49 - 1 = 2100 labelled rows).
+    """
+    mock_df = _make_ohlcv_dataframe(2150)
+    with _patch_repo(mock_df):
+        main(ticker="SPY", output_dir=str(output_dir), config_path=CONFIG_PATH)
+
+
+# These fixtures are module-level (not instance methods) and class-scoped, so each
+# requesting class runs the pipeline exactly once. Defining them inside the test class
+# as instance methods triggers pytest's class-scoped-fixture-as-instance-method
+# deprecation, so they live here instead.
+@pytest.fixture(scope="class")
+def pipeline_stdout(tmp_path_factory):
+    """Run the pipeline once per class and return its captured stdout.
+
+    capsys cannot be used from a class-scoped fixture, so stdout is captured with
+    contextlib.redirect_stdout. A single run both proves the pipeline completes
+    without error (any exception propagates and fails the fixture) and yields the
+    stdout to assert on.
+    """
+    import contextlib
+    import io
+
+    out_dir = tmp_path_factory.mktemp("e2e")
+    buffer = io.StringIO()
+    mock_df = _make_ohlcv_dataframe(2150)
+    with _patch_repo(mock_df), contextlib.redirect_stdout(buffer):
+        main(ticker="SPY", output_dir=str(out_dir), config_path=CONFIG_PATH)
+    return buffer.getvalue()
+
+
+@pytest.fixture(scope="class")
+def output_dir(tmp_path_factory):
+    """Run the pipeline once per class into a shared output directory."""
+    out_dir = tmp_path_factory.mktemp("outputs")
+    _run_pipeline(out_dir)
+    return out_dir
+
+
+@pytest.fixture(scope="class")
+def summary_content(tmp_path_factory):
+    """Run the pipeline once per class and return the summary file content."""
+    out_dir = tmp_path_factory.mktemp("summary")
+    _run_pipeline(out_dir)
+    return (out_dir / "SPY_analysis_summary.txt").read_text(encoding="utf-8")
+
+
 # --- Test 1: End-to-end pipeline completes without error ---
 
 
 class TestEndToEndPipeline:
     """Test that the full pipeline runs end-to-end with mocked data."""
 
-    def test_pipeline_completes_without_error(self, tmp_path):
-        """Run main() with store-sourced data and verify it completes.
+    def test_pipeline_completes_without_error(self, pipeline_stdout):
+        """The pipeline runs to completion (fixture would have raised otherwise)."""
+        assert "Pipeline complete!" in pipeline_stdout
 
-        Uses 2100+ rows to ensure the dataset exceeds the 2000-row minimum
-        after warm-up (PERIOD_THREE_LENGTH=50 skips 49 rows, then final row
-        excluded: 2100 - 49 - 1 = 2050 labelled rows).
-        """
-        mock_df = _make_ohlcv_dataframe(2150)
-
-        # Should not raise any exception
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-    def test_pipeline_prints_summary_to_stdout(self, tmp_path, capsys):
+    def test_pipeline_prints_summary_to_stdout(self, pipeline_stdout):
         """Pipeline should print summary information to stdout."""
-        mock_df = _make_ohlcv_dataframe(2150)
-
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        captured = capsys.readouterr()
         # Key output lines should be present
-        assert "Baseline VPA Accuracy" in captured.out
-        assert "ML Walk-Forward Accuracy" in captured.out
-        assert "Conclusion:" in captured.out
-        assert "Pipeline complete!" in captured.out
+        assert "Baseline VPA Accuracy" in pipeline_stdout
+        assert "ML Walk-Forward Accuracy" in pipeline_stdout
+        assert "Conclusion:" in pipeline_stdout
+        assert "Pipeline complete!" in pipeline_stdout
 
 
 # --- Test 2: Output files exist with correct names and headers ---
@@ -142,61 +183,21 @@ class TestEndToEndPipeline:
 class TestOutputFileCreation:
     """Test that output files are created with correct names and structure."""
 
-    def test_dataset_csv_exists(self, tmp_path):
+    def test_dataset_csv_exists(self, output_dir):
         """The pipeline should create {ticker}_vpa_features.csv."""
-        mock_df = _make_ohlcv_dataframe(2150)
+        assert (output_dir / "SPY_vpa_features.csv").exists(), "Dataset CSV file was not created"
 
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        dataset_path = tmp_path / "SPY_vpa_features.csv"
-        assert dataset_path.exists(), "Dataset CSV file was not created"
-
-    def test_feature_importance_csv_exists(self, tmp_path):
+    def test_feature_importance_csv_exists(self, output_dir):
         """The pipeline should create {ticker}_feature_importance.csv."""
-        mock_df = _make_ohlcv_dataframe(2150)
+        assert (output_dir / "SPY_feature_importance.csv").exists(), "Feature importance CSV file was not created"
 
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        importance_path = tmp_path / "SPY_feature_importance.csv"
-        assert importance_path.exists(), "Feature importance CSV file was not created"
-
-    def test_summary_txt_exists(self, tmp_path):
+    def test_summary_txt_exists(self, output_dir):
         """The pipeline should create {ticker}_analysis_summary.txt."""
-        mock_df = _make_ohlcv_dataframe(2150)
+        assert (output_dir / "SPY_analysis_summary.txt").exists(), "Analysis summary text file was not created"
 
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        summary_path = tmp_path / "SPY_analysis_summary.txt"
-        assert summary_path.exists(), "Analysis summary text file was not created"
-
-    def test_dataset_csv_headers(self, tmp_path):
+    def test_dataset_csv_headers(self, output_dir):
         """Dataset CSV should have all 27 feature columns plus metadata and label."""
-        mock_df = _make_ohlcv_dataframe(2150)
-
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        dataset_path = tmp_path / "SPY_vpa_features.csv"
-        df = pd.read_csv(dataset_path)
+        df = pd.read_csv(output_dir / "SPY_vpa_features.csv")
 
         from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 
@@ -211,19 +212,9 @@ class TestOutputFileCreation:
         # Label column
         assert "next_day_direction" in df.columns
 
-    def test_feature_importance_csv_headers(self, tmp_path):
+    def test_feature_importance_csv_headers(self, output_dir):
         """Feature importance CSV should have feature_name and importance_score columns."""
-        mock_df = _make_ohlcv_dataframe(2150)
-
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        importance_path = tmp_path / "SPY_feature_importance.csv"
-        df = pd.read_csv(importance_path)
+        df = pd.read_csv(output_dir / "SPY_feature_importance.csv")
 
         assert "feature_name" in df.columns
         assert "importance_score" in df.columns
@@ -231,19 +222,9 @@ class TestOutputFileCreation:
         assert len(df) == 31
         assert {"dss_bullish_cross", "dss_bearish_cross"} <= set(df["feature_name"])
 
-    def test_feature_importance_scores_sum_to_one(self, tmp_path):
+    def test_feature_importance_scores_sum_to_one(self, output_dir):
         """Feature importance scores should sum to approximately 1.0."""
-        mock_df = _make_ohlcv_dataframe(2150)
-
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        importance_path = tmp_path / "SPY_feature_importance.csv"
-        df = pd.read_csv(importance_path)
+        df = pd.read_csv(output_dir / "SPY_feature_importance.csv")
 
         total = df["importance_score"].sum()
         assert abs(total - 1.0) < 1e-4, f"Importance scores sum to {total}, expected ~1.0"
@@ -254,20 +235,6 @@ class TestOutputFileCreation:
 
 class TestSummaryFileContent:
     """Test that the analysis summary contains all required sections."""
-
-    @pytest.fixture
-    def summary_content(self, tmp_path):
-        """Run the pipeline and return the summary file content."""
-        mock_df = _make_ohlcv_dataframe(2150)
-        with _patch_repo(mock_df):
-            main(
-                ticker="SPY",
-                output_dir=str(tmp_path),
-                config_path=CONFIG_PATH,
-            )
-
-        summary_path = tmp_path / "SPY_analysis_summary.txt"
-        return summary_path.read_text(encoding="utf-8")
 
     def test_summary_contains_ticker(self, summary_content):
         """Summary should contain the ticker symbol."""

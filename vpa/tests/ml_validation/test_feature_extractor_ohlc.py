@@ -23,6 +23,10 @@ from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 CONFIG_PATH = r"d:\projects\trading\vpa\config\config.json"
 TICKER = "SPY"
 
+# Every test here runs the full VPA feature extraction over 2000+ rows (~5s each),
+# so the module is marked slow for the fast local path (`-m "not slow"`). SP-339.
+pytestmark = pytest.mark.slow
+
 
 class _FakeRepo:
     """Stub ``MarketDataRepository`` returning a fixed canonical OHLCV frame.

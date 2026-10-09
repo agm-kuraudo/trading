@@ -121,6 +121,7 @@ class TestEnableExtractionFlag:
 # --- Test 2: Dataset with exactly 2000 rows (boundary pass) ---
 
 
+@pytest.mark.slow
 class TestMinimumRowBoundary:
     """Test the 2000-row minimum check boundary."""
 
@@ -155,6 +156,7 @@ class TestMinimumRowBoundary:
 # --- Test 3: Dataset with 1999 rows (raises InsufficientDataError) ---
 
 
+@pytest.mark.slow
 class TestInsufficientDataError:
     """Test that fewer than 2000 labelled rows raises InsufficientDataError."""
 
@@ -198,6 +200,7 @@ class TestInsufficientDataError:
 # --- Test 4: Warm-up period skipping ---
 
 
+@pytest.mark.slow
 class TestWarmUpPeriodSkipping:
     """Test that rows before period_three is full produce no features."""
 

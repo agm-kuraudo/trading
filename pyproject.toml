@@ -27,6 +27,9 @@ known-first-party = ["ig", "options", "utils", "vpa"]
 
 [tool.pytest.ini_options]
 testpaths = ["vpa/tests", "options/tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"'). Applied to the ml_validation tests that train real XGBoost models or run the full pipeline.",
+]
 norecursedirs = [
     ".venv",
     "__pycache__",
