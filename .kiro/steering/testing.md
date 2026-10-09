@@ -19,3 +19,28 @@ PR, or before marking a Jira task Done:
 
 If a CI pipeline is ever added, it MUST run `pytest -m ""` so the slow ML
 tests are not silently skipped. Bare `pytest` in CI would skip them.
+
+# Linting and formatting (ruff)
+
+Run ruff lint AND format checks BEFORE the final `pytest -m ""` run and BEFORE
+any push, PR open/merge, or marking a Jira task Done. The repo ships a ruff CI
+workflow (`.github/workflows/ruff.yml`), so unformatted or lint-failing code
+will fail CI — catch it locally first.
+
+    ruff check .           # lint
+    ruff format --check .  # formatting (does not modify files)
+
+Fix anything they flag before proceeding:
+
+    ruff check --fix .     # auto-fix lint issues where possible
+    ruff format .          # apply formatting
+
+Recommended pre-push / pre-PR order:
+
+    1. ruff check .  &&  ruff format --check .   # lint + format clean
+    2. pytest -m ""                              # full suite green
+    3. push / open PR / mark Done
+
+A common trip-up: files written by tooling or scripts (not an editor) can lose
+the trailing newline or drift from ruff's style — always run the format check
+after such writes, not just the tests.

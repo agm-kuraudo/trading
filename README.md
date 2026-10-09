@@ -1,10 +1,12 @@
-# VPA Trading Bot
+# Trading Bot
 
-Volume Price Analysis (VPA) signal detection and trading automation for equities.
+The end goal of the Trading Bot is a money-making bot that can run multiple strategies independently. Everything else in the project exists to serve that goal: to find the data and the strategies that feed it. Volume Price Analysis (VPA) signal detection, ML validation, and backtesting are support components on that path — subsystems that discover and validate candidate strategies for equities — not standalone projects.
+
+For the structured project record — the component decisions, migration record, and the inventory of every runnable application and its run process — see [docs/project.md](docs/project.md).
 
 ## Architecture & Data Flow
 
-This project grew in stages, and the signal logic now lives in **two separate paths** that do not share code. Knowing which path you are looking at is the key to understanding the codebase.
+The VPA signal subsystem grew in stages, and its signal logic now lives in **two separate paths** that do not share code. Knowing which path you are looking at is the key to understanding this part of the codebase.
 
 ### The two signal paths
 
