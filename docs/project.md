@@ -93,11 +93,24 @@ archive all of MLL and migrate nothing.
 
 ## Migration Record
 
-> _Placeholder — populated by task 6.1. This section will record each
-> Migrated_Component with its source path in the MLL_Project, its target path in
-> the Trading_Repo, how it is made invocable, and its migration status._
+**No components migrated.**
 
-_Not yet recorded._
+The MLL Decision Record (above) records an **archive-all** decision backed by the
+three measured evidence criteria: MLL duplicates no Trading_Repo file (file
+overlap 0%), every one of its stock-ML capabilities is already superseded by the
+XGBoost work in `vpa/ml_validation` (functionality overlap 3 of 3), and its only
+non-shared dependencies are the retired TensorFlow/Keras stack. No MLL component
+retains a distinct purpose worth bringing into the Trading_Repo.
+
+| Migrated component | Source (MLL_Project) | Target (Trading_Repo) | Invocable via | Status |
+|---|---|---|---|---|
+| _(none)_ | — | — | — | — |
+
+Workstream 4 (migration) therefore has nothing to move: no files were migrated,
+no imports rewritten, and no new Run_Process was created from MLL. The entire
+MLL_Project is archived per the decision above (removed from the Kiro workspace /
+no longer maintained; optionally the MLL GitHub repo archived) — not an in-repo
+`archive/` path.
 
 ---
 
