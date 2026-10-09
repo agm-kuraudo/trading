@@ -116,13 +116,379 @@ no longer maintained; optionally the MLL GitHub repo archived) — not an in-rep
 
 ## Application Inventory
 
-> _Placeholder — populated by task 8.1. This section will list every distinct
-> Application (at minimum: MLL, options tooling, IG/forex tooling, VPA signal
-> generation, ML validation, backtesting) with a complete Run_Process:
-> exact invocation command, required inputs (with source + mandatory/optional),
-> and produced outputs (with destination)._
+This inventory lists every distinct Application in the Trading Bot project and,
+for each, a complete Run_Process following the `ApplicationEntry` /
+`Run_Process` schema in the design Data Models: an exact non-blank invocation
+command, a complete list of required inputs (each with its source and
+mandatory/optional status), and a complete list of produced outputs (each with
+its destination). Where an Application cannot be executed in the Trading_Repo —
+because its code was removed or it was archived — it is recorded with an
+`undetermined` status and a blocking-reason note rather than blank fields
+(Req 5.4, 5.5).
 
-_Not yet recorded._
+All invocation commands are run from the repository root (`d:\projects\trading`),
+which is where the first-party `vpa` package resolves and where the relative
+config/output paths used by the apps (`vpa/config/config.json`,
+`ml_validation_output/`) are anchored. `python` denotes the project virtualenv
+interpreter.
+
+> **Status legend:** `documented` = a verified, runnable Run_Process in the
+> Trading_Repo. `undetermined` = cannot be executed in the Trading_Repo (removed
+> or archived); recorded with a blocking-reason note per Req 5.5.
+
+### Inventory summary
+
+| # | Application | Invocation | Status |
+|---|---|---|---|
+| 1 | VPA signal generation (daily signal generator) | `python -m vpa.ml_validation.daily_signal --ticker SPY` | documented |
+| 2 | VPA SP-500 scan | `python -m vpa.app_all_shares` | documented |
+| 3 | ML validation (XGBoost walk-forward pipeline) | `python -m vpa.ml_validation.run_analysis --ticker SPY` | documented |
+| 4 | Signal-conditional analysis | `python -m vpa.ml_validation.run_signal_analysis` | documented |
+| 5 | Feature extraction | `python scripts/extract_features.py --ticker SPY` | documented |
+| 6 | Backtesting (backtest runner) | `python -m vpa.backtesting.run_backtest --ticker SPY` | documented |
+| 7 | Market-data backfill | `python scripts/backfill_market_data.py --ticker SPY --interval 1d` | documented |
+| 8 | Market-data store verify/bootstrap | `python scripts/verify_market_data_db.py` | documented |
+| 9 | IG/forex tooling | `python ig/ig_poc.py` + `python -m vpa.app_forex` | documented |
+| 10 | Ticker-signal config import | `python scripts/import_ticker_signals.py --ticker SPY --analysis-csv <path>` | documented |
+| 11 | Options tooling | _(removed in SP-348 task 3)_ | undetermined |
+| 12 | MLL | _(archived; no run process in the Trading_Repo)_ | undetermined |
+
+### 1. VPA signal generation (daily signal generator)
+
+The daily VPA signal generator. Downloads recent OHLCV for one ticker,
+runs it through the VPA rolling-window feature pipeline, classifies the latest
+candle, applies the contrarian inversion, and appends actionable signals to a
+per-ticker CSV log. Entry point: `vpa/ml_validation/daily_signal.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python -m vpa.ml_validation.daily_signal --ticker SPY [--lookback-days 200] [--output-dir ml_validation_output]`
+  - `--ticker` defaults to `SPY`; `--lookback-days` defaults to `200` (valid range 70–3650); `--output-dir` defaults to `ml_validation_output`.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| VPA config (`PERIOD_ONE/TWO/THREE_LENGTH`, `PERCENTILE_START`, `PERCENTILE_INCREMENTS`) | `vpa/config/config.json` (resolved relative to the working dir) | Mandatory — raises `InsufficientDataError` if absent |
+| OHLCV price history for the ticker | `yfinance` download (network), bounded by `--lookback-days` | Mandatory — raises `InsufficientDataError` if the feed returns < 50 valid rows |
+| `--ticker` symbol | CLI argument | Optional (defaults to `SPY`) |
+| `--lookback-days` | CLI argument | Optional (defaults to `200`) |
+| `--output-dir` | CLI argument | Optional (defaults to `ml_validation_output`) |
+| Ticker-specific signal rules | `vpa/config/ticker_signals.json` | Optional — missing/invalid file falls back to default confidence mapping |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Appended actionable signal rows (deduped on `ticker,date,signal_type`) | `{output-dir}/{ticker-lowercase}_daily_signals.csv` (e.g. `ml_validation_output/spy_daily_signals.csv`) |
+| Human-readable signal summary / "No high-conviction signal today" | stdout |
+| Error messages (missing config, insufficient data, IO) | stderr (exit code 1); invalid args exit code 2 |
+
+### 2. VPA SP-500 scan
+
+Scans the full SP-500 ticker universe, scoring each with the VPA
+`MarketAnalyzer` (sourced through the market-data store) and evaluating the
+drawdown-opportunity filter, then writes CSV, HTML, and plain-text daily
+reports. Entry point: `vpa/app_all_shares.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python -m vpa.app_all_shares`
+  - Takes no CLI arguments; paths are module defaults relative to `vpa/`.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| VPA config (incl. drawdown-opportunity config) | `vpa/config/config.json` (`DEFAULT_CONFIG_PATH`) | Mandatory |
+| SP-500 ticker universe | `vpa/data/SP500-tickers.csv` (`DEFAULT_TICKERS_PATH`) | Mandatory |
+| Per-ticker OHLCV bars | market-data store via `MarketAnalyzer.load_data` → `repo.load_ohlcv` (stored bars + missing-tail yfinance fetch) | Mandatory (store must be reachable; see app 8) |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Daily scan reports (CSV, HTML, plain text) | `vpa/log/` (`DEFAULT_OUTPUT_DIR`), e.g. `vpa/log/share_output_YYYYMMDD.{csv,html,txt}` |
+| "Reports written: …" confirmation line | stdout |
+
+### 3. ML validation (XGBoost walk-forward pipeline)
+
+The ML validation pipeline. Generates the VPA feature dataset, computes the
+baseline VPA accuracy, runs a 5-split walk-forward XGBoost validation, extracts
+feature importance, and writes the dataset, importance, and summary artefacts.
+This is the maintained successor to MLL's old TensorFlow/Keras GRU work (see
+MLL Decision Record). Entry point: `vpa/ml_validation/run_analysis.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python -m vpa.ml_validation.run_analysis --ticker SPY [--output-dir ml_validation_output] [--config vpa/config/config.json]`
+  - `--ticker` defaults to `SPY`; `--output-dir` defaults to `ml_validation_output`; `--config` defaults to `vpa/config/config.json`.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| VPA config | `vpa/config/config.json` (via `--config`, auto-resolved if omitted) | Mandatory |
+| OHLCV price history (~10 years, `days=3650`) | `yfinance` download (network), via `VPAFeatureExtractor.generate_dataset` | Mandatory |
+| `--ticker` symbol | CLI argument | Optional (defaults to `SPY`) |
+| `--output-dir` | CLI argument | Optional (defaults to `ml_validation_output`) |
+| `--config` path | CLI argument | Optional (defaults to `vpa/config/config.json`) |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Feature dataset CSV, feature-importance CSV, and summary text (via `AnalysisScript.save_outputs`) | `{output-dir}/` (default `ml_validation_output/`) |
+| Pipeline progress, accuracies, top-5 features, conclusion | stdout |
+
+### 4. Signal-conditional analysis
+
+Signal-conditional statistical analysis. For each ticker it classifies VPA
+signal events, computes forward returns and hit-rate metrics across horizons,
+runs significance testing, and writes per-ticker and cross-ticker summary
+artefacts. Runs the full built-in universe by default, or a single ticker with
+`--ticker`. Entry point: `vpa/ml_validation/run_signal_analysis.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python -m vpa.ml_validation.run_signal_analysis [--ticker SPY] [--output-dir ml_validation_output]`
+  - With no `--ticker`, runs the full `TICKER_UNIVERSE` (SPY, AAPL, MSFT, NVDA, TSLA, AMD, KO, JNJ, CAT, BA, XOM); with `--ticker <T>`, single-ticker mode (no cross-ticker summary).
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| Per-ticker VPA feature CSV | `{output-dir}/SPY_vpa_features.csv` (SPY) or `{output-dir}/{ticker}/{ticker}_vpa_features.csv` (others) — produced by app 5 (feature extraction) | Mandatory (full-universe mode skips tickers whose CSV is missing; single-ticker mode fails if its CSV is absent) |
+| `--ticker` symbol | CLI argument | Optional (absent ⇒ full-universe mode) |
+| `--output-dir` | CLI argument | Optional (defaults to `ml_validation_output`) |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Per-ticker detail CSV | `{output-dir}/{ticker}_signal_analysis.csv` |
+| Cross-ticker comparison CSV (full-universe mode only) | `{output-dir}/signal_comparison_summary.csv` |
+| Summary text with interpretation table (full-universe mode only) | `{output-dir}/signal_analysis_summary.txt` |
+| Progress / completion messages | stdout |
+
+### 5. Feature extraction
+
+Builds a ticker's VPA feature dataset via `VPAFeatureExtractor` and writes it to
+the SP-314 layout that apps 4 and 6 read. With `--import-config` it also runs
+signal-conditional analysis (app 4, single-ticker) and the ticker-signal import
+(app 10) in sequence. Entry point: `scripts/extract_features.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python scripts/extract_features.py --ticker SPY [--days 3650] [--import-config]`
+  - `--ticker` is required; `--days` defaults to `3650`; `--import-config` is an optional flag.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| `--ticker` symbol | CLI argument | Mandatory (`required=True`) |
+| VPA config | `vpa/config/config.json` (hard-coded in the script) | Mandatory |
+| OHLCV price history | `yfinance` download (network), via `VPAFeatureExtractor.generate_dataset(days=…)` | Mandatory |
+| `--days` lookback | CLI argument | Optional (defaults to `3650`) |
+| `--import-config` flag | CLI argument | Optional (defaults to off; when set, chains apps 4 and 10) |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| VPA feature dataset CSV | `ml_validation_output/{ticker}_vpa_features.csv` (SPY) or `ml_validation_output/{ticker}/{ticker}_vpa_features.csv` (others) |
+| (with `--import-config`) signal-analysis CSV + updated ticker-signal config | `ml_validation_output/{ticker}_signal_analysis.csv` and `vpa/config/ticker_signals.json` (via the chained apps) |
+| Progress / "Dataset saved to …" messages | stdout |
+
+### 6. Backtesting (backtest runner)
+
+Thin CLI runner for the VPA backtesting engine (SP-317). Loads a ticker's
+feature dataset CSV, builds the signal log and price series, runs
+`BacktestEngine`, and prints a trade-count summary. Optionally materialises a
+scoped OHLCV CSV from the store first. Entry point:
+`vpa/backtesting/run_backtest.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python -m vpa.backtesting.run_backtest --ticker SPY [--hold-period 10] [--output-dir ml_validation_output] [--export-start YYYY-MM-DD --export-end YYYY-MM-DD]`
+  - `--ticker` defaults to `SPY`; `--hold-period` defaults to `10`; `--output-dir` defaults to `ml_validation_output`. `--export-start`/`--export-end` are optional and only take effect together.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| Per-ticker VPA feature CSV | `{output-dir}/SPY_vpa_features.csv` (SPY) or `{output-dir}/{ticker}/{ticker}_vpa_features.csv` (others) — produced by app 5 | Mandatory (the runner reads a local CSV; no network by default) |
+| `--ticker` symbol | CLI argument | Optional (defaults to `SPY`) |
+| `--hold-period` (trading days) | CLI argument | Optional (defaults to `10`) |
+| `--output-dir` | CLI argument | Optional (defaults to `ml_validation_output`) |
+| `--export-start` / `--export-end` range | CLI arguments | Optional — when both set, triggers an offline scoped OHLCV export from the market-data store before running |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Backtest summary (ticker, hold period, signal/price/trade counts, skips by reason) | stdout |
+| (with `--export-start/--export-end`) scoped OHLCV CSV materialised from the store | `{output-dir}/` (via `export_ohlcv_for_backtest`) |
+
+### 7. Market-data backfill
+
+One-off backfill (SP-349) that seeds the dedicated `market_data` store with the
+deepest available OHLCV history (`period="max"`) for a ticker/interval, so later
+read-through loads only fetch the missing tail. Idempotent via the
+`(ticker, interval, ts)` PK. Entry point: `scripts/backfill_market_data.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python scripts/backfill_market_data.py --ticker SPY --interval 1d`
+  - `--ticker` is required; `--interval` defaults to `1d`.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| `--ticker` symbol | CLI argument | Mandatory (`required=True`) |
+| Deepest OHLCV history | `yfinance` download with `period="max"` (network) | Mandatory |
+| DB connection details | `.env` (consumed by `MarketDataRepository` → `vpa/market_data/db.py`) | Mandatory — the live `market_data` Postgres store (the `my_postgres` container on the Raspberry Pi) must be reachable |
+| `--interval` tag | CLI argument | Optional (defaults to `1d`) |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Upserted OHLCV bars | `market_data.ohlcv` table in the dedicated `market_data` Postgres store |
+| "Backfilled … inserted=… updated=…" summary | stdout |
+
+### 8. Market-data store verify/bootstrap
+
+Verifies and idempotently bootstraps the dedicated `market_data` store (SP-349):
+validates `.env` DB keys, creates the `market_data` database if absent, and
+ensures the schema, `ohlcv` table, index, and TimescaleDB objects
+(hypertable + compression policy) exist. Returns a non-zero exit code when
+config is missing or the store is unreachable, so a scheduler/deploy step can
+gate on it. Entry point: `scripts/verify_market_data_db.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python scripts/verify_market_data_db.py`
+  - Takes no CLI arguments.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| DB connection details (`REQUIRED_DB_KEYS`) | `.env` (via `_read_db_config` / `validate_env`) | Mandatory — missing keys abort before connecting (exit code 2) |
+| Reachable Postgres server with TimescaleDB available | the `my_postgres` container on the Raspberry Pi | Mandatory — unreachable server exits code 1 |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| `market_data` database, `market_data` schema, `ohlcv` table + index, Timescale hypertable + compression policy (created only if absent; idempotent) | the dedicated `market_data` Postgres store |
+| Verification result block (`reachable`, `missing_config`, `db_ready`, `schema_ready`, `created`, `error`) | stdout; failure messages to stderr |
+| Exit code (`0` ok, `1` unreachable, `2` missing config) | process exit status |
+
+### 9. IG/forex tooling
+
+The IG/forex tooling is two cooperating runnable pieces: the IG REST
+proof-of-concept (`ig/ig_poc.py`) that authenticates against the IG demo API and
+searches an instrument, and the forex VPA entry point (`vpa/app_forex.py`) that
+retrieves daily GBPUSD bars via the browserless Dukascopy retriever and runs the
+VPA analysis. Both are standalone scripts (the IG PoC is intentionally not
+imported anywhere).
+
+- **Status:** `documented`
+- **Invocation:**
+  - IG PoC: `python ig/ig_poc.py`
+  - Forex VPA: `python -m vpa.app_forex`
+  - Neither takes CLI arguments.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| IG demo API credentials (`identifier`, `password`, `X-IG-API-KEY`) | currently hard-coded literals in `ig/ig_poc.py` | Mandatory for the IG PoC — the demo API session must accept them (see blocking note below) |
+| IG demo API reachability | `https://demo-api.ig.com` (network) | Mandatory for the IG PoC |
+| VPA config | `config/config.json` (resolved relative to the working dir) | Mandatory for the forex VPA app |
+| Daily GBPUSD OHLCV bars (≥200 daily bars) | browserless Dukascopy feed (`data.forexsb.com`) via `vpa.forex_data.get_daily_dataframe` (network) | Mandatory for the forex VPA app |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| IG session tokens (CST, X-SECURITY-TOKEN), account IDs, balance, GBP/SPY market search result | stdout (IG PoC; exits code 1 on login failure) |
+| VPA trade signal + BUY/SELL/DO-NOT-TRADE recommendation and interval charts | the `MarketAnalyzer` log / chart output under `vpa/log/` (forex VPA app) |
+
+> **Note (IG PoC credentials):** `ig/ig_poc.py` contains hard-coded demo-API
+> credentials and an API key rather than reading them from `.env`. The forex VPA
+> app (`vpa.app_forex`) has no such dependency and is fully runnable. The IG PoC
+> remains `documented` because its invocation and I/O are known and non-blank;
+> running it against a live IG demo session depends on those embedded
+> credentials still being valid. These should be moved to `.env` in future work.
+
+### 10. Ticker-signal config import
+
+Collapses a per-ticker signal-analysis CSV (one row per signal_type × horizon)
+into a single rule per signal type and writes it into the ticker-signal config
+consumed by app 1. Normally chained from app 5 (`--import-config`) but also
+runnable standalone. Entry point: `scripts/import_ticker_signals.py`.
+
+- **Status:** `documented`
+- **Invocation:** `python scripts/import_ticker_signals.py --ticker SPY --analysis-csv ml_validation_output/SPY_signal_analysis.csv`
+  - Both `--ticker` and `--analysis-csv` are required.
+
+**Required inputs**
+
+| Input | Source | Mandatory/Optional |
+|---|---|---|
+| `--ticker` symbol | CLI argument | Mandatory (`required=True`) |
+| `--analysis-csv` path | CLI argument — a per-ticker signal-analysis CSV produced by app 4 | Mandatory (`required=True`) |
+| Existing ticker-signal config | `vpa/config/ticker_signals.json` (merged into if present; created if absent) | Optional |
+
+**Produced outputs**
+
+| Output | Destination |
+|---|---|
+| Updated ticker-signal rules for the ticker | `vpa/config/ticker_signals.json` |
+| "Updated config for …" confirmation | stdout |
+
+### 11. Options tooling
+
+Listed per the Req 5.1 minimum set. The options tooling (the whole `options/`
+package — `options32.py`, `options_payoffs.py`, `options_four_options.py`,
+`options_three_options.py`, `calc_greeks.py`, `price_calc.py`,
+`implied_volatility_calc.py`, `chart_pl.py`, plus `options/tests/`) and the
+option-pricing helpers in `utils.utils` were **removed from the working tree in
+SP-348 task 3** (classified as `One_Off_Experiment_Script` variants of a single
+options Application; see the File Classification section).
+
+- **Status:** `undetermined`
+- **Invocation:** _none in the current Trading_Repo — the entry points no longer exist in the working tree._
+- **Blocking reason:** the `options/` package and the `utils.utils` option
+  helpers were deleted in task 3, so there is no live, non-blank invocation
+  command, input list, or output list to document. The code is **recoverable
+  from Git history** (`git log --diff-filter=D --name-only` locates the removal
+  commit; `git checkout <prior-commit> -- options/` restores it). If the options
+  tooling is revived, a complete Run_Process must be defined at that point:
+  consolidate to one canonical entry point (historically `python options/options32.py`),
+  with its pricing/market inputs (sources + mandatory/optional) and its chart/data
+  outputs (`options/charts/`, `options/data/`) as destinations.
+
+### 12. MLL
+
+Listed per the Req 5.1 minimum set. MLL (the separate `d:\projects\MLL`
+TensorFlow/Keras stock-ML project — `get_data.py`, `model_trainer.py`,
+`predictor.py`) was evaluated in SP-348 task 5 and **archived with nothing
+migrated** (see the MLL Decision Record and Migration Record above). It is
+superseded by the XGBoost walk-forward work under `vpa/ml_validation/`
+(apps 3 and 4).
+
+- **Status:** `undetermined`
+- **Invocation:** _none in the Trading_Repo — MLL is not part of this repository._
+- **Blocking reason:** MLL was archived — removed from the Kiro workspace and no
+  longer maintained (optionally its GitHub repo archived) — and migrate-nothing,
+  so it has no run process inside the Trading_Repo. Its three stock-ML
+  capabilities (download/normalise OHLCV, train a next-direction model, predict
+  next direction) are already provided, in a maintained form, by the ML
+  validation and signal-conditional analysis Applications (apps 3 and 4), which
+  therefore stand in as the Trading_Repo run processes for that capability.
+  MLL's own scripts additionally relied on hard-coded `/app/...` paths and a
+  TensorFlow/Keras + Postgres stack that is not installed or wired into the
+  Trading_Repo, so they are not executable here as-is.
+
+---
 
 ---
 
