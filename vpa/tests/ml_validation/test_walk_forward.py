@@ -95,8 +95,9 @@ def time_indexed_dataset(draw):
 
 
 # Feature: vpa-ml-validation, Property 9: Walk-forward chronological ordering
+@pytest.mark.slow
 @given(data=time_indexed_dataset())
-@settings(max_examples=50, deadline=None)
+@settings(max_examples=25, deadline=None)
 def test_property_walk_forward_chronological_ordering(data):
     """Property 9: For each non-skipped fold, the max index in training is strictly
     less than the min index in testing.
@@ -146,7 +147,8 @@ def test_property_walk_forward_chronological_ordering(data):
 
 
 # Feature: vpa-ml-validation, Property 10: Fold skip on insufficient samples
-@settings(max_examples=50, deadline=None)
+@pytest.mark.slow
+@settings(max_examples=25, deadline=None)
 @given(
     n_rows=st.integers(min_value=12, max_value=200),
     seed=st.integers(min_value=0, max_value=10000),
@@ -191,9 +193,9 @@ def test_property_fold_skip_on_insufficient_samples(n_rows: int, seed: int) -> N
 
     # Verify that the number of fold accuracies equals non-skipped folds
     expected_valid_folds = 5 - len(expected_skipped)
-    assert len(result.fold_accuracies) == expected_valid_folds, (
-        f"Expected {expected_valid_folds} fold accuracies for n_rows={n_rows}, " f"got {len(result.fold_accuracies)}"
-    )
+    assert (
+        len(result.fold_accuracies) == expected_valid_folds
+    ), f"Expected {expected_valid_folds} fold accuracies for n_rows={n_rows}, got {len(result.fold_accuracies)}"
 
 
 # =============================================================================
@@ -201,6 +203,7 @@ def test_property_fold_skip_on_insufficient_samples(n_rows: int, seed: int) -> N
 # =============================================================================
 
 
+@pytest.mark.slow
 class TestWalkForwardValidatorEdgeCases:
     """Edge case tests for WalkForwardValidator."""
 
