@@ -94,7 +94,7 @@ class TestDefaultParamsPreservation:
         # Guard: schema + minimum-row sanity so the oracle comparison is meaningful.
         assert (
             list(extracted.columns) == EXPECTED_COLUMNS
-        ), "extraction schema drifted from the expected 31 features + metadata + label"
+        ), "extraction schema drifted from the expected 33 features + metadata + label"
         assert len(extracted) >= 2000, "pinned window must yield >=2000 labelled rows"
 
         expected = _load_fixture()

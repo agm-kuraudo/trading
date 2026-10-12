@@ -117,7 +117,7 @@ def render_plain_text(report: DailyReport) -> str:
     else:
         for result in report.opportunities:
             lines.append(
-                f"{result.report_ticker}: drawdown={result.drawdown_pct:.1f}% " f"momentum={result.momentum_pct:.1f}%"
+                f"{result.report_ticker}: drawdown={result.drawdown_pct:.1f}% momentum={result.momentum_pct:.1f}%"
             )
     if report.failed_results:
         lines.extend(["", "Failed tickers"])

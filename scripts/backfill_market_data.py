@@ -94,7 +94,7 @@ def main(argv=None) -> int:
     """
     args = _parse_args(argv)
     result = backfill(args.ticker, args.interval)
-    print(f"Backfilled {args.ticker} ({args.interval}): " f"inserted={result['inserted']}, updated={result['updated']}")
+    print(f"Backfilled {args.ticker} ({args.interval}): inserted={result['inserted']}, updated={result['updated']}")
     return 0
 
 

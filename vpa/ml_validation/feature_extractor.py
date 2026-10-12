@@ -14,10 +14,64 @@ from vpa.ml_validation.tuning.scoring_params import ScoringParams
 from vpa.rsi import calculate_rsi
 
 
+def _pvs_isnan(value) -> bool:
+    """NaN check that works on plain floats and numpy floats without pandas."""
+    return value != value
+
+
+def compute_price_vs_sma_feature(
+    close,
+    sma_value,
+    prev_close,
+    prev_sma,
+    pvs_cfg,
+    *,
+    enabled: bool,
+    has_previous: bool,
+) -> tuple[float, float]:
+    """Pure price-vs-SMA feature computation (SP-340).
+
+    Reproduces ``MarketAnalyzer.detect_price_vs_sma_signals`` branch-for-branch:
+    a position-based score (close vs the current SMA) plus an optional crossover
+    term when ``pvs_cfg.detect_crossover`` is set and a valid previous row exists.
+
+    Returns ``(price_vs_sma_value, price_vs_sma_signal_score)``. When the signal
+    is disabled or the current SMA/close is unavailable (NaN), returns the neutral
+    sentinel value ``50.0`` (mirroring ``rsi_value``) and a score of ``0.0``.
+
+    This is a pure function of its scalar inputs and the config, so it can be unit-
+    and property-tested in microseconds without driving the full extraction path.
+    """
+    price_vs_sma_value = 50.0
+    price_vs_sma_signal_score = 0.0
+
+    if not enabled:
+        return price_vs_sma_value, price_vs_sma_signal_score
+    if _pvs_isnan(sma_value) or _pvs_isnan(close):
+        return price_vs_sma_value, price_vs_sma_signal_score
+
+    price_vs_sma_value = float(sma_value)
+
+    # Position-based (Req 3.3-3.5, 3.7)
+    if close > sma_value:
+        price_vs_sma_signal_score += float(pvs_cfg.scores.above)
+    elif close < sma_value:
+        price_vs_sma_signal_score -= float(pvs_cfg.scores.below)
+
+    # Optional crossover (Req 3.8-3.12), requires a valid previous row
+    if pvs_cfg.detect_crossover and has_previous and not (_pvs_isnan(prev_sma) or _pvs_isnan(prev_close)):
+        if prev_close <= prev_sma and close > sma_value:
+            price_vs_sma_signal_score += float(pvs_cfg.crossover_scores.cross_above)
+        elif prev_close >= prev_sma and close < sma_value:
+            price_vs_sma_signal_score -= float(pvs_cfg.crossover_scores.cross_below)
+
+    return price_vs_sma_value, price_vs_sma_signal_score
+
+
 class VPAFeatureExtractor:
     """Extracts VPA intermediate features as a structured vector for ML analysis."""
 
-    # Fixed column order for the 31-feature vector
+    # Fixed column order for the 33-feature vector
     FEATURE_COLUMNS = [
         "spread_pct_p1",
         "spread_pct_p2",
@@ -46,6 +100,8 @@ class VPAFeatureExtractor:
         "acc_dist_score",
         "rsi_value",
         "rsi_signal_score",
+        "price_vs_sma_value",
+        "price_vs_sma_signal_score",
         "dss_bullish_cross",
         "dss_bearish_cross",
         "composite_score",
@@ -94,6 +150,8 @@ class VPAFeatureExtractor:
         deque_dictionary: dict,
         dss_bullish_cross: int = 0,
         dss_bearish_cross: int = 0,
+        price_vs_sma_value: float = 50.0,
+        price_vs_sma_signal_score: float = 0.0,
     ) -> dict:
         """
         Build a single feature vector dict from intermediate MarketAnalyzer state.
@@ -109,7 +167,7 @@ class VPAFeatureExtractor:
             deque_dictionary: Dict of period deques containing Candle objects.
 
         Returns:
-            A dict with fixed column names and numeric values, containing all 29
+            A dict with fixed column names and numeric values, containing all 33
             feature columns in the order defined by FEATURE_COLUMNS.
         """
         # Spread percentiles
@@ -229,6 +287,8 @@ class VPAFeatureExtractor:
             "acc_dist_score": acc_dist_score,
             "rsi_value": rsi_value,
             "rsi_signal_score": rsi_signal_score,
+            "price_vs_sma_value": price_vs_sma_value,
+            "price_vs_sma_signal_score": price_vs_sma_signal_score,
             "dss_bullish_cross": int(dss_bullish_cross),
             "dss_bearish_cross": int(dss_bearish_cross),
             "composite_score": composite_score,
@@ -268,7 +328,7 @@ class VPAFeatureExtractor:
 
         Returns:
             DataFrame with one row per trading day (after warm-up), containing
-            all 27 feature columns, metadata columns (date, close), and the
+            all 33 feature columns, metadata columns (date, close), and the
             next_day_direction label. The final row is excluded (no next-day label).
 
         Raises:
@@ -330,6 +390,21 @@ class VPAFeatureExtractor:
                 dss_cfg.trigger_period,
             )
             dss_warmup = dss_cfg.stochastic_period + dss_cfg.smoothing_period + dss_cfg.trigger_period - 2
+
+        # --- Step 3c: Pre-compute the price-vs-SMA series over the whole frame ---
+        # Mirrors MarketAnalyzer.compute_price_vs_sma_column exactly:
+        # rolling(window=period, min_periods=period).mean(), so the first
+        # ``period - 1`` rows are NaN (warm-up, no partial-window SMA). Gated on
+        # the ``enabled`` flag; when disabled, sma_series stays None and every
+        # row emits a 0.0 score with the neutral value sentinel. ``closes`` is
+        # kept as a list for O(1) previous-row access by positional ``pos``,
+        # consistent with how the DSS block indexes dss_osc/dss_trig.
+        pvs_cfg = self._config.price_vs_sma
+        pvs_enabled = bool(pvs_cfg.enabled)
+        sma_series: list[float] | None = None
+        closes = df["Close"].tolist()
+        if pvs_enabled:
+            sma_series = df["Close"].rolling(window=pvs_cfg.period, min_periods=pvs_cfg.period).mean().tolist()
 
         # --- Step 4: Set up rolling deques ---
         deque_dictionary = {
@@ -426,6 +501,27 @@ class VPAFeatureExtractor:
                     dss_bullish_cross = int(previous_dss <= previous_trigger and current_dss > current_trigger)
                     dss_bearish_cross = int(previous_dss >= previous_trigger and current_dss < current_trigger)
 
+            # --- Step 9b: Price-vs-SMA position + optional crossover score ---
+            # Delegates to the pure ``compute_price_vs_sma_feature`` helper so the
+            # scoring logic is independently unit/property-testable without driving
+            # the full extraction path. Warm-up / disabled / NaN all yield score
+            # 0.0 with the value sentinel.
+            if pvs_enabled and sma_series is not None:
+                prev_sma = sma_series[pos - 1] if pos > 0 else float("nan")
+                prev_close = closes[pos - 1] if pos > 0 else float("nan")
+                price_vs_sma_value, price_vs_sma_signal_score = compute_price_vs_sma_feature(
+                    closes[pos],
+                    sma_series[pos],
+                    prev_close,
+                    prev_sma,
+                    pvs_cfg,
+                    enabled=True,
+                    has_previous=pos > 0,
+                )
+            else:
+                price_vs_sma_value = 50.0
+                price_vs_sma_signal_score = 0.0
+
             # --- Step 10: Extract feature vector ---
             feature_vector = self._extract_feature_vector(
                 candle=this_candle,
@@ -435,6 +531,8 @@ class VPAFeatureExtractor:
                 deque_dictionary=deque_dictionary,
                 dss_bullish_cross=dss_bullish_cross,
                 dss_bearish_cross=dss_bearish_cross,
+                price_vs_sma_value=price_vs_sma_value,
+                price_vs_sma_signal_score=price_vs_sma_signal_score,
             )
 
             # Add metadata

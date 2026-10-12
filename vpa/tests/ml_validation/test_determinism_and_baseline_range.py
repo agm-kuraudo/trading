@@ -197,6 +197,6 @@ class TestDeterminismReproducibility:
             f"Baseline_Accuracy not reproducible to 2dp: "
             f"{round(baseline_acc1 * 100, 2)} != {round(baseline_acc2 * 100, 2)}"
         )
-        assert round(ml_mean1 * 100, 2) == round(ml_mean2 * 100, 2), (
-            f"mean ML_Accuracy not reproducible to 2dp: " f"{round(ml_mean1 * 100, 2)} != {round(ml_mean2 * 100, 2)}"
-        )
+        assert round(ml_mean1 * 100, 2) == round(
+            ml_mean2 * 100, 2
+        ), f"mean ML_Accuracy not reproducible to 2dp: {round(ml_mean1 * 100, 2)} != {round(ml_mean2 * 100, 2)}"

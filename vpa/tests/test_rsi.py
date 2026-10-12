@@ -148,9 +148,9 @@ class TestRSIProperties:
 
         result = calculate_rsi(closes, period)
 
-        assert 0.0 <= result <= 100.0, (
-            f"RSI {result} out of bounds [0.0, 100.0] for " f"{len(closes)} prices with period={period}"
-        )
+        assert (
+            0.0 <= result <= 100.0
+        ), f"RSI {result} out of bounds [0.0, 100.0] for {len(closes)} prices with period={period}"
 
     @given(closes=strictly_increasing_prices(min_size=15, max_size=500))
     @settings(max_examples=200, deadline=None)
@@ -170,9 +170,9 @@ class TestRSIProperties:
 
         result = calculate_rsi(closes, period)
 
-        assert result > 50.0, (
-            f"RSI {result} should be > 50.0 for strictly increasing prices " f"(length={len(closes)}, period={period})"
-        )
+        assert (
+            result > 50.0
+        ), f"RSI {result} should be > 50.0 for strictly increasing prices (length={len(closes)}, period={period})"
 
     @given(closes=strictly_decreasing_prices(min_size=15, max_size=500))
     @settings(max_examples=200, deadline=None)
@@ -192,9 +192,9 @@ class TestRSIProperties:
 
         result = calculate_rsi(closes, period)
 
-        assert result < 50.0, (
-            f"RSI {result} should be < 50.0 for strictly decreasing prices " f"(length={len(closes)}, period={period})"
-        )
+        assert (
+            result < 50.0
+        ), f"RSI {result} should be < 50.0 for strictly decreasing prices (length={len(closes)}, period={period})"
 
     @given(
         closes=positive_prices(min_size=1, max_size=14),
@@ -215,10 +215,9 @@ class TestRSIProperties:
 
         result = calculate_rsi(closes, period)
 
-        assert result == 50.0, (
-            f"RSI should be exactly 50.0 for insufficient data "
-            f"(length={len(closes)}, period={period}), got {result}"
-        )
+        assert (
+            result == 50.0
+        ), f"RSI should be exactly 50.0 for insufficient data (length={len(closes)}, period={period}), got {result}"
 
 
 # ---------------------------------------------------------------------------
@@ -652,9 +651,9 @@ class TestRSIIntegration:
                 signal_enabled = analyzer_enabled.process_data()
 
                 # Disabled signal should differ from enabled signal
-                assert signal != signal_enabled, (
-                    f"Expected different trade_signal when RSI is enabled vs disabled, " f"but both returned {signal}"
-                )
+                assert (
+                    signal != signal_enabled
+                ), f"Expected different trade_signal when RSI is enabled vs disabled, but both returned {signal}"
             finally:
                 os.unlink(config_enabled_path)
         finally:

@@ -30,6 +30,8 @@ class SignalType(Enum):
     ACCUMULATION_TEST_PASS = "accumulation_test_pass"
     DSS_BULLISH = "dss_bullish"
     DSS_BEARISH = "dss_bearish"
+    PRICE_ABOVE_SMA = "price_above_sma"
+    PRICE_BELOW_SMA = "price_below_sma"
 
 
 class SignalDirection(Enum):
@@ -51,6 +53,8 @@ SIGNAL_DIRECTIONS: dict[SignalType, SignalDirection] = {
     SignalType.ACCUMULATION_TEST_PASS: SignalDirection.UP,
     SignalType.DSS_BULLISH: SignalDirection.UP,
     SignalType.DSS_BEARISH: SignalDirection.DOWN,
+    SignalType.PRICE_ABOVE_SMA: SignalDirection.UP,
+    SignalType.PRICE_BELOW_SMA: SignalDirection.DOWN,
 }
 
 FORWARD_HORIZONS: list[int] = [3, 5, 10]
@@ -151,7 +155,7 @@ class SignalConditionalAnalyzer:
 
         if len(df) < self.MIN_ROWS_FOR_ANALYSIS:
             raise InsufficientDataError(
-                f"Ticker {ticker} has {len(df)} usable rows " f"(minimum {self.MIN_ROWS_FOR_ANALYSIS} required)"
+                f"Ticker {ticker} has {len(df)} usable rows (minimum {self.MIN_ROWS_FOR_ANALYSIS} required)"
             )
 
         return df
@@ -198,6 +202,17 @@ class SignalConditionalAnalyzer:
         if "dss_bearish_cross" in df.columns:
             dss_bear_mask = df["dss_bearish_cross"].notna() & (df["dss_bearish_cross"] == 1)
             result[SignalType.DSS_BEARISH] = df.index[dss_bear_mask].tolist()
+
+        # Price-vs-SMA score column (SP-340, present when the price_vs_sma feature is
+        # emitted). Sign-based: strictly positive -> PRICE_ABOVE_SMA, strictly negative
+        # -> PRICE_BELOW_SMA. NaN rows and a zero score (equal / warm-up / disabled) match
+        # neither. Absent column leaves the already-initialised empty lists untouched.
+        if "price_vs_sma_signal_score" in df.columns:
+            pvs_valid = df["price_vs_sma_signal_score"].notna()
+            pvs_above_mask = pvs_valid & (df["price_vs_sma_signal_score"] > 0)
+            pvs_below_mask = pvs_valid & (df["price_vs_sma_signal_score"] < 0)
+            result[SignalType.PRICE_ABOVE_SMA] = df.index[pvs_above_mask].tolist()
+            result[SignalType.PRICE_BELOW_SMA] = df.index[pvs_below_mask].tolist()
 
         return result
 
@@ -681,10 +696,10 @@ class SignalConditionalAnalyzer:
         lines.append("Interpretation Table:")
         lines.append("| Hit Rate Band | Conclusion |")
         lines.append("|---|---|")
-        lines.append("| < 45% (p < 0.05) | Reliable contrarian indicator" " \u2014 invert the signal |")
-        lines.append("| <= 55% (majority p >= 0.05) | Signal is noise" " \u2014 remove or reduce signal weight |")
-        lines.append("| 55-60% (p < 0.05) | Weak but real edge" " \u2014 keep signal, consider as filter only |")
-        lines.append("| >= 60% (p < 0.01) | Strong signal" " \u2014 build trading strategy around this event type |")
+        lines.append("| < 45% (p < 0.05) | Reliable contrarian indicator \u2014 invert the signal |")
+        lines.append("| <= 55% (majority p >= 0.05) | Signal is noise \u2014 remove or reduce signal weight |")
+        lines.append("| 55-60% (p < 0.05) | Weak but real edge \u2014 keep signal, consider as filter only |")
+        lines.append("| >= 60% (p < 0.01) | Strong signal \u2014 build trading strategy around this event type |")
         lines.append("")
         lines.append("Results by Horizon:")
 
@@ -705,9 +720,7 @@ class SignalConditionalAnalyzer:
                     hr_pct = f"{s.median_hit_rate * 100:.1f}%"
                 else:
                     hr_pct = "N/A"
-                lines.append(
-                    f"Signal: {s.signal_type.value}" f" | Median Hit Rate: {hr_pct}" f" | Conclusion: {s.conclusion}"
-                )
+                lines.append(f"Signal: {s.signal_type.value} | Median Hit Rate: {hr_pct} | Conclusion: {s.conclusion}")
 
         lines.append("")  # trailing newline
 
@@ -728,13 +741,13 @@ class SignalConditionalAnalyzer:
                 metrics = self.analyse_ticker(ticker)
                 # Count unique signal events (use the first horizon event counts)
                 signal_count = sum(m.event_count for m in metrics if m.horizon_days == FORWARD_HORIZONS[0])
-                print(f"Processing {ticker} ({n}/{total})..." f" {signal_count} signal events found")
+                print(f"Processing {ticker} ({n}/{total})... {signal_count} signal events found")
                 all_metrics[ticker] = metrics
                 self.write_per_ticker_csv(ticker, metrics)
             except FileNotFoundError:
                 print(f"Warning: Feature dataset not found for {ticker}, skipping")
             except (pd.errors.ParserError, pd.errors.EmptyDataError) as e:
-                print(f"Warning: Could not parse dataset for {ticker}: {e}," " skipping")
+                print(f"Warning: Could not parse dataset for {ticker}: {e}, skipping")
             except InsufficientDataError as e:
                 print(f"Warning: {e}, skipping {ticker}")
 

@@ -28,7 +28,7 @@ def _make_analysis_dataset(
 ) -> pd.DataFrame:
     """Build a minimal dataset suitable for AnalysisScript with given scores and labels.
 
-    Includes all 27 feature columns (zeroed except composite_score) plus metadata
+    Includes all 33 feature columns (zeroed except composite_score) plus metadata
     and the label column.
     """
     n = len(composite_scores)
@@ -41,7 +41,7 @@ def _make_analysis_dataset(
 
 
 def _make_full_feature_dataset(n_rows: int, seed: int = 42) -> pd.DataFrame:
-    """Create a dataset with all 27 feature columns + metadata + label.
+    """Create a dataset with all 33 feature columns + metadata + label.
 
     Feature columns have random values; metadata has date strings and close prices.
     """
@@ -161,7 +161,7 @@ def test_property_model_receives_only_feature_columns(n_rows: int, seed: int) ->
     """Property 8: Model receives only feature columns.
 
     For any dataset passed to the walk-forward validator, the feature matrix X
-    shall contain only the 27 feature columns and shall NOT contain the date,
+    shall contain only the 33 feature columns and shall NOT contain the date,
     close, or next_day_direction columns.
 
     We patch WalkForwardValidator.validate to capture the X DataFrame that
@@ -200,9 +200,9 @@ def test_property_model_receives_only_feature_columns(n_rows: int, seed: int) ->
     # Verify that metadata and label columns are NOT present
     excluded_columns = {"date", "close", "next_day_direction"}
     present_excluded = set(X.columns) & excluded_columns
-    assert present_excluded == set(), (
-        f"Feature matrix X should not contain metadata/label columns, " f"but found: {present_excluded}"
-    )
+    assert (
+        present_excluded == set()
+    ), f"Feature matrix X should not contain metadata/label columns, but found: {present_excluded}"
 
     # Verify that all feature columns ARE present
     expected_feature_cols = set(VPAFeatureExtractor.FEATURE_COLUMNS)
@@ -227,7 +227,7 @@ def test_property_feature_importance_report_validity(seed: int) -> None:
     by importance score, and all normalised scores shall sum to 1.0 (within
     floating-point tolerance of 1e-6).
 
-    We train a real XGBClassifier on random data with the 27 feature columns,
+    We train a real XGBClassifier on random data with the 33 feature columns,
     then verify extract_feature_importance() output meets the property.
 
     **Validates: Requirements 5.2, 5.3**
@@ -262,9 +262,9 @@ def test_property_feature_importance_report_validity(seed: int) -> None:
     # Property: Sorted in non-increasing (descending) order by importance_score
     scores = importance_df["importance_score"].tolist()
     for i in range(len(scores) - 1):
-        assert scores[i] >= scores[i + 1], (
-            f"Importance scores not sorted descending at index {i}: " f"{scores[i]} < {scores[i + 1]}"
-        )
+        assert (
+            scores[i] >= scores[i + 1]
+        ), f"Importance scores not sorted descending at index {i}: {scores[i]} < {scores[i + 1]}"
 
     # Property: All normalised scores sum to 1.0 (within tolerance)
     total = sum(scores)

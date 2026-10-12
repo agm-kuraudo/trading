@@ -21,7 +21,10 @@ import yfinance as yf
 
 from vpa.app import Candle, calculate_adx, identify_acc_or_dist
 from vpa.ml_validation.exceptions import InsufficientDataError
-from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
+from vpa.ml_validation.feature_extractor import (
+    VPAFeatureExtractor,
+    compute_price_vs_sma_feature,
+)
 from vpa.ml_validation.signal_analysis import (
     SIGNAL_DIRECTIONS,
     SignalConditionalAnalyzer,
@@ -60,6 +63,11 @@ CONFIDENCE_MAP: dict[SignalType, str] = {
     SignalType.STRONG_BEARISH: "Medium-High",
     SignalType.STRONG_BULLISH: "Low-Medium",
     SignalType.ACCUMULATION: "Low",
+    # SP-340: price-vs-SMA is a simple positional signal whose standalone edge is
+    # unproven, so it sits at the lowest confidence band and never outranks the
+    # accumulation/distribution signals in the daily output.
+    SignalType.PRICE_ABOVE_SMA: "Low",
+    SignalType.PRICE_BELOW_SMA: "Low",
 }
 
 CONFIDENCE_ORDER: list[str] = ["High", "Medium-High", "Low-Medium", "Low"]
@@ -213,6 +221,17 @@ def classify_last_row(df: pd.DataFrame) -> set[SignalType]:
 
         elif flag == 1 and dtype == -1:
             signals.add(SignalType.DISTRIBUTION)
+
+    # --- Price-vs-SMA (SP-340) ---
+    # Sign of the last row's price_vs_sma_signal_score: positive -> PRICE_ABOVE_SMA,
+    # negative -> PRICE_BELOW_SMA. Absent / NaN / zero adds neither.
+    price_vs_sma_score = last_row.get("price_vs_sma_signal_score")
+    if _is_valid_numeric(price_vs_sma_score):
+        pvs = float(price_vs_sma_score)
+        if pvs > 0:
+            signals.add(SignalType.PRICE_ABOVE_SMA)
+        elif pvs < 0:
+            signals.add(SignalType.PRICE_BELOW_SMA)
 
     return signals
 
@@ -372,7 +391,19 @@ class DailySignalGenerator:
         feature_rows: list[dict] = []
         previous_close: float = 0
 
-        for _, row in df.iterrows():
+        # --- Price-vs-SMA precompute (SP-340) ---
+        # Mirror generate_dataset: precompute the SMA series over the whole frame so
+        # the daily path emits the same price_vs_sma_value / price_vs_sma_signal_score
+        # feature columns (and so classify_last_row can see them). Gated on enabled;
+        # closes kept as a list for O(1) previous-row access by positional index.
+        pvs_cfg = extractor._config.price_vs_sma
+        pvs_enabled = bool(pvs_cfg.enabled)
+        pvs_closes = df["Close"].tolist()
+        pvs_sma_series: list[float] | None = None
+        if pvs_enabled:
+            pvs_sma_series = df["Close"].rolling(window=pvs_cfg.period, min_periods=pvs_cfg.period).mean().tolist()
+
+        for pos, (_, row) in enumerate(df.iterrows()):
             # Create Candle (matching MarketAnalyzer open-price logic)
             if previous_close != 0:
                 open_price = previous_close
@@ -435,6 +466,23 @@ class DailySignalGenerator:
                 list(deque_dictionary["period_one"]),
             )
 
+            # Price-vs-SMA position + optional crossover score (SP-340)
+            if pvs_enabled and pvs_sma_series is not None:
+                prev_sma = pvs_sma_series[pos - 1] if pos > 0 else float("nan")
+                prev_close = pvs_closes[pos - 1] if pos > 0 else float("nan")
+                price_vs_sma_value, price_vs_sma_signal_score = compute_price_vs_sma_feature(
+                    pvs_closes[pos],
+                    pvs_sma_series[pos],
+                    prev_close,
+                    prev_sma,
+                    pvs_cfg,
+                    enabled=True,
+                    has_previous=pos > 0,
+                )
+            else:
+                price_vs_sma_value = 50.0
+                price_vs_sma_signal_score = 0.0
+
             # Extract feature vector
             feature_vector = extractor._extract_feature_vector(
                 candle=this_candle,
@@ -442,6 +490,8 @@ class DailySignalGenerator:
                 adx_values=adx_values,
                 acc_dist_result=acc_dist_result,
                 deque_dictionary=deque_dictionary,
+                price_vs_sma_value=price_vs_sma_value,
+                price_vs_sma_signal_score=price_vs_sma_signal_score,
             )
 
             # Add metadata

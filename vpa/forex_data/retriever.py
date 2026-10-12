@@ -179,7 +179,7 @@ class Forex_Data_Retriever:
         # 7. Sufficiency check; never return a partial set (Requirements 5.1, 5.2).
         if len(daily) < self.min_bars:
             raise InsufficientDataError(
-                f"Only {len(daily)} daily bars available for {normalized!r}; " f"at least {self.min_bars} are required"
+                f"Only {len(daily)} daily bars available for {normalized!r}; at least {self.min_bars} are required"
             )
 
         # 8. Return the Analysis_DataFrame.
