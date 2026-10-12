@@ -59,9 +59,9 @@ def test_conclusion_engine_correctness(baseline_pct: float, ml_pct: float) -> No
         else:
             expected = "Rule-based approach outperforms ML on this dataset"
 
-    assert result == expected, (
-        f"Wrong branch for baseline={baseline_pct}, ml={ml_pct}: " f"got {result!r}, expected {expected!r}"
-    )
+    assert (
+        result == expected
+    ), f"Wrong branch for baseline={baseline_pct}, ml={ml_pct}: got {result!r}, expected {expected!r}"
 
 
 # --- Unit tests for boundary cases (Task 2.3) ---

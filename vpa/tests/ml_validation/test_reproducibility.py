@@ -20,7 +20,7 @@ from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 def _make_synthetic_dataset(n_rows: int = 300, seed: int = 42) -> pd.DataFrame:
     """Create a fixed synthetic dataset suitable for walk-forward validation.
 
-    Produces a DataFrame with all 27 feature columns, metadata (date, close),
+    Produces a DataFrame with all 33 feature columns, metadata (date, close),
     and the next_day_direction label. Uses a fixed seed so the dataset is
     identical across invocations.
     """

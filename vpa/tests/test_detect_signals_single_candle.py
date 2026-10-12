@@ -383,10 +383,9 @@ def test_wide_spread_high_volume_presence_tracks_70_boundary(neutral_analyzer, p
     expected_wide_spread = spread_pct > 70
     expected_high_volume = spread_pct > 70 and volume_pct > 70
 
-    assert (wide_spread_label in signals) == expected_wide_spread, (
-        f"Wide Spread presence mismatch for {period}: spread_pct={spread_pct}, "
-        f"expected present={expected_wide_spread}"
-    )
+    assert (
+        (wide_spread_label in signals) == expected_wide_spread
+    ), f"Wide Spread presence mismatch for {period}: spread_pct={spread_pct}, expected present={expected_wide_spread}"
     assert (high_volume_label in signals) == expected_high_volume, (
         f"High Volume presence mismatch for {period}: spread_pct={spread_pct}, "
         f"volume_pct={volume_pct}, expected present={expected_high_volume}"

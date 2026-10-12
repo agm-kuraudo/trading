@@ -162,9 +162,7 @@ def _ensure_timescale(cursor, created: list) -> None:
     # --- keys. ``ALTER TABLE ... SET`` is idempotent and MUST run before
     # --- ``add_compression_policy`` (the policy requires compression to be enabled).
     cursor.execute(
-        "ALTER TABLE market_data.ohlcv SET ("
-        "timescaledb.compress, "
-        "timescaledb.compress_segmentby = 'ticker, interval')"
+        "ALTER TABLE market_data.ohlcv SET (timescaledb.compress, timescaledb.compress_segmentby = 'ticker, interval')"
     )
 
     # --- Compression policy: ``add_compression_policy`` errors / is a no-op if a

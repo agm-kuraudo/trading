@@ -196,12 +196,12 @@ class TestOutputFileCreation:
         assert (output_dir / "SPY_analysis_summary.txt").exists(), "Analysis summary text file was not created"
 
     def test_dataset_csv_headers(self, output_dir):
-        """Dataset CSV should have all 27 feature columns plus metadata and label."""
+        """Dataset CSV should have all 33 feature columns plus metadata and label."""
         df = pd.read_csv(output_dir / "SPY_vpa_features.csv")
 
         from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
 
-        # All 27 feature columns must be present
+        # All 33 feature columns must be present
         for col in VPAFeatureExtractor.FEATURE_COLUMNS:
             assert col in df.columns, f"Missing feature column: {col}"
 
@@ -216,10 +216,12 @@ class TestOutputFileCreation:
         """Feature importance CSV should have feature_name and importance_score columns."""
         df = pd.read_csv(output_dir / "SPY_feature_importance.csv")
 
+        from vpa.ml_validation.feature_extractor import VPAFeatureExtractor
+
         assert "feature_name" in df.columns
         assert "importance_score" in df.columns
-        # DSS adds bullish/bearish crossover features to the existing feature set.
-        assert len(df) == 31
+        # One importance row per feature column (price_vs_sma value+score added in SP-340).
+        assert len(df) == len(VPAFeatureExtractor.FEATURE_COLUMNS)
         assert {"dss_bullish_cross", "dss_bearish_cross"} <= set(df["feature_name"])
 
     def test_feature_importance_scores_sum_to_one(self, output_dir):

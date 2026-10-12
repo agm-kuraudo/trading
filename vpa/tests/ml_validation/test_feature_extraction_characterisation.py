@@ -130,7 +130,7 @@ def _extract_current_dataset() -> pd.DataFrame:
     return extractor.generate_dataset(days=3650, repo=_FakeRepo(pinned_df))
 
 
-# Expected column order of the stored fixture: all 31 feature columns, the raw-OHLC
+# Expected column order of the stored fixture: all 33 feature columns, the raw-OHLC
 # metadata, and the next_day_direction label.
 EXPECTED_COLUMNS = [
     *VPAFeatureExtractor.FEATURE_COLUMNS,
@@ -162,7 +162,7 @@ class TestFeatureExtractionCharacterisation:
         """The freshly-extracted dataset must equal the committed fixture column-for-column.
 
         This is the behaviour-preservation oracle for the SP-313 refactor: if a later
-        change to the extraction path alters any of the 31 feature columns (including
+        change to the extraction path alters any of the 33 feature columns (including
         ``composite_score``) or ``next_day_direction``, this test fails and the drift is
         caught before it can silently change production scoring.
         """
@@ -172,7 +172,7 @@ class TestFeatureExtractionCharacterisation:
         # the >=2000 labelled-row minimum, so the oracle is meaningful.
         assert (
             list(extracted.columns) == EXPECTED_COLUMNS
-        ), "extraction schema drifted from the expected 31 features + metadata + label"
+        ), "extraction schema drifted from the expected 33 features + metadata + label"
         assert len(extracted) >= 2000, "pinned window must yield >=2000 labelled rows"
 
         if os.environ.get("REGEN_VPA_CHARACTERISATION_FIXTURE") == "1" or not FIXTURE_PATH.exists():

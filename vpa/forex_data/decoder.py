@@ -76,7 +76,7 @@ def decode_feed(
             break
     else:
         raise FeedDecodeError(
-            f"Decompressed feed length {len(buf)} is not a multiple of a " f"supported record size {RECORD_SIZES}"
+            f"Decompressed feed length {len(buf)} is not a multiple of a supported record size {RECORD_SIZES}"
         )
 
     # 4. Decode each record's leading six Int32 fields (Requirement 2.5).

@@ -1,0 +1,220 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Insert the two new entries into `FEATURE_COLUMNS` (31 → 33)": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660140
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812669075
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812735305
+      }
+    ],
+    "1.2 Thread the two values into `_extract_feature_vector` and emit them in order": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660293
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812738223
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812800444
+      }
+    ],
+    "1.3 Precompute the SMA series and compute position + optional crossover score in `generate_dataset`": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660410
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812803548
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812906994
+      }
+    ],
+    "1.4 Verify the `composite_score` line is byte-for-byte unchanged": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660514
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812911059
+      },
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812943595
+      }
+    ],
+    "2. Checkpoint — Ensure extractor tests pass": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660617
+      }
+    ],
+    "3.1 Add `SignalType` members and `SIGNAL_DIRECTIONS` entries": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660742
+      }
+    ],
+    "3.2 Add column-guarded, NaN-safe classification in `classify_signals`": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660870
+      }
+    ],
+    "4.1 Add `CONFIDENCE_MAP` entries for both new signal types": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812660977
+      }
+    ],
+    "4.2 Wire `classify_last_row` using the existing `_is_valid_numeric` guard": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661075
+      }
+    ],
+    "4.3 Update daily_signal's inline extractor loop to precompute and pass the SMA series": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661199
+      }
+    ],
+    "5. Checkpoint — Ensure signal_analysis and daily_signal tests pass": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661300
+      }
+    ],
+    "6.1 Correct counts in `feature_extractor.py`": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661391
+      }
+    ],
+    "6.2 Correct counts in `test_integration.py`": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661483
+      }
+    ],
+    "6.3 Correct remaining stale-count prose discovered in the audit": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661583
+      }
+    ],
+    "7.1 Regenerate the committed characterisation fixture and verify the composite column is unchanged": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661681
+      }
+    ],
+    "8. Checkpoint — Ensure the fast suite passes with the regenerated fixture": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661859
+      }
+    ],
+    "9. Verification gate (run in order; required before SP-340 moves to Done)": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812661969
+      }
+    ],
+    "1. Add price vs SMA feature columns and inline scoring to `VPAFeatureExtractor`": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812943740
+      }
+    ],
+    "1.5 Write unit/example tests for extractor position and crossover scoring": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812954028
+      }
+    ],
+    "1.6 Write unit tests for `FEATURE_COLUMNS` structure": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812958529
+      }
+    ],
+    "1.7 Write property test P1 — SMA value equals reference rolling mean": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812959909
+      }
+    ],
+    "1.8 Write property test P2 — combined score equals the MarketAnalyzer oracle": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812961315
+      }
+    ],
+    "1.9 Write property test P3 — crossover disabled yields position-only score": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812962195
+      }
+    ],
+    "1.10 Write property test P4 — composite score invariant under price-vs-SMA config": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812965746
+      }
+    ],
+    "1.11 Write composite-score baseline regression test": [
+      {
+        "executionId": "41192016-8f0f-4aa3-bca6-01f932c62b45",
+        "chatSessionId": "sess_cb912ce8-8487-4499-b964-6111af51004c",
+        "timestamp": 1791812966586
+      }
+    ]
+  }
+}

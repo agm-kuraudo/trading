@@ -89,7 +89,7 @@ def test_parse_env_file_parses_key_value_lines(tmp_path):
 
 
 def test_parse_env_file_ignores_comments_and_blank_lines(tmp_path):
-    contents = "# leading comment\n" "\n" "DB_HOST=my_postgres\n" "   \n" "# another comment\n" "DB_USER=trader\n"
+    contents = "# leading comment\n\nDB_HOST=my_postgres\n   \n# another comment\nDB_USER=trader\n"
     env_path = write_env(tmp_path, contents)
 
     parsed = _parse_env_file(str(env_path))
@@ -122,7 +122,7 @@ def test_parse_env_file_missing_file_returns_empty_dict(tmp_path):
 
 
 def test_read_db_config_returns_all_required_keys_from_file(tmp_path):
-    contents = "DB_HOST=my_postgres\n" "DB_PORT=5432\n" "DB_NAME=market_data\n" "DB_USER=trader\n" "DB_PWD=secret\n"
+    contents = "DB_HOST=my_postgres\nDB_PORT=5432\nDB_NAME=market_data\nDB_USER=trader\nDB_PWD=secret\n"
     env_path = write_env(tmp_path, contents)
 
     config = _read_db_config(env_path=str(env_path))

@@ -28,7 +28,7 @@ def _make_valid_dataset(n_rows: int = 100, seed: int = 42) -> pd.DataFrame:
     """Create a synthetic dataset with valid feature columns, metadata, and labels.
 
     Produces a DataFrame matching the schema expected by AnalysisScript:
-    27 feature columns + date + open + high + low + close + next_day_direction.
+    33 feature columns + date + open + high + low + close + next_day_direction.
     """
     rng = np.random.default_rng(seed)
 

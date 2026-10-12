@@ -52,7 +52,7 @@ class AnalysisScript:
 
         if len(valid_rows) == 0:
             raise InsufficientDataError(
-                f"Cannot compute baseline accuracy for {self.ticker}: " f"zero rows with valid composite_score."
+                f"Cannot compute baseline accuracy for {self.ticker}: zero rows with valid composite_score."
             )
 
         # Classify: UP (1) when composite_score > 0, DOWN (0) when <= 0
@@ -96,7 +96,7 @@ class AnalysisScript:
         total = importance_array.sum()
         if total == 0.0:
             logger.warning(
-                "All features have zero importance for %s. " "The model found no distinguishing features.",
+                "All features have zero importance for %s. The model found no distinguishing features.",
                 self.ticker,
             )
             normalised = np.zeros(len(feature_names))
@@ -142,7 +142,7 @@ class AnalysisScript:
         Raises:
             InsufficientDataError: If all splits are skipped.
         """
-        # Exclude metadata and label columns — keep only the 27 feature columns
+        # Exclude metadata and label columns — keep only the 33 feature columns
         exclude_cols = VPAFeatureExtractor.METADATA_COLUMNS + ["next_day_direction"]
         feature_cols = [col for col in self.dataset.columns if col not in exclude_cols]
 

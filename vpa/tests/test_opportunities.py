@@ -157,9 +157,9 @@ class TestDrawdownFormulaCorrectness:
         result = compute_drawdown_percentage(current_close, fifty_two_week_high)
         expected = ((current_close - fifty_two_week_high) / fifty_two_week_high) * 100
 
-        assert abs(result - expected) < 1e-10, (
-            f"Expected {expected}, got {result} for " f"current_close={current_close}, high={fifty_two_week_high}"
-        )
+        assert (
+            abs(result - expected) < 1e-10
+        ), f"Expected {expected}, got {result} for current_close={current_close}, high={fifty_two_week_high}"
 
 
 class TestMomentumFormulaCorrectness:
@@ -364,10 +364,9 @@ class TestReportSortedByDrawdown:
 
         # Verify drawdown values are in non-decreasing (ascending) order
         for i in range(len(drawdown_values) - 1):
-            assert drawdown_values[i] <= drawdown_values[i + 1], (
-                f"Drawdown values not in ascending order: "
-                f"{drawdown_values[i]} > {drawdown_values[i + 1]} at index {i}"
-            )
+            assert (
+                drawdown_values[i] <= drawdown_values[i + 1]
+            ), f"Drawdown values not in ascending order: {drawdown_values[i]} > {drawdown_values[i + 1]} at index {i}"
 
 
 # ---------------------------------------------------------------------------
