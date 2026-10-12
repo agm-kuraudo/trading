@@ -10,6 +10,7 @@ from vpa.app import Candle, calculate_adx, identify_acc_or_dist
 from vpa.config import load_settings
 from vpa.market_data.repository import MarketDataRepository
 from vpa.ml_validation.exceptions import InsufficientDataError
+from vpa.ml_validation.tuning.scoring_params import ScoringParams
 from vpa.rsi import calculate_rsi
 
 
@@ -55,16 +56,27 @@ class VPAFeatureExtractor:
     # SP-335: add raw open/high/low alongside close
     METADATA_COLUMNS = ["date", "open", "high", "low", "close"]
 
-    def __init__(self, config_path: str, ticker_symbol: str, enable_extraction: bool = True):
+    def __init__(
+        self,
+        config_path: str,
+        ticker_symbol: str,
+        enable_extraction: bool = True,
+        scoring_params: ScoringParams | None = None,
+    ):
         """
         Args:
             config_path: Path to the VPA config JSON.
             ticker_symbol: Ticker to analyse (e.g. "SPY").
             enable_extraction: If False, delegates to MarketAnalyzer with no extraction.
+            scoring_params: Injectable VPA scoring thresholds (SP-313). When
+                ``None``, defaults to ``ScoringParams.default()`` so the
+                extraction path reproduces current production scoring exactly
+                (Property 1).
         """
         self._config_path = config_path
         self._ticker_symbol = ticker_symbol
         self._enable_extraction = enable_extraction
+        self._scoring_params = scoring_params if scoring_params is not None else ScoringParams.default()
 
         self._config = load_settings(config_path)
 
@@ -225,7 +237,12 @@ class VPAFeatureExtractor:
 
         return feature_vector
 
-    def generate_dataset(self, days: int = 3650, repo: MarketDataRepository | None = None) -> pd.DataFrame:
+    def generate_dataset(
+        self,
+        days: int = 3650,
+        repo: MarketDataRepository | None = None,
+        end_date: datetime.date | str | None = None,
+    ) -> pd.DataFrame:
         """
         Load OHLCV data via the market-data store and produce a labelled feature dataset.
 
@@ -240,6 +257,14 @@ class VPAFeatureExtractor:
             days: Calendar days of data to load (default 3650 = ~10 years).
             repo: Optional ``MarketDataRepository`` for dependency injection in
                 tests. Defaults to a new ``MarketDataRepository()``.
+            end_date: Optional end of the data window (SP-313, Req 1.4). When
+                ``None`` (the default), uses ``datetime.datetime.now().date()``,
+                preserving the current behaviour exactly. When an explicit value
+                is given it pins the window end so re-runs over the same window
+                are reproducible; the start is always
+                ``end_date - timedelta(days=days)``. Accepts either a
+                ``datetime.date`` (the canonical type) or an ISO date string
+                (``YYYY-MM-DD``), which is parsed to a ``datetime.date``.
 
         Returns:
             DataFrame with one row per trading day (after warm-up), containing
@@ -253,7 +278,14 @@ class VPAFeatureExtractor:
         # --- Step 1: Load data via the market-data repository (read-through) ---
         # The loader returns the canonical Date,Open,High,Low,Close,Volume DataFrame
         # already flattened/renamed/dropna'd/sorted, so no inline normalisation is needed.
-        end_date = datetime.datetime.now().date()
+        #
+        # SP-313 (Req 1.4): resolve the window end. ``None`` preserves the legacy
+        # "today" behaviour exactly; an explicit date (or ISO string) pins the
+        # window so the experiment layer can re-run reproducibly.
+        if end_date is None:
+            end_date = datetime.datetime.now().date()
+        elif isinstance(end_date, str):
+            end_date = datetime.date.fromisoformat(end_date)
         start_date = end_date - datetime.timedelta(days=days)
 
         if repo is None:
@@ -333,6 +365,8 @@ class VPAFeatureExtractor:
                 high,
                 low,
                 float(row["Close"]),
+                shooting_star_spread_mult=self._scoring_params.shooting_star_spread_mult,
+                shooting_star_lower_wick_mult=self._scoring_params.shooting_star_lower_wick_mult,
             )
             previous_close = this_candle.close
 
@@ -377,6 +411,8 @@ class VPAFeatureExtractor:
             acc_dist_result = identify_acc_or_dist(
                 list(deque_dictionary["period_three"]),
                 list(deque_dictionary["period_one"]),
+                volume_percentile=self._scoring_params.acc_dist_volume_percentile,
+                test_count=self._scoring_params.acc_dist_test_count,
             )
 
             dss_bullish_cross = 0
@@ -419,7 +455,7 @@ class VPAFeatureExtractor:
         # --- Step 11: Build DataFrame ---
         if not feature_rows:
             raise InsufficientDataError(
-                f"No valid feature rows produced for {self._ticker_symbol}. " f"Downloaded data may be insufficient."
+                f"No valid feature rows produced for {self._ticker_symbol}. Downloaded data may be insufficient."
             )
 
         result_df = pd.DataFrame(feature_rows)
@@ -538,16 +574,44 @@ class VPAFeatureExtractor:
         multiple_bar_signals = []
         multiple_bar_signal_score = 0
 
+        # SP-313: per-period scoring params. period_one->p1, period_two->p2,
+        # period_three->p3. The period weight (Req 4) scales each period's
+        # contribution; the vol_backed multiplier (Req 5) replaces the hardcoded
+        # ``* 2`` doubling. Defaults reproduce current scoring exactly:
+        # period_weight_pN == 1.0 (no scaling) and vol_backed_mult_pN == 2.0
+        # (same doubling), so the default path is byte-identical to the legacy
+        # arithmetic (Property 1).
+        period_weights = {
+            "period_one": self._scoring_params.period_weight_p1,
+            "period_two": self._scoring_params.period_weight_p2,
+            "period_three": self._scoring_params.period_weight_p3,
+        }
+        vol_backed_mults = {
+            "period_one": self._scoring_params.vol_backed_mult_p1,
+            "period_two": self._scoring_params.vol_backed_mult_p2,
+            "period_three": self._scoring_params.vol_backed_mult_p3,
+        }
+
         for period in deque_dictionary:
             for signal_type in ["bull", "bear"]:
                 if signals_flags[f"{period}_{signal_type}"]:
                     multiple_bar_signals.append(f"{signal_type.capitalize()} Signal ({period})")
                     score_adjustment = 2.5 if signal_type == "bull" else -2.5
                     if signals_flags[f"{period}_volume_backed"]:
-                        multiple_bar_signal_score += score_adjustment * 2
+                        contribution = score_adjustment * vol_backed_mults[period]
                         multiple_bar_signals.append(f"Volume Backed ({period})")
                     else:
-                        multiple_bar_signal_score += score_adjustment
+                        contribution = score_adjustment
+
+                    # Apply the period weight only when it departs from the
+                    # default 1.0, so the default path keeps the exact float
+                    # value of the legacy expression (avoids float-formatting
+                    # drift from an unnecessary ``* 1.0`` multiply).
+                    weight = period_weights[period]
+                    if weight != 1.0:
+                        contribution *= weight
+
+                    multiple_bar_signal_score += contribution
 
         all_signals["multiple_bar_signals"] = multiple_bar_signals
         all_signals["multiple_bar_signal_score"] = multiple_bar_signal_score
@@ -558,6 +622,8 @@ class VPAFeatureExtractor:
         acc_or_dist_bool, acc_or_dist = identify_acc_or_dist(
             list(deque_dictionary["period_three"]),
             list(deque_dictionary["period_one"]),
+            volume_percentile=self._scoring_params.acc_dist_volume_percentile,
+            test_count=self._scoring_params.acc_dist_test_count,
         )
 
         if acc_or_dist_bool:

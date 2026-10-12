@@ -1,0 +1,448 @@
+{
+  "pbtResults": {
+    "5.3 Write property test for composite score totality": {
+      "status": "passed",
+      "lastRunTimestamp": 1791808525019
+    }
+  },
+  "executionHistory": {
+    "1. Lock current baseline feature-extraction output as a regression fixture (SAFETY NET — before any refactor)": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807124809
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807136885
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807430743
+      }
+    ],
+    "2.1 Create `vpa/ml_validation/tuning/scoring_params.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126203
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807137820
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807431659
+      }
+    ],
+    "3. Refactor `Candle.__init__` for injectable shooting-star multipliers": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126419
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807443191
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807660417
+      }
+    ],
+    "4. Refactor `identify_acc_or_dist` for injectable percentile and test count": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126610
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807678506
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807956093
+      }
+    ],
+    "5.1 Inject scoring params into extraction": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126776
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807963641
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808164133
+      }
+    ],
+    "5.2 Write `slow` property test for default-params preservation": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126884
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808334973
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808632484
+      }
+    ],
+    "6.1 Add `end_date` parameter": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807126980
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808171319
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808327862
+      }
+    ],
+    "6.2 Write `slow` determinism/reproducibility property test": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127092
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808333317
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808630219
+      }
+    ],
+    "7. Implement `DatasetSnapshot` to pin the raw-OHLCV window and centralise seeding": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127222
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808331790
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808633597
+      }
+    ],
+    "8.1 Create `vpa/ml_validation/tuning/gate.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127312
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807444628
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807658277
+      }
+    ],
+    "8.2 Write FAST unit + property tests for the gate": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127422
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807676247
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807955143
+      }
+    ],
+    "9.1 Create `vpa/ml_validation/tuning/classify.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127518
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807139252
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807433098
+      }
+    ],
+    "9.2 Write FAST unit + property tests for classifiers": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127619
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807445244
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807659595
+      }
+    ],
+    "10.1 Create `vpa/ml_validation/tuning/record.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127728
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807677565
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807957106
+      }
+    ],
+    "11.1 Create `vpa/ml_validation/tuning/ticker_selection.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127836
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807140055
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807433813
+      }
+    ],
+    "12.1 Create `vpa/ml_validation/tuning/sweep.py`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807127935
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808640850
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808885704
+      }
+    ],
+    "13. (Manual / analysis — no unit tests) Run SPY re-validation": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128039
+      },
+      {
+        "executionId": "9ea4c5ed-075f-4d22-9a83-9e31a600f17b",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791809477364
+      }
+    ],
+    "14. (Manual / analysis — no unit tests) Apply the pursue decision from SPY ML accuracy": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128139
+      },
+      {
+        "executionId": "9ea4c5ed-075f-4d22-9a83-9e31a600f17b",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791809478531
+      }
+    ],
+    "15. (Manual / analysis — no unit tests) Run the four threshold sweeps and apply the Req 6 gate": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128271
+      },
+      {
+        "executionId": "9ea4c5ed-075f-4d22-9a83-9e31a600f17b",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791809485450
+      }
+    ],
+    "16. (Manual / analysis — no unit tests) Run 3–5 individual tickers and classify edge vs SPY": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128371
+      },
+      {
+        "executionId": "bb4d278f-d8cc-4d64-9157-be97006fd713",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791810073590
+      }
+    ],
+    "17. (Manual / analysis — no unit tests) Document findings and single recommendation in Confluence": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128471
+      }
+    ],
+    "18. Final verification": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807128583
+      }
+    ],
+    "2. Implement `ScoringParams` dataclass and validation": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807431765
+      }
+    ],
+    "11. Implement multi-ticker selection helpers": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807433912
+      }
+    ],
+    "9. Implement `Classifier` pure band functions": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807659717
+      }
+    ],
+    "8. Implement `ChangeGate` pure decision functions": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807955323
+      }
+    ],
+    "10. Implement `ExperimentRecord` and `ResultWriter`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791807957230
+      }
+    ],
+    "5.3 Write property test for composite score totality": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808334139
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808631577
+      }
+    ],
+    "6. Add optional `end_date` to `generate_dataset` to pin the window": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808630468
+      }
+    ],
+    "5. Thread `ScoringParams` through `VPAFeatureExtractor`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808632635
+      }
+    ],
+    "2.2 Write unit + Hypothesis property test for `validate()`": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808641795
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808886645
+      }
+    ],
+    "10.2 Write FAST unit tests for record/writer": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808642879
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808887750
+      }
+    ],
+    "12. Implement `SweepRunner` and wire the tuning layer together": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808885877
+      }
+    ],
+    "12.2 Write `slow` integration test for the sweep": [
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791808892187
+      },
+      {
+        "executionId": "176e82a5-c2aa-431e-87a7-99c2c11a057c",
+        "chatSessionId": "sess_66e27a04-bdd2-4e2c-9241-e8026654b415",
+        "timestamp": 1791809033452
+      }
+    ]
+  }
+}

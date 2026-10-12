@@ -81,14 +81,14 @@ def calculate_adx(candles, period=14):
     return [adx[0], statistics.fmean(tr_smooth), statistics.fmean(dm_plus_smooth), statistics.fmean(dm_minus_smooth)]
 
 
-def identify_acc_or_dist(period_three, period_one):
+def identify_acc_or_dist(period_three, period_one, *, volume_percentile=65, test_count=3):
     volume_stats_list = []
     price_stats_list = []
     for item in period_three:
         volume_stats_list.append(item.volume)
         price_stats_list.append(item.close)
 
-    period_three_volume_percentiles = np.percentile(volume_stats_list, [65, 90])
+    period_three_volume_percentiles = np.percentile(volume_stats_list, [volume_percentile, 90])
     period_three_price_percentiles = np.percentile(price_stats_list, [10, 20, 80])
 
     # print(f"Volume Percentiles (65th, 90th): {period_three_volume_percentiles}")
@@ -106,9 +106,9 @@ def identify_acc_or_dist(period_three, period_one):
 
     # print(f"Near Lows: {near_lows}, Near Highs: {near_highs}")
 
-    if high_volume_count >= 3 and near_lows:
+    if high_volume_count >= test_count and near_lows:
         return True, "Acc"
-    elif high_volume_count >= 3 and near_highs:
+    elif high_volume_count >= test_count and near_highs:
         return True, "Dist"
     else:
         return False, ""
@@ -124,7 +124,23 @@ class Candle:
     CONFIG_LLD_BOTH_WICKS_X_TIMES_BIGGER_THAN_SPREAD = 2
 
     # Candle is initialised with all the properties that are provided by a Candlestick - volume, open, high, low, close
-    def __init__(self, time, volume, candle_open, high, low, close):
+    def __init__(
+        self,
+        time,
+        volume,
+        candle_open,
+        high,
+        low,
+        close,
+        *,
+        shooting_star_spread_mult=CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD,
+        shooting_star_lower_wick_mult=CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK,
+    ):
+        # Injectable shooting-star multipliers (SP-313 Req 2). Default to the class
+        # constants so existing six-positional-arg callers and the production path are
+        # unaffected and behaviour is preserved (Property 1).
+        self.__shooting_star_spread_mult = shooting_star_spread_mult
+        self.__shooting_star_lower_wick_mult = shooting_star_lower_wick_mult
         self.__volume_percentiles = {}
         self.__spread_percentiles = {}
         self.__anomaly = {}
@@ -156,10 +172,8 @@ class Candle:
         self.__lld = False
 
         # If the upper wick is two times bigger than the spread and the lower wick - shooting star candle
-        if self.__upper_wick > (
-            self.__spread * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_SPREAD
-        ) and self.__upper_wick > (
-            self.__lower_wick * Candle.CONFIG_SHOOTING_STAR_UPPER_WICK_X_TIMES_BIGGER_THAN_LOWER_WICK
+        if self.__upper_wick > (self.__spread * self.__shooting_star_spread_mult) and self.__upper_wick > (
+            self.__lower_wick * self.__shooting_star_lower_wick_mult
         ):
             self.__shooting_star = True
 
