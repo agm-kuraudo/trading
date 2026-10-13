@@ -1,0 +1,323 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Define the three frozen dataclasses and the `combined_signals` field": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900617550
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900625945
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900672454
+      }
+    ],
+    "1.2 Implement `_combined_signals_settings` loader and wire into `load_settings`": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900617755
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900675508
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900736252
+      }
+    ],
+    "1.3 Add the `combined_signals` block to `config/config.json`": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900617889
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900742481
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900882070
+      }
+    ],
+    "1.4 Write unit tests for config defaults, round-trip, and malformed shapes": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900617997
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900886494
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900979394
+      }
+    ],
+    "2.1 Implement `_init_combined_signals_config` with deep validation and call it from `__init__`": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618117
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900743466
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900881112
+      }
+    ],
+    "3.1 Implement `detect_combined_signals(row_index, dss_signals, price_vs_sma_signals, log=True)`": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618249
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900887761
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900978306
+      }
+    ],
+    "4.1 Add Step 6.5 detect-and-merge and the additive composite term": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618363
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900983435
+      },
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901140234
+      }
+    ],
+    "6.1 Compute the eight inline flag columns per row": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618472
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901214704
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901597516
+      }
+    ],
+    "6.2 Derive the ten `combo_*_bull` / `_bear` columns inline": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618612
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901611924
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901725030
+      }
+    ],
+    "6.3 Write unit tests for the inline flag and combination columns": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618713
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901730782
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902024375
+      }
+    ],
+    "7.1 Add `COMBO_*` SignalType members, `SIGNAL_DIRECTIONS`, and column-guarded `classify_signals` reads": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618821
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901215756
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901598541
+      }
+    ],
+    "8.1 Add `_make_combo_filter` and the five `StrategyVariation`s": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900618935
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901612633
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901725899
+      }
+    ],
+    "8.2 Write integration tests for the combination variations": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900619050
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901731165
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902025248
+      }
+    ],
+    "9. Checkpoint - backtest path complete": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900619165
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902030343
+      }
+    ],
+    "10. Final verification pass (lint, format, full suite)": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900619305
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902030999
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902826330
+      }
+    ],
+    "2. Wire the combined-signals init hook into `MarketAnalyzer` (`vpa/app_runner.py`)": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900881288
+      }
+    ],
+    "3. Implement the confluence detector `detect_combined_signals` (`vpa/app_runner.py`)": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900978458
+      }
+    ],
+    "1. Add combined-signals config typing in `vpa/config/settings.py`": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791900979544
+      }
+    ],
+    "4. Wire the detector into `process_data` (`vpa/app_runner.py`)": [
+      {
+        "executionId": "139f1e0f-25a5-44a4-844e-ac988e5cb292",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901140372
+      }
+    ],
+    "5.5 Write unit tests mapping the Req 6 confluence scenarios": [
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901213671
+      },
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901596144
+      }
+    ],
+    "5. Checkpoint - live analyzer integration complete": [
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901596318
+      }
+    ],
+    "7. Add the ten `COMBO_*` SignalTypes and classification (`vpa/ml_validation/signal_analysis.py`)": [
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791901598661
+      }
+    ],
+    "6. Add inline flag + combination columns to the feature extractor (`vpa/ml_validation/feature_extractor.py`)": [
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902024578
+      }
+    ],
+    "8. Add the five combination backtest variations (`vpa/backtesting/variations.py`)": [
+      {
+        "executionId": "c16577d1-4da7-48df-9ce9-02c24bfaa3f9",
+        "chatSessionId": "sess_2e3761ca-fa94-4439-92f9-59409f4c8b8d",
+        "timestamp": 1791902025383
+      }
+    ]
+  }
+}

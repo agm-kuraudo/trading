@@ -73,6 +73,159 @@
       "overbought": 0
     }
   },
+  "combined_signals": {
+    "enabled": false,
+    "combinations": [
+      {
+        "name": "DSS_Cross_Plus_SMA_Position_Bull",
+        "score": 10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bullish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price above SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_Plus_SMA_Position_Bear",
+        "score": -10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bearish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price below SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_Plus_SMA_Cross_Bull",
+        "score": 10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bullish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price crossed above SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_Plus_SMA_Cross_Bear",
+        "score": -10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bearish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price crossed below SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Zone_Plus_SMA_Cross_Bull",
+        "score": 10,
+        "conditions": [
+          {
+            "signal_name": "DSS Oversold",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price crossed above SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Zone_Plus_SMA_Cross_Bear",
+        "score": -10,
+        "conditions": [
+          {
+            "signal_name": "DSS Overbought",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price crossed below SMA",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_From_Zone_Bull",
+        "score": 10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bullish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "DSS Oversold",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_From_Zone_Bear",
+        "score": -10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bearish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "DSS Overbought",
+            "kind": "presence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_SMA_Not_Overbought_Bull",
+        "score": 10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bullish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price above SMA",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "DSS Overbought",
+            "kind": "absence"
+          }
+        ]
+      },
+      {
+        "name": "DSS_Cross_SMA_Not_Overbought_Bear",
+        "score": -10,
+        "conditions": [
+          {
+            "signal_name": "DSS Bearish Crossover",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "Price below SMA",
+            "kind": "presence"
+          },
+          {
+            "signal_name": "DSS Oversold",
+            "kind": "absence"
+          }
+        ]
+      }
+    ]
+  },
   "trading_parameters": {
     "period_one": {
       "High_Spread_Threshold": 55,

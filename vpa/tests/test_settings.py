@@ -100,3 +100,182 @@ def test_unknown_keys_do_not_break_loading(tmp_path):
     settings = load_settings(write_config(tmp_path, config))
 
     assert settings.ticker_symbol == "SPY"
+
+
+def test_combined_signals_absent_block_defaults_disabled(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config.pop("combined_signals", None)
+
+    settings = load_settings(write_config(tmp_path, config))
+
+    assert settings.combined_signals.enabled is False
+    assert settings.combined_signals.combinations == ()
+
+
+def test_combined_signals_full_block_round_trips_to_typed_settings(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {
+        "enabled": True,
+        "combinations": [
+            {
+                "name": "DSS_Cross_Plus_SMA_Position_Bull",
+                "score": 10,
+                "conditions": [
+                    {"signal_name": "DSS Bullish Crossover", "kind": "presence"},
+                    {"signal_name": "Price above SMA", "kind": "presence"},
+                ],
+            },
+            {
+                "name": "DSS_Cross_Plus_SMA_Position_Bear",
+                "score": -10,
+                "conditions": [
+                    {"signal_name": "DSS Bearish Crossover", "kind": "presence"},
+                    {"signal_name": "Price below SMA", "kind": "presence"},
+                ],
+            },
+            {
+                "name": "DSS_Zone_Plus_SMA_Cross_Bull",
+                "score": 7.5,
+                "conditions": [
+                    {"signal_name": "DSS Oversold", "kind": "presence"},
+                    {"signal_name": "Price crossed above SMA", "kind": "presence"},
+                ],
+            },
+            {
+                "name": "DSS_Zone_Plus_SMA_Cross_Bear",
+                "score": -7.5,
+                "conditions": [
+                    {"signal_name": "DSS Overbought", "kind": "presence"},
+                    {"signal_name": "Price crossed below SMA", "kind": "presence"},
+                ],
+            },
+            {
+                "name": "DSS_Cross_SMA_Not_Overbought_Bull",
+                "score": 12,
+                "conditions": [
+                    {"signal_name": "DSS Bullish Crossover", "kind": "presence"},
+                    {"signal_name": "Price above SMA", "kind": "presence"},
+                    {"signal_name": "DSS Overbought", "kind": "absence"},
+                ],
+            },
+        ],
+    }
+
+    settings = load_settings(write_config(tmp_path, config))
+    combined = settings.combined_signals
+
+    assert combined.enabled is True
+    assert len(combined.combinations) == 5
+
+    # Every one of the eight known signal-name strings is exercised across the block.
+    exercised = {cond.signal_name for combo in combined.combinations for cond in combo.conditions}
+    assert exercised == {
+        "DSS Bullish Crossover",
+        "DSS Bearish Crossover",
+        "DSS Oversold",
+        "DSS Overbought",
+        "Price above SMA",
+        "Price below SMA",
+        "Price crossed above SMA",
+        "Price crossed below SMA",
+    }
+
+    first = combined.combinations[0]
+    assert first.name == "DSS_Cross_Plus_SMA_Position_Bull"
+    assert first.score == 10
+    assert len(first.conditions) == 2
+    assert first.conditions[0].signal_name == "DSS Bullish Crossover"
+    assert first.conditions[0].kind == "presence"
+    assert first.conditions[1].signal_name == "Price above SMA"
+    assert first.conditions[1].kind == "presence"
+
+    bear = combined.combinations[1]
+    assert bear.name == "DSS_Cross_Plus_SMA_Position_Bear"
+    assert bear.score == -10
+
+    # Three-condition combination including an absence (negation) condition.
+    three_way = combined.combinations[4]
+    assert three_way.name == "DSS_Cross_SMA_Not_Overbought_Bull"
+    assert three_way.score == 12
+    assert len(three_way.conditions) == 3
+    assert three_way.conditions[2].signal_name == "DSS Overbought"
+    assert three_way.conditions[2].kind == "absence"
+
+
+def test_combined_signals_default_kind_is_presence(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {
+        "enabled": True,
+        "combinations": [
+            {
+                "name": "Combo_Default_Kind",
+                "score": 1,
+                "conditions": [
+                    {"signal_name": "DSS Bullish Crossover"},
+                    {"signal_name": "Price above SMA"},
+                ],
+            }
+        ],
+    }
+
+    settings = load_settings(write_config(tmp_path, config))
+    combo = settings.combined_signals.combinations[0]
+
+    assert combo.conditions[0].kind == "presence"
+    assert combo.conditions[1].kind == "presence"
+
+
+def test_committed_config_loads_all_ten_combined_signals():
+    settings = load_settings(CONFIG_PATH)
+
+    assert settings.combined_signals.enabled is False
+    assert len(settings.combined_signals.combinations) == 10
+
+
+def test_combined_signals_combinations_not_a_list_raises(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {"enabled": True, "combinations": {"not": "a list"}}
+
+    with pytest.raises(ConfigurationError, match="combined_signals.combinations"):
+        load_settings(write_config(tmp_path, config))
+
+
+def test_combined_signals_combination_not_an_object_raises(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {"enabled": True, "combinations": ["not an object"]}
+
+    with pytest.raises(ConfigurationError, match=r"combined_signals.combinations\[0\]"):
+        load_settings(write_config(tmp_path, config))
+
+
+def test_combined_signals_conditions_not_a_list_raises(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {
+        "enabled": True,
+        "combinations": [{"name": "Combo_Bad_Conditions", "score": 1, "conditions": "nope"}],
+    }
+
+    with pytest.raises(ConfigurationError, match="conditions"):
+        load_settings(write_config(tmp_path, config))
+
+
+def test_combined_signals_name_not_a_string_raises(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {
+        "enabled": True,
+        "combinations": [{"name": 123, "score": 1, "conditions": []}],
+    }
+
+    with pytest.raises(ConfigurationError, match="name"):
+        load_settings(write_config(tmp_path, config))
+
+
+def test_combined_signals_missing_name_raises(tmp_path):
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    config["combined_signals"] = {
+        "enabled": True,
+        "combinations": [{"score": 1, "conditions": []}],
+    }
+
+    with pytest.raises(ConfigurationError, match="name"):
+        load_settings(write_config(tmp_path, config))

@@ -142,8 +142,10 @@ class TestFeatureColumnsStructure:
         assert "price_vs_sma_value" in cols
         assert "price_vs_sma_signal_score" in cols
 
-    def test_feature_columns_length_is_33(self):
-        assert len(VPAFeatureExtractor.FEATURE_COLUMNS) == 33
+    def test_feature_columns_length_is_49(self):
+        # SP-327: +6 inline flag columns (dss zone + price-vs-SMA position/cross)
+        # and +10 combination columns (five combos x bull/bear) = 49 total.
+        assert len(VPAFeatureExtractor.FEATURE_COLUMNS) == 49
 
     def test_new_columns_ordered_after_rsi_before_dss(self):
         cols = VPAFeatureExtractor.FEATURE_COLUMNS

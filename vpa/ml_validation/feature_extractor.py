@@ -104,6 +104,22 @@ class VPAFeatureExtractor:
         "price_vs_sma_signal_score",
         "dss_bullish_cross",
         "dss_bearish_cross",
+        "dss_oversold",
+        "dss_overbought",
+        "price_above_sma",
+        "price_below_sma",
+        "price_crossed_above_sma",
+        "price_crossed_below_sma",
+        "combo_dss_cross_sma_pos_bull",
+        "combo_dss_cross_sma_pos_bear",
+        "combo_dss_cross_sma_cross_bull",
+        "combo_dss_cross_sma_cross_bear",
+        "combo_dss_zone_sma_cross_bull",
+        "combo_dss_zone_sma_cross_bear",
+        "combo_dss_cross_from_zone_bull",
+        "combo_dss_cross_from_zone_bear",
+        "combo_dss_cross_sma_not_ob_bull",
+        "combo_dss_cross_sma_not_ob_bear",
         "composite_score",
         "up_bar_current",
     ]
@@ -150,6 +166,22 @@ class VPAFeatureExtractor:
         deque_dictionary: dict,
         dss_bullish_cross: int = 0,
         dss_bearish_cross: int = 0,
+        dss_oversold: int = 0,
+        dss_overbought: int = 0,
+        price_above_sma: int = 0,
+        price_below_sma: int = 0,
+        price_crossed_above_sma: int = 0,
+        price_crossed_below_sma: int = 0,
+        combo_dss_cross_sma_pos_bull: int = 0,
+        combo_dss_cross_sma_pos_bear: int = 0,
+        combo_dss_cross_sma_cross_bull: int = 0,
+        combo_dss_cross_sma_cross_bear: int = 0,
+        combo_dss_zone_sma_cross_bull: int = 0,
+        combo_dss_zone_sma_cross_bear: int = 0,
+        combo_dss_cross_from_zone_bull: int = 0,
+        combo_dss_cross_from_zone_bear: int = 0,
+        combo_dss_cross_sma_not_ob_bull: int = 0,
+        combo_dss_cross_sma_not_ob_bear: int = 0,
         price_vs_sma_value: float = 50.0,
         price_vs_sma_signal_score: float = 0.0,
     ) -> dict:
@@ -291,6 +323,22 @@ class VPAFeatureExtractor:
             "price_vs_sma_signal_score": price_vs_sma_signal_score,
             "dss_bullish_cross": int(dss_bullish_cross),
             "dss_bearish_cross": int(dss_bearish_cross),
+            "dss_oversold": int(dss_oversold),
+            "dss_overbought": int(dss_overbought),
+            "price_above_sma": int(price_above_sma),
+            "price_below_sma": int(price_below_sma),
+            "price_crossed_above_sma": int(price_crossed_above_sma),
+            "price_crossed_below_sma": int(price_crossed_below_sma),
+            "combo_dss_cross_sma_pos_bull": int(combo_dss_cross_sma_pos_bull),
+            "combo_dss_cross_sma_pos_bear": int(combo_dss_cross_sma_pos_bear),
+            "combo_dss_cross_sma_cross_bull": int(combo_dss_cross_sma_cross_bull),
+            "combo_dss_cross_sma_cross_bear": int(combo_dss_cross_sma_cross_bear),
+            "combo_dss_zone_sma_cross_bull": int(combo_dss_zone_sma_cross_bull),
+            "combo_dss_zone_sma_cross_bear": int(combo_dss_zone_sma_cross_bear),
+            "combo_dss_cross_from_zone_bull": int(combo_dss_cross_from_zone_bull),
+            "combo_dss_cross_from_zone_bear": int(combo_dss_cross_from_zone_bear),
+            "combo_dss_cross_sma_not_ob_bull": int(combo_dss_cross_sma_not_ob_bull),
+            "combo_dss_cross_sma_not_ob_bear": int(combo_dss_cross_sma_not_ob_bear),
             "composite_score": composite_score,
             "up_bar_current": up_bar_current,
         }
@@ -501,6 +549,18 @@ class VPAFeatureExtractor:
                     dss_bullish_cross = int(previous_dss <= previous_trigger and current_dss > current_trigger)
                     dss_bearish_cross = int(previous_dss >= previous_trigger and current_dss < current_trigger)
 
+            # --- Step 9a: DSS zone flags (oversold/overbought) ---
+            # From the oscillator vs the configured thresholds, guarded by the
+            # same dss_enabled / warmup / finite checks as the cross block above.
+            # Zone flags do not need pos > 0 (no previous row dependency).
+            dss_oversold = 0
+            dss_overbought = 0
+            if dss_enabled and dss_osc is not None and pos >= dss_warmup:
+                osc = dss_osc[pos]
+                if np.isfinite(osc):
+                    dss_oversold = int(osc <= dss_cfg.oversold_threshold)
+                    dss_overbought = int(osc >= dss_cfg.overbought_threshold)
+
             # --- Step 9b: Price-vs-SMA position + optional crossover score ---
             # Delegates to the pure ``compute_price_vs_sma_feature`` helper so the
             # scoring logic is independently unit/property-testable without driving
@@ -522,6 +582,42 @@ class VPAFeatureExtractor:
                 price_vs_sma_value = 50.0
                 price_vs_sma_signal_score = 0.0
 
+            # --- Step 9c: Price-vs-SMA position + cross flags ---
+            # From close vs SMA (and prev-vs-curr for the crosses), guarded by the
+            # same pvs_enabled / NaN checks as compute_price_vs_sma_feature.
+            price_above_sma = 0
+            price_below_sma = 0
+            price_crossed_above_sma = 0
+            price_crossed_below_sma = 0
+            if pvs_enabled and sma_series is not None:
+                sma = sma_series[pos]
+                close = closes[pos]
+                if not (_pvs_isnan(sma) or _pvs_isnan(close)):
+                    price_above_sma = int(close > sma)
+                    price_below_sma = int(close < sma)
+                    if pos > 0:
+                        prev_sma = sma_series[pos - 1]
+                        prev_close = closes[pos - 1]
+                        if not (_pvs_isnan(prev_sma) or _pvs_isnan(prev_close)):
+                            price_crossed_above_sma = int(prev_close <= prev_sma and close > sma)
+                            price_crossed_below_sma = int(prev_close >= prev_sma and close < sma)
+
+            # --- Step 9d: Combined (confluence) columns derived from the eight flags ---
+            # Each is the AND of the relevant flags per the design table (§5.2). The
+            # two three-way columns include the negation of the DSS zone flag,
+            # mirroring the live absence-condition semantics (Req 2.7, 2.8). These
+            # are NOT folded into composite_score (SP-340 zero-regression rule).
+            combo_dss_cross_sma_pos_bull = int(dss_bullish_cross and price_above_sma)
+            combo_dss_cross_sma_pos_bear = int(dss_bearish_cross and price_below_sma)
+            combo_dss_cross_sma_cross_bull = int(dss_bullish_cross and price_crossed_above_sma)
+            combo_dss_cross_sma_cross_bear = int(dss_bearish_cross and price_crossed_below_sma)
+            combo_dss_zone_sma_cross_bull = int(dss_oversold and price_crossed_above_sma)
+            combo_dss_zone_sma_cross_bear = int(dss_overbought and price_crossed_below_sma)
+            combo_dss_cross_from_zone_bull = int(dss_bullish_cross and dss_oversold)
+            combo_dss_cross_from_zone_bear = int(dss_bearish_cross and dss_overbought)
+            combo_dss_cross_sma_not_ob_bull = int(dss_bullish_cross and price_above_sma and not dss_overbought)
+            combo_dss_cross_sma_not_ob_bear = int(dss_bearish_cross and price_below_sma and not dss_oversold)
+
             # --- Step 10: Extract feature vector ---
             feature_vector = self._extract_feature_vector(
                 candle=this_candle,
@@ -531,6 +627,22 @@ class VPAFeatureExtractor:
                 deque_dictionary=deque_dictionary,
                 dss_bullish_cross=dss_bullish_cross,
                 dss_bearish_cross=dss_bearish_cross,
+                dss_oversold=dss_oversold,
+                dss_overbought=dss_overbought,
+                price_above_sma=price_above_sma,
+                price_below_sma=price_below_sma,
+                price_crossed_above_sma=price_crossed_above_sma,
+                price_crossed_below_sma=price_crossed_below_sma,
+                combo_dss_cross_sma_pos_bull=combo_dss_cross_sma_pos_bull,
+                combo_dss_cross_sma_pos_bear=combo_dss_cross_sma_pos_bear,
+                combo_dss_cross_sma_cross_bull=combo_dss_cross_sma_cross_bull,
+                combo_dss_cross_sma_cross_bear=combo_dss_cross_sma_cross_bear,
+                combo_dss_zone_sma_cross_bull=combo_dss_zone_sma_cross_bull,
+                combo_dss_zone_sma_cross_bear=combo_dss_zone_sma_cross_bear,
+                combo_dss_cross_from_zone_bull=combo_dss_cross_from_zone_bull,
+                combo_dss_cross_from_zone_bear=combo_dss_cross_from_zone_bear,
+                combo_dss_cross_sma_not_ob_bull=combo_dss_cross_sma_not_ob_bull,
+                combo_dss_cross_sma_not_ob_bear=combo_dss_cross_sma_not_ob_bear,
                 price_vs_sma_value=price_vs_sma_value,
                 price_vs_sma_signal_score=price_vs_sma_signal_score,
             )
