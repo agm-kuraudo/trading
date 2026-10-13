@@ -129,6 +129,31 @@ class DSSBressertSettings:
 
 
 @dataclass(frozen=True)
+class CombinedCondition:
+    """One constituent clause: a signal-name string evaluated as presence/absence."""
+
+    signal_name: str
+    kind: str = "presence"  # "presence" | "absence"
+
+
+@dataclass(frozen=True)
+class CombinedSignalDef:
+    """One named combination: its score and its (>= 2) constituent conditions."""
+
+    name: str
+    score: float = 0.0
+    conditions: tuple[CombinedCondition, ...] = ()
+
+
+@dataclass(frozen=True)
+class CombinedSignalsSettings:
+    """The combined_signals block. Defaults OFF (Req 1.7) — unlike dss_bressert."""
+
+    enabled: bool = False
+    combinations: tuple[CombinedSignalDef, ...] = ()
+
+
+@dataclass(frozen=True)
 class PeriodTradingParameters:
     high_spread_threshold: float = 55
     high_volume_threshold: float = 55
@@ -164,6 +189,7 @@ class Settings:
     trading_parameters: TradingParameters
     log_tail_size: int = 3
     dss_bressert: DSSBressertSettings = DSSBressertSettings()
+    combined_signals: CombinedSignalsSettings = CombinedSignalsSettings()
 
 
 def _value(data: dict[str, Any], key: str, path: str, expected_type: type) -> Any:
@@ -275,6 +301,34 @@ def _dss_bressert_settings(raw: dict[str, Any]) -> DSSBressertSettings:
     )
 
 
+def _combined_signals_settings(raw: dict[str, Any]) -> CombinedSignalsSettings:
+    enabled = _optional(raw, "enabled", False, "combined_signals.enabled", bool)
+    raw_combos = raw.get("combinations", [])
+    if not isinstance(raw_combos, list):
+        raise ConfigurationError("Invalid setting combined_signals.combinations: expected array")
+
+    combos: list[CombinedSignalDef] = []
+    for i, rc in enumerate(raw_combos):
+        if not isinstance(rc, dict):
+            raise ConfigurationError(f"Invalid setting combined_signals.combinations[{i}]: expected object")
+        path = f"combined_signals.combinations[{i}]"
+        name = _value(rc, "name", f"{path}.name", str)
+        score = _number(rc, "score", 0, f"{path}.score")
+        raw_conds = rc.get("conditions", [])
+        if not isinstance(raw_conds, list):
+            raise ConfigurationError(f"Invalid setting {path}.conditions: expected array")
+        conds = tuple(
+            CombinedCondition(
+                signal_name=_value(c, "signal_name", f"{path}.conditions[{j}].signal_name", str),
+                kind=_optional(c, "kind", "presence", f"{path}.conditions[{j}].kind", str),
+            )
+            for j, c in enumerate(raw_conds)
+        )
+        combos.append(CombinedSignalDef(name=name, score=score, conditions=conds))
+
+    return CombinedSignalsSettings(enabled=enabled, combinations=tuple(combos))
+
+
 def _trading_parameters(raw: dict[str, Any]) -> TradingParameters:
     def build(period: str, default_signal_count: int) -> PeriodTradingParameters:
         section = _section(raw, period, f"trading_parameters.{period}")
@@ -384,4 +438,5 @@ def load_settings(config_path: str | Path) -> Settings:
         price_vs_sma=_price_vs_sma_settings(_section(raw, "price_vs_sma", "price_vs_sma")),
         trading_parameters=_trading_parameters(trading_raw),
         dss_bressert=_dss_bressert_settings(_section(raw, "dss_bressert", "dss_bressert")),
+        combined_signals=_combined_signals_settings(_section(raw, "combined_signals", "combined_signals")),
     )

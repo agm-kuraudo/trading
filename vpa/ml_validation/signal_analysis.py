@@ -32,6 +32,16 @@ class SignalType(Enum):
     DSS_BEARISH = "dss_bearish"
     PRICE_ABOVE_SMA = "price_above_sma"
     PRICE_BELOW_SMA = "price_below_sma"
+    COMBO_DSS_CROSS_SMA_POS_BULL = "combo_dss_cross_sma_pos_bull"
+    COMBO_DSS_CROSS_SMA_POS_BEAR = "combo_dss_cross_sma_pos_bear"
+    COMBO_DSS_CROSS_SMA_CROSS_BULL = "combo_dss_cross_sma_cross_bull"
+    COMBO_DSS_CROSS_SMA_CROSS_BEAR = "combo_dss_cross_sma_cross_bear"
+    COMBO_DSS_ZONE_SMA_CROSS_BULL = "combo_dss_zone_sma_cross_bull"
+    COMBO_DSS_ZONE_SMA_CROSS_BEAR = "combo_dss_zone_sma_cross_bear"
+    COMBO_DSS_CROSS_FROM_ZONE_BULL = "combo_dss_cross_from_zone_bull"
+    COMBO_DSS_CROSS_FROM_ZONE_BEAR = "combo_dss_cross_from_zone_bear"
+    COMBO_DSS_CROSS_SMA_NOT_OB_BULL = "combo_dss_cross_sma_not_ob_bull"
+    COMBO_DSS_CROSS_SMA_NOT_OB_BEAR = "combo_dss_cross_sma_not_ob_bear"
 
 
 class SignalDirection(Enum):
@@ -55,9 +65,35 @@ SIGNAL_DIRECTIONS: dict[SignalType, SignalDirection] = {
     SignalType.DSS_BEARISH: SignalDirection.DOWN,
     SignalType.PRICE_ABOVE_SMA: SignalDirection.UP,
     SignalType.PRICE_BELOW_SMA: SignalDirection.DOWN,
+    SignalType.COMBO_DSS_CROSS_SMA_POS_BULL: SignalDirection.UP,
+    SignalType.COMBO_DSS_CROSS_SMA_POS_BEAR: SignalDirection.DOWN,
+    SignalType.COMBO_DSS_CROSS_SMA_CROSS_BULL: SignalDirection.UP,
+    SignalType.COMBO_DSS_CROSS_SMA_CROSS_BEAR: SignalDirection.DOWN,
+    SignalType.COMBO_DSS_ZONE_SMA_CROSS_BULL: SignalDirection.UP,
+    SignalType.COMBO_DSS_ZONE_SMA_CROSS_BEAR: SignalDirection.DOWN,
+    SignalType.COMBO_DSS_CROSS_FROM_ZONE_BULL: SignalDirection.UP,
+    SignalType.COMBO_DSS_CROSS_FROM_ZONE_BEAR: SignalDirection.DOWN,
+    SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BULL: SignalDirection.UP,
+    SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BEAR: SignalDirection.DOWN,
 }
 
 FORWARD_HORIZONS: list[int] = [3, 5, 10]
+
+# Combined (confluence) feature columns -> their SignalType (SP-327). The column
+# string equals the SignalType value, so classify_signals can read each 0/1 column
+# with the same column-guarded, notna-masked pattern used for the DSS columns.
+_COMBO_COLUMN_TO_TYPE: dict[str, SignalType] = {
+    "combo_dss_cross_sma_pos_bull": SignalType.COMBO_DSS_CROSS_SMA_POS_BULL,
+    "combo_dss_cross_sma_pos_bear": SignalType.COMBO_DSS_CROSS_SMA_POS_BEAR,
+    "combo_dss_cross_sma_cross_bull": SignalType.COMBO_DSS_CROSS_SMA_CROSS_BULL,
+    "combo_dss_cross_sma_cross_bear": SignalType.COMBO_DSS_CROSS_SMA_CROSS_BEAR,
+    "combo_dss_zone_sma_cross_bull": SignalType.COMBO_DSS_ZONE_SMA_CROSS_BULL,
+    "combo_dss_zone_sma_cross_bear": SignalType.COMBO_DSS_ZONE_SMA_CROSS_BEAR,
+    "combo_dss_cross_from_zone_bull": SignalType.COMBO_DSS_CROSS_FROM_ZONE_BULL,
+    "combo_dss_cross_from_zone_bear": SignalType.COMBO_DSS_CROSS_FROM_ZONE_BEAR,
+    "combo_dss_cross_sma_not_ob_bull": SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BULL,
+    "combo_dss_cross_sma_not_ob_bear": SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BEAR,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +249,14 @@ class SignalConditionalAnalyzer:
             pvs_below_mask = pvs_valid & (df["price_vs_sma_signal_score"] < 0)
             result[SignalType.PRICE_ABOVE_SMA] = df.index[pvs_above_mask].tolist()
             result[SignalType.PRICE_BELOW_SMA] = df.index[pvs_below_mask].tolist()
+
+        # Combined (confluence) columns (SP-327, present when the feature extractor
+        # emits them). Each column maps 1:1 to its same-named SignalType. Absent
+        # columns leave the already-initialised empty lists untouched (Req 5.2).
+        for combo_col, combo_type in _COMBO_COLUMN_TO_TYPE.items():
+            if combo_col in df.columns:
+                combo_mask = df[combo_col].notna() & (df[combo_col] == 1)
+                result[combo_type] = df.index[combo_mask].tolist()
 
         return result
 

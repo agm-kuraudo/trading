@@ -223,6 +223,44 @@ def _include_dss(entry: SignalEntry) -> bool:
     return entry.signal_type in _DSS_SIGNAL_TYPES
 
 
+# The five Combined (confluence) variations (SP-327, Req 5.3, 5.4). Each maps a
+# variation name to the frozenset of that combination's two COMBO_* SignalType
+# members (one bullish UP + one bearish DOWN). A per-combination filter admits
+# only those two types and excludes every other type, exactly like the
+# _include_dss / DSS_Bressert_Only pattern.
+_COMBO_FILTER_TYPES: dict[str, frozenset[SignalType]] = {
+    "Combo_DSS_Cross_SMA_Position": frozenset(
+        {SignalType.COMBO_DSS_CROSS_SMA_POS_BULL, SignalType.COMBO_DSS_CROSS_SMA_POS_BEAR}
+    ),
+    "Combo_DSS_Cross_SMA_Cross": frozenset(
+        {SignalType.COMBO_DSS_CROSS_SMA_CROSS_BULL, SignalType.COMBO_DSS_CROSS_SMA_CROSS_BEAR}
+    ),
+    "Combo_DSS_Zone_SMA_Cross": frozenset(
+        {SignalType.COMBO_DSS_ZONE_SMA_CROSS_BULL, SignalType.COMBO_DSS_ZONE_SMA_CROSS_BEAR}
+    ),
+    "Combo_DSS_Cross_From_Zone": frozenset(
+        {SignalType.COMBO_DSS_CROSS_FROM_ZONE_BULL, SignalType.COMBO_DSS_CROSS_FROM_ZONE_BEAR}
+    ),
+    "Combo_DSS_Cross_SMA_Not_Overbought": frozenset(
+        {SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BULL, SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BEAR}
+    ),
+}
+
+
+def _make_combo_filter(allowed: frozenset[SignalType]) -> SignalFilter:
+    """Build a filter admitting only the given combination's SignalType members (Req 5.3).
+
+    ``allowed`` is bound as the function argument (not a loop variable), so each
+    returned closure captures its own frozenset and there is no late-binding bug
+    when the filters are built in a loop.
+    """
+
+    def _include(entry: SignalEntry) -> bool:
+        return entry.signal_type in allowed
+
+    return _include
+
+
 def _include_known_direction(entry: SignalEntry) -> bool:
     """All_Signals filter: accept entries whose type is in ``SIGNAL_DIRECTIONS`` (Req 5.1).
 
@@ -322,5 +360,13 @@ def build_default_variations() -> list[StrategyVariation]:
             signal_filter=_include_dss,
         )
     )
+
+    # Combined (confluence) variations: one per combination (SP-327, Req 5.3, 5.4).
+    # Each admits only that combination's two COMBO_* SignalType members. The
+    # frozenset is passed to _make_combo_filter as an argument, so each closure
+    # binds its own allowed set with no late-binding over the loop variable. The
+    # engine is reused unchanged via run_variation -> BacktestEngine().run(...).
+    for combo_name, allowed in _COMBO_FILTER_TYPES.items():
+        variations.append(StrategyVariation(name=combo_name, signal_filter=_make_combo_filter(allowed)))
 
     return variations

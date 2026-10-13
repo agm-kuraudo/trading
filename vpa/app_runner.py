@@ -8,7 +8,22 @@ import pandas as pd
 
 from vpa.app import Candle, DebugLog, calculate_adx, identify_acc_or_dist
 from vpa.config import Settings, load_settings
+from vpa.config.settings import CombinedSignalDef
 from vpa.market_data.repository import MarketDataRepository
+
+# The known signal-name strings a combined-signal condition may reference (Req 1.4).
+_KNOWN_COMBINED_SIGNAL_NAMES = frozenset(
+    {
+        "DSS Bullish Crossover",
+        "DSS Bearish Crossover",
+        "DSS Oversold",
+        "DSS Overbought",
+        "Price above SMA",
+        "Price below SMA",
+        "Price crossed above SMA",
+        "Price crossed below SMA",
+    }
+)
 
 
 # Passing a ticker_symbol will load data from yfinance. Passing a dataframe will directly use that dataframe
@@ -44,6 +59,9 @@ class MarketAnalyzer:
 
         # Initialize DSS Bressert configuration
         self._init_dss_bressert_config()
+
+        # Initialize combined-signals (confluence) configuration
+        self._init_combined_signals_config()
 
         if fixed_df is None:
             # Load data from the Yahoo Finance module or CSV file
@@ -218,6 +236,43 @@ class MarketAnalyzer:
             return
 
         self.__dss_bressert_enabled = True
+
+    def _init_combined_signals_config(self):
+        """Load and validate the combined_signals section (Req 1, 4).
+
+        Sets self.__combined_signals_enabled (bool) and self.__combined_signals
+        (list[CombinedSignalDef] of the valid combinations). Category defaults OFF
+        when the flag is false/absent/non-boolean (Req 1.7, 4.1-4.3). A combination
+        referencing an unknown signal-name string, or with fewer than two
+        conditions, is dropped with a WARN and the remaining valid combinations are
+        retained (Req 1.3, 1.9).
+        """
+        cfg = self.__config.combined_signals
+
+        if not cfg.enabled:
+            self.__combined_signals_enabled = False
+            self.__combined_signals = []
+            return
+
+        valid: list[CombinedSignalDef] = []
+        for combo in cfg.combinations:
+            if len(combo.conditions) < 2:
+                self.__logger.log(
+                    f"Combined signal '{combo.name}' disabled: requires at least two conditions.",
+                    level="WARN",
+                )
+                continue
+            unknown = [c.signal_name for c in combo.conditions if c.signal_name not in _KNOWN_COMBINED_SIGNAL_NAMES]
+            if unknown:
+                self.__logger.log(
+                    f"Combined signal '{combo.name}' disabled: unknown signal-name string(s) {unknown}.",
+                    level="WARN",
+                )
+                continue
+            valid.append(combo)
+
+        self.__combined_signals = valid
+        self.__combined_signals_enabled = True
 
     def _get_data_days(self) -> int:
         """Return the largest data_days across all enabled features."""
@@ -613,6 +668,69 @@ class MarketAnalyzer:
 
         return {"dss_bressert_signals": signals_list, "dss_bressert_signal_score": total_score}
 
+    def detect_combined_signals(
+        self,
+        row_index: int,
+        dss_signals: list[str],
+        price_vs_sma_signals: list[str],
+        log: bool = True,
+    ) -> dict:
+        """Evaluate configured confluences against the row's constituent signal lists.
+
+        Reads the already-computed per-row DSS and price-vs-SMA signal-name lists
+        (populated by Steps 6.3/6.4) and fires each enabled combination whose every
+        constituent condition holds (AND - Req 2.2). A presence condition holds iff
+        its signal-name string IS in the relevant list; an absence condition holds
+        iff the string is NOT in the list (Req 2.1). Returns exactly two keys:
+        combined_signals (list[str]) and combined_signal_score (float) (Req 3.2).
+
+        Graceful degradation (Req 4): disabled category -> empty list + 0.0. A
+        disabled or insufficient-data constituent simply contributes an empty list,
+        so its presence conditions fail and its absence conditions pass naturally
+        (Req 2.10, 2.11) - no special casing required.
+        """
+        empty_result = {"combined_signals": [], "combined_signal_score": 0.0}
+
+        if not self.__combined_signals_enabled:
+            return empty_result
+
+        # The union of signal-name strings present on this row, keyed by which
+        # constituent they belong to. A combination's condition is checked against
+        # the correct constituent list by the string itself (the known-names set
+        # partitions cleanly between the two constituents).
+        present = set(dss_signals) | set(price_vs_sma_signals)
+
+        fired: list[str] = []
+        total_score = 0.0
+
+        for combo in self.__combined_signals:
+            holds = True
+            for cond in combo.conditions:
+                is_present = cond.signal_name in present
+                if cond.kind == "absence":
+                    # Absence condition holds iff the string is NOT present. A
+                    # disabled/no-data constituent yields an empty list, so the
+                    # string is absent and the condition is trivially satisfied
+                    # (Req 2.11).
+                    if is_present:
+                        holds = False
+                        break
+                else:  # presence
+                    # Presence condition holds iff the string IS present. A
+                    # disabled/no-data constituent yields an empty list, so the
+                    # string is absent and the condition fails (Req 2.10).
+                    if not is_present:
+                        holds = False
+                        break
+            if holds:
+                fired.append(combo.name)  # exactly one name per firing combo (Req 2.9)
+                total_score += combo.score  # signed: bullish > 0 adds, bearish < 0 subtracts
+
+        if log and fired:
+            self.__logger.log(f"Combined Signals: {fired}, Score: {total_score:.2f}", level="INFO")
+
+        return {"combined_signals": fired, "combined_signal_score": total_score}
+
     def process_data(self):
         # Step 2: Loop around each item in the data frame
 
@@ -714,6 +832,16 @@ class MarketAnalyzer:
             dss_signals = self.detect_dss_bressert_signals(row_position, log=row_position >= log_start_index)
             signals["dss_bressert_signals"] = dss_signals["dss_bressert_signals"]
             signals["dss_bressert_signal_score"] = dss_signals["dss_bressert_signal_score"]
+
+            # Step 6.5: Detect combined (confluence) signals over the constituent lists
+            combined = self.detect_combined_signals(
+                row_position,
+                signals["dss_bressert_signals"],
+                signals["price_vs_sma_signals"],
+                log=row_position >= log_start_index,
+            )
+            signals["combined_signals"] = combined["combined_signals"]
+            signals["combined_signal_score"] = combined["combined_signal_score"]
             self.__last_signals = signals.copy()
 
             if row_position >= log_start_index:
@@ -728,6 +856,7 @@ class MarketAnalyzer:
                 + signals["rsi_signal_score"]
                 + signals["price_vs_sma_signal_score"]
                 + signals["dss_bressert_signal_score"]
+                + signals["combined_signal_score"]
             )
             direction = "BUY" if trade_signal > 0 else "SELL"
 
