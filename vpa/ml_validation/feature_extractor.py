@@ -655,9 +655,9 @@ class VPAFeatureExtractor:
                 date_str = str(date_val)
 
             feature_vector["date"] = date_str
-            feature_vector["open"] = float(row["Open"])  # SP-335: raw yfinance open
-            feature_vector["high"] = float(row["High"])  # SP-335: raw yfinance high
-            feature_vector["low"] = float(row["Low"])  # SP-335: raw yfinance low
+            feature_vector["open"] = float(row["Open"])  # SP-335: raw OHLC from the market-data store
+            feature_vector["high"] = float(row["High"])  # SP-335: raw OHLC from the market-data store
+            feature_vector["low"] = float(row["Low"])  # SP-335: raw OHLC from the market-data store
             feature_vector["close"] = float(row["Close"])
 
             feature_rows.append(feature_vector)
