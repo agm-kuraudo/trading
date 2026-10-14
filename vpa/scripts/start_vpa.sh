@@ -26,10 +26,16 @@ vpa_status=$?
 # Best-effort: copy the latest report to the share regardless of the scan outcome,
 # but never let the copy mask a scan failure. Guard against an empty log dir so a
 # missing report doesn't itself crash the script and hide the real status.
+#
+# SP-374: the Log_Share was relocated onto the USB (/mnt/data/my_share) by SP-338,
+# so copy there (not the old /usr/local/my_share, which was removed). Overridable
+# via VPA_SHARE_DIR so a future relocation is a single env change. The ${VAR:-default}
+# form is safe under `set -u`.
+share_dir="${VPA_SHARE_DIR:-/mnt/data/my_share}"
 cd /usr/local/trading/vpa/log/
 last_updated_file=$(ls -t 2>/dev/null | head -n 1)
 if [[ -n "$last_updated_file" ]]; then
-    cp "$last_updated_file" /usr/local/my_share || true
+    cp "$last_updated_file" "$share_dir" || true
 fi
 
 # Propagate the scan's exit status so Rundeck sees red when the scan failed.
