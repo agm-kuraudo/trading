@@ -124,7 +124,9 @@ def test_property_15_per_trade_csv_ordering(
 
     rows = per_trade_rows(run)
 
-    # Req 16.2: the first row is the header with exactly the seven columns in order.
+    # Req 16.2: the first row is the header. SP-354 (Req 12.3) appends three
+    # columns after the original seven, so the header is now ten columns in a
+    # fixed order (original seven preserved in position, new three last).
     assert rows[0] == PER_TRADE_HEADER
     assert PER_TRADE_HEADER == [
         "entry_date",
@@ -134,6 +136,9 @@ def test_property_15_per_trade_csv_ordering(
         "signal_type",
         "signal_direction",
         "strategy_return",
+        "stop_loss",
+        "profit_target",
+        "exit_reason",
     ]
 
     data_rows = rows[1:]
@@ -141,9 +146,9 @@ def test_property_15_per_trade_csv_ordering(
     # Exactly one data row per priced trade.
     assert len(data_rows) == len(priced_trades)
 
-    # Req 16.3: every row (header + data) has exactly seven columns.
+    # Req 16.3 (SP-354 Req 12.3): every row (header + data) has exactly ten columns.
     for row in rows:
-        assert len(row) == len(PER_TRADE_HEADER) == 7
+        assert len(row) == len(PER_TRADE_HEADER) == 10
 
     # Req 16.2: data rows are non-decreasing by (entry_date, exit_date).
     order_keys = [(row[0], row[1]) for row in data_rows]
@@ -155,6 +160,8 @@ def test_property_15_per_trade_csv_ordering(
         priced_trades,
         key=lambda p: (p.trade.entry_date, p.trade.exit_date),
     )
+    # These trades leave stop_loss/profit_target/exit_reason at their None
+    # default, so the three SP-354 columns render as empty strings (Req 12.4).
     expected_rows = [
         [
             p.trade.entry_date,
@@ -164,10 +171,158 @@ def test_property_15_per_trade_csv_ordering(
             p.trade.signal_type.name,
             p.direction.name,
             str(p.strategy_return),
+            "",
+            "",
+            "",
         ]
         for p in expected_sorted
     ]
     assert data_rows == expected_rows
+
+
+# ---------------------------------------------------------------------------
+# SP-354 Task 9.1: per-trade CSV extension (three appended columns).
+#
+# These example tests cover the additive stop_loss/profit_target/exit_reason
+# columns (SP-354 Req 12.3, 12.4). They reuse the module helpers above:
+# _make_variation_run and _positional_date, and build PricedTrade fixtures with
+# and without the new TradeRecord fields set.
+# ---------------------------------------------------------------------------
+
+from vpa.backtesting.models import ExitReason  # noqa: E402
+
+
+def _make_priced_trade_with_extras(
+    entry_index: int,
+    exit_index: int,
+    entry_price: float,
+    exit_price: float,
+    signal_type: SignalType,
+    direction: SignalDirection,
+    strategy_return: float,
+    stop_loss: float | None,
+    profit_target: float | None,
+    exit_reason: ExitReason | None,
+) -> PricedTrade:
+    """Build a ``PricedTrade`` whose ``TradeRecord`` carries the SP-354 extras.
+
+    When ``stop_loss`` / ``profit_target`` / ``exit_reason`` are left at
+    ``None`` this mirrors a trade resolved by a non-supplying strategy
+    (fixed-hold / percentage-stop); when set, it mirrors a recent-extreme trade.
+    """
+    trade = TradeRecord(
+        entry_date=_positional_date(entry_index),
+        exit_date=_positional_date(exit_index),
+        entry_price=entry_price,
+        exit_price=exit_price,
+        return_pct=strategy_return,
+        signal_type=signal_type,
+        stop_loss=stop_loss,
+        profit_target=profit_target,
+        exit_reason=exit_reason,
+    )
+    return PricedTrade(trade=trade, direction=direction, strategy_return=strategy_return)
+
+
+def test_per_trade_header_appends_three_columns_after_original_seven() -> None:
+    """The original seven header columns are unchanged and three new ones are appended (SP-354 Req 12.3)."""
+    # The leading seven columns keep their identity and order.
+    assert PER_TRADE_HEADER[:7] == [
+        "entry_date",
+        "exit_date",
+        "entry_price",
+        "exit_price",
+        "signal_type",
+        "signal_direction",
+        "strategy_return",
+    ]
+    # The three SP-354 columns are appended, in order, after the original seven.
+    assert PER_TRADE_HEADER[7:] == ["stop_loss", "profit_target", "exit_reason"]
+    assert len(PER_TRADE_HEADER) == 10
+
+
+# Feature: sp-354-recent-extreme-stop-target, Property 10: recent-extreme carries stop/target/reason
+def test_per_trade_rows_recent_extreme_trade_populates_three_columns() -> None:
+    """A recent-extreme trade populates the three appended cells (SP-354 Req 12.3, Property 10).
+
+    stop_loss / profit_target render as stringified numbers and exit_reason via
+    its enum ``.name``, while the original seven columns keep their values.
+    """
+    priced = _make_priced_trade_with_extras(
+        entry_index=0,
+        exit_index=3,
+        entry_price=100.0,
+        exit_price=108.0,
+        signal_type=SignalType.STRONG_BULLISH,
+        direction=SignalDirection.UP,
+        strategy_return=0.08,
+        stop_loss=95.5,
+        profit_target=109.0,
+        exit_reason=ExitReason.TARGET,
+    )
+    run = _make_variation_run([priced])
+
+    rows = per_trade_rows(run)
+
+    assert rows[0] == PER_TRADE_HEADER
+    data_row = rows[1]
+
+    # Original seven columns unchanged.
+    assert data_row[:7] == [
+        _positional_date(0),
+        _positional_date(3),
+        str(100.0),
+        str(108.0),
+        SignalType.STRONG_BULLISH.name,
+        SignalDirection.UP.name,
+        str(0.08),
+    ]
+    # Three appended columns populated: numbers stringified, reason via .name.
+    assert data_row[7] == str(95.5)
+    assert data_row[8] == str(109.0)
+    assert data_row[9] == ExitReason.TARGET.name
+    assert len(data_row) == 10
+
+
+# Feature: sp-354-recent-extreme-stop-target, Property 11: backward-compat empty for non-supplying
+def test_per_trade_rows_non_supplying_trade_renders_three_empty_cells() -> None:
+    """A trade with the three fields None renders them as empty strings (SP-354 Req 12.4, Property 11).
+
+    The original seven columns are unchanged, confirming the extension is
+    backward-compatible for strategies that supply no stop/target/reason.
+    """
+    priced = _make_priced_trade_with_extras(
+        entry_index=1,
+        exit_index=5,
+        entry_price=50.0,
+        exit_price=47.0,
+        signal_type=SignalType.STRONG_BEARISH,
+        direction=SignalDirection.DOWN,
+        strategy_return=-0.06,
+        stop_loss=None,
+        profit_target=None,
+        exit_reason=None,
+    )
+    run = _make_variation_run([priced])
+
+    rows = per_trade_rows(run)
+
+    assert rows[0] == PER_TRADE_HEADER
+    data_row = rows[1]
+
+    # Original seven columns unchanged.
+    assert data_row[:7] == [
+        _positional_date(1),
+        _positional_date(5),
+        str(50.0),
+        str(47.0),
+        SignalType.STRONG_BEARISH.name,
+        SignalDirection.DOWN.name,
+        str(-0.06),
+    ]
+    # The three appended columns render as empty strings for a non-supplying trade.
+    assert data_row[7:] == ["", "", ""]
+    assert len(data_row) == 10
 
 
 # ---------------------------------------------------------------------------

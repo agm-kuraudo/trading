@@ -17,7 +17,12 @@ from dataclasses import dataclass
 from vpa.backtesting import equity_curve, metrics, pnl
 from vpa.backtesting.config import BacktestConfig
 from vpa.backtesting.engine import BacktestEngine
-from vpa.backtesting.exit_strategy import ExitStrategy, FixedHoldExitStrategy, StopLossExitStrategy
+from vpa.backtesting.exit_strategy import (
+    ExitStrategy,
+    FixedHoldExitStrategy,
+    RecentExtremeExitStrategy,
+    StopLossExitStrategy,
+)
 from vpa.backtesting.metrics import DEFAULT_RISK_FREE_RATE
 from vpa.backtesting.models import (
     BacktestResult,
@@ -29,7 +34,7 @@ from vpa.backtesting.models import (
     SignalEntry,
     TradeExclusion,
 )
-from vpa.ml_validation.signal_analysis import SIGNAL_DIRECTIONS, SignalType
+from vpa.ml_validation.signal_analysis import SIGNAL_DIRECTIONS, SignalDirection, SignalType
 
 SignalFilter = Callable[[SignalEntry], bool]
 """Predicate selecting which ``SignalEntry`` records a variation includes."""
@@ -271,6 +276,30 @@ def _include_known_direction(entry: SignalEntry) -> bool:
     return entry.signal_type in SIGNAL_DIRECTIONS
 
 
+def _include_long(entry: SignalEntry) -> bool:
+    """Recent-extreme long filter: admit only UP signals (SP-354 Decision 3, Req 11.2).
+
+    Keeps the recent-extreme strategy's *geometry* direction consistent with the
+    signals' *P&L* direction. ``RecentExtremeExitStrategy.direction`` governs only
+    where the stop/target sit; the P&L sign is resolved downstream by
+    ``pnl.strategy_return`` from ``SIGNAL_DIRECTIONS``. A long (UP geometry)
+    variation must therefore see only signals whose ``SIGNAL_DIRECTIONS`` value is
+    UP, so long geometry pairs with long P&L.
+    """
+    return SIGNAL_DIRECTIONS.get(entry.signal_type) is SignalDirection.UP
+
+
+def _include_short(entry: SignalEntry) -> bool:
+    """Recent-extreme short filter: admit only DOWN signals (SP-354 Decision 3, Req 11.2).
+
+    The mirror of :func:`_include_long`: a short (DOWN geometry) variation must
+    see only signals whose ``SIGNAL_DIRECTIONS`` value is DOWN, so short geometry
+    pairs with short P&L. Admitting an UP signal into a DOWN variation would
+    compute short geometry but long P&L — a silent correctness bug.
+    """
+    return SIGNAL_DIRECTIONS.get(entry.signal_type) is SignalDirection.DOWN
+
+
 def build_default_variations() -> list[StrategyVariation]:
     """Build the full default catalogue of strategy variations (Req 3-7, 19.4).
 
@@ -368,5 +397,30 @@ def build_default_variations() -> list[StrategyVariation]:
     # engine is reused unchanged via run_variation -> BacktestEngine().run(...).
     for combo_name, allowed in _COMBO_FILTER_TYPES.items():
         variations.append(StrategyVariation(name=combo_name, signal_filter=_make_combo_filter(allowed)))
+
+    # Recent-extreme sweep (SP-354 Req 10, 11): twelve variations covering every
+    # combination of reward-risk {1,2,3} x lookback {5,10} x direction {UP,DOWN},
+    # appended AFTER the existing catalogue so prior variations keep their
+    # presence, names, and ordering (Req 10.4). Each carries its direction
+    # explicitly (Req 11.2) with buffer 0 (Req 11.3), a direction-matched
+    # signal_filter to keep geometry and P&L consistent (Decision 3), and a
+    # zero-arg exit_strategy_factory whose params are bound via default args to
+    # avoid loop late-binding — mirroring the Stop_Loss loop above. Each name is
+    # distinct so per-variation CSV slugs stay unique (Req 11.1, 11.5).
+    for reward in (1, 2, 3):  # Req 11.1
+        for lookback in (5, 10):  # Req 11.1
+            for direction in (SignalDirection.UP, SignalDirection.DOWN):  # Req 11.1
+                is_long = direction is SignalDirection.UP
+                variations.append(
+                    StrategyVariation(
+                        name=f"Recent_Extreme_{'Long' if is_long else 'Short'}_R{reward}_LB{lookback}",
+                        signal_filter=_include_long if is_long else _include_short,
+                        exit_strategy_factory=(
+                            lambda r=reward, lb=lookback, d=direction: RecentExtremeExitStrategy(
+                                lookback=lb, reward_risk=r, buffer=0.0, direction=d
+                            )
+                        ),
+                    )
+                )
 
     return variations

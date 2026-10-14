@@ -1,0 +1,190 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "4. Implement `resolve_exit` stop/target geometry and degenerate skips": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979623371
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979868824
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979992665
+      }
+    ],
+    "5. Implement `resolve_exit` forward scan and fixed-hold fallback": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979623506
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979869679
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979994216
+      }
+    ],
+    "7. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979623614
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791980846502
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791980871047
+      }
+    ],
+    "12. Final verification": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979623708
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981861339
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791982199816
+      }
+    ],
+    "1.1 Write unit tests for the new models": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979638965
+      }
+    ],
+    "2.1 Write regression tests for backward-compatible engine output": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979640388
+      }
+    ],
+    "3.1 Write construction and conformance unit tests": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979640982
+      }
+    ],
+    "1. Extend data models with the new enums and additive fields": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979650195
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979756822
+      }
+    ],
+    "2. Thread the three extras through the engine": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979760071
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979859121
+      }
+    ],
+    "3. Create `RecentExtremeExitStrategy` skeleton with construction-time validation": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979863202
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979991728
+      }
+    ],
+    "6. Property and oracle tests for the strategy": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791979998353
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791980842033
+      }
+    ],
+    "8. Engine integration tests for the strategy": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791980874761
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981019017
+      }
+    ],
+    "9. Extend the per-trade CSV in reporting.py": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981022110
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981153608
+      }
+    ],
+    "10. Add direction filters and the 12 recent-extreme default variations": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981156669
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981299069
+      }
+    ],
+    "11. Harness and end-to-end pipeline tests": [
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981302050
+      },
+      {
+        "executionId": "304044a1-58a2-4ed0-904f-673f08538327",
+        "chatSessionId": "sess_f5276a6f-e9d3-4c7d-9a3b-e392c12d370d",
+        "timestamp": 1791981857215
+      }
+    ]
+  }
+}

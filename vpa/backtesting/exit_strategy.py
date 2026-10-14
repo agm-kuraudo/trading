@@ -9,7 +9,7 @@ fixed-hold strategy (Req 9.4).
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
-from vpa.backtesting.models import ExitResult, PricePoint, SkipReason
+from vpa.backtesting.models import ExitReason, ExitResult, PricePoint, SkipReason
 from vpa.ml_validation.signal_analysis import SignalDirection
 
 
@@ -79,3 +79,96 @@ class StopLossExitStrategy:
 
         # No breach within the hold window: delegate to the fixed-hold fallback (Req 7.8).
         return self._fixed_hold.resolve_exit(entry_index, price_series, hold_period)
+
+
+@dataclass(frozen=True)
+class RecentExtremeExitStrategy:
+    """Recent-extreme stop + risk-based target exit (SP-354 Req 1-9).
+
+    GEOMETRY ONLY: ``direction`` selects long vs short stop/target placement and
+    which bar field triggers a breach. It does NOT set the P&L sign -- that is
+    resolved downstream by ``pnl.strategy_return`` from ``SIGNAL_DIRECTIONS``
+    (see Design Decision 3).
+
+    The stop is placed from a recent price extreme (lowest ``low`` for longs,
+    highest ``high`` for shorts) measured over the ``lookback`` bars strictly
+    before entry (Req 3). The profit target is derived from the resulting risk
+    distance via the ``reward_risk`` multiplier (Req 4). The strategy scans
+    forward OHLC bars and exits on the first stop or target breach, with the
+    stop winning when both breach on the same bar (Req 5.6); gap-through opens
+    resolve at the open (Req 5.7, 5.8). When neither level is breached within
+    the hold window, resolution delegates to the wrapped
+    ``FixedHoldExitStrategy`` (Req 5.9).
+
+    Pure: reads only the supplied ``price_series`` (Req 1.4), returns RAW prices
+    (the engine validates them via ``_is_valid_price``), never mutates inputs
+    (Req 1.5), and is deterministic (Req 1.6).
+    """
+
+    lookback: int  # L, positive int (Req 2.1, 2.3)
+    reward_risk: float  # M, strictly > 0 (Req 2.1, 2.5)
+    buffer: float = 0.0  # >= 0, default 0 at the extreme (Req 2.1, 2.4, 2.6)
+    direction: SignalDirection = SignalDirection.UP  # default UP/long (Req 2.2)
+    _fixed_hold: FixedHoldExitStrategy = field(default_factory=FixedHoldExitStrategy)
+
+    def __post_init__(self) -> None:
+        # Reject bool-as-int before the int check, mirroring validate_hold_period.
+        if isinstance(self.lookback, bool) or not isinstance(self.lookback, int):
+            raise ValueError(f"lookback must be a positive int, got {self.lookback!r}")  # Req 2.3
+        if self.lookback < 1:
+            raise ValueError(f"lookback must be a positive int, got {self.lookback}")  # Req 2.3
+        if self.buffer < 0:
+            raise ValueError(f"buffer must be >= 0, got {self.buffer}")  # Req 2.4
+        if not self.reward_risk > 0:
+            raise ValueError(f"reward_risk must be > 0, got {self.reward_risk}")  # Req 2.5
+
+    def resolve_exit(self, entry_index: int, price_series: list[PricePoint], hold_period: int) -> ExitResult:
+        last_index = len(price_series) - 1
+
+        # --- Recent extreme over bars strictly before entry (Req 3.1-3.3, 6.1) ---
+        start = entry_index - self.lookback
+        if start < 0:  # fewer than L prior bars exist
+            return ExitResult(None, None, SkipReason.UNAVAILABLE_RECENT_EXTREME)  # Req 6.1
+        window = price_series[start:entry_index]  # indices entry_index-L .. entry_index-1
+
+        is_long = self.direction is SignalDirection.UP
+        if is_long:
+            extreme = min(bar.low for bar in window)  # lowest low (Req 3.1)
+            stop = extreme - self.buffer  # Req 3.4
+        else:
+            extreme = max(bar.high for bar in window)  # highest high (Req 3.2)
+            stop = extreme + self.buffer  # Req 3.5
+
+        # --- Risk distance + target (Req 4) ---
+        entry_price = price_series[entry_index].close  # Req 4.1
+        risk = abs(entry_price - stop)  # Req 4.1
+        # Degenerate: zero risk, or stop on the wrong (non-adverse) side (Req 6.2, 6.3).
+        if risk == 0 or (is_long and stop >= entry_price) or (not is_long and stop <= entry_price):
+            return ExitResult(None, None, SkipReason.DEGENERATE_RISK_DISTANCE)  # Req 6.2, 6.3
+        # Req 4.2, 4.3
+        target = entry_price + risk * self.reward_risk if is_long else entry_price - risk * self.reward_risk
+
+        # --- Forward scan: first breach wins, stop-first on same bar (Req 5) ---
+        horizon = min(entry_index + hold_period, last_index)  # Req 5.1
+        for j in range(entry_index + 1, horizon + 1):
+            bar = price_series[j]
+            if is_long:
+                if bar.low <= stop:  # stop breach (Req 5.2); stop-first (Req 5.6)
+                    exit_price = bar.open if bar.open <= stop else stop  # gap-through (Req 5.7)
+                    return ExitResult(j, exit_price, None, stop, target, ExitReason.STOP)
+                if bar.high >= target:  # target breach (Req 5.3)
+                    exit_price = bar.open if bar.open >= target else target  # gap-through (Req 5.8)
+                    return ExitResult(j, exit_price, None, stop, target, ExitReason.TARGET)
+            else:
+                if bar.high >= stop:  # stop breach (Req 5.4); stop-first (Req 5.6)
+                    exit_price = bar.open if bar.open >= stop else stop  # gap-through (Req 5.7)
+                    return ExitResult(j, exit_price, None, stop, target, ExitReason.STOP)
+                if bar.low <= target:  # target breach (Req 5.5)
+                    exit_price = bar.open if bar.open <= target else target  # gap-through (Req 5.8)
+                    return ExitResult(j, exit_price, None, stop, target, ExitReason.TARGET)
+
+        # --- No breach: delegate to fixed-hold fallback and carry stop/target (Req 5.9) ---
+        fallback = self._fixed_hold.resolve_exit(entry_index, price_series, hold_period)
+        if fallback.reason is not None:
+            return fallback  # horizon past series end -> INSUFFICIENT_FUTURE_DATA_EXIT, no extras
+        return ExitResult(fallback.exit_index, fallback.exit_price, None, stop, target, ExitReason.FIXED_HOLD)
