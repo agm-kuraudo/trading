@@ -20,25 +20,36 @@ PER_TRADE_HEADER = [
     "signal_type",
     "signal_direction",
     "strategy_return",
+    "stop_loss",  # SP-354 appended (Req 12.3)
+    "profit_target",  # SP-354 appended (Req 12.3)
+    "exit_reason",  # SP-354 appended (Req 12.3)
 ]
-"""Per-trade CSV column order (Req 16.2)."""
+"""Per-trade CSV column order (Req 16.2; SP-354 Req 12.3 appends the final three)."""
 
 EQUITY_HEADER = ["date", "equity"]
 """Equity-curve CSV column order (Req 17.2)."""
 
 
 def per_trade_rows(run: VariationRun) -> list[list[str]]:
-    """Build the per-trade CSV rows for a completed variation (Req 16.2-16.4).
+    """Build the per-trade CSV rows for a completed variation (Req 16.2-16.4; SP-354 Req 12.3).
 
     Returns the header row followed by one row per ``PricedTrade``, ordered by
     ``entry_date`` ascending and then ``exit_date`` ascending. Every row (and
-    the header) contains exactly the seven ``PER_TRADE_HEADER`` columns in that
-    order. When the variation produced zero trades, only the header row is
-    returned (Req 16.4).
+    the header) contains exactly the ten ``PER_TRADE_HEADER`` columns in that
+    order: the original seven (``entry_date``, ``exit_date``, ``entry_price``,
+    ``exit_price``, ``signal_type``, ``signal_direction``, ``strategy_return``)
+    followed by the three SP-354 additive columns (``stop_loss``,
+    ``profit_target``, ``exit_reason``). When the variation produced zero
+    trades, only the header row is returned (Req 16.4).
 
     ``signal_type`` and ``signal_direction`` are rendered via their enum
-    ``.name``; all numeric columns are stringified so the result is a pure
-    ``list[list[str]]``.
+    ``.name``; numeric columns are stringified. The three appended SP-354
+    columns render an absent (``None``) ``stop_loss`` / ``profit_target`` /
+    ``exit_reason`` as the empty string and otherwise stringify the numbers and
+    render ``exit_reason`` via its enum ``.name``, so a trade resolved by a
+    non-supplying strategy (fixed-hold, percentage-stop) yields three empty
+    trailing cells and the original seven columns are unchanged (SP-354
+    Req 12.3, 12.4). The result is a pure ``list[list[str]]``.
     """
     rows: list[list[str]] = [list(PER_TRADE_HEADER)]
 
@@ -58,6 +69,9 @@ def per_trade_rows(run: VariationRun) -> list[list[str]]:
                 trade.signal_type.name,
                 priced.direction.name,
                 str(priced.strategy_return),
+                "" if trade.stop_loss is None else str(trade.stop_loss),  # SP-354 Req 12.3, 12.4
+                "" if trade.profit_target is None else str(trade.profit_target),  # SP-354 Req 12.3, 12.4
+                "" if trade.exit_reason is None else trade.exit_reason.name,  # SP-354 Req 12.3, 12.4
             ]
         )
 

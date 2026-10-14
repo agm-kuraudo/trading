@@ -27,6 +27,16 @@ class SkipReason(Enum):
     INSUFFICIENT_FUTURE_DATA_EXIT = "insufficient_future_data_exit"  # Req 7.2
     INVALID_ENTRY_PRICE = "invalid_entry_price"  # Req 7.4
     INVALID_EXIT_PRICE = "invalid_exit_price"  # Req 7.5
+    UNAVAILABLE_RECENT_EXTREME = "unavailable_recent_extreme"  # SP-354 Req 6.1, 6.5
+    DEGENERATE_RISK_DISTANCE = "degenerate_risk_distance"  # SP-354 Req 6.2, 6.3, 6.5
+
+
+class ExitReason(Enum):
+    """How a trade resolved (SP-354 Req 7)."""
+
+    STOP = "stop"  # Stop_Loss breach (Req 5.2, 5.4)
+    TARGET = "target"  # Profit_Target breach (Req 5.3, 5.5)
+    FIXED_HOLD = "fixed_hold"  # neither breached; fixed-hold fallback (Req 5.9)
 
 
 @dataclass(frozen=True)
@@ -59,6 +69,12 @@ class TradeRecord:
     exit_price: float
     return_pct: float  # Net_Return (Gross_Return - Round_Trip_Cost)
     signal_type: SignalType
+    # SP-354 additive, defaulted fields (Req 7.1, 7.2) -- appended last for
+    # backward compatibility. None => resolved by a strategy that supplies no
+    # stop/target/reason (fixed-hold, percentage-stop).
+    stop_loss: float | None = None
+    profit_target: float | None = None
+    exit_reason: ExitReason | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +93,12 @@ class ExitResult:
     exit_index: int | None
     exit_price: float | None
     reason: SkipReason | None  # set when exit cannot be resolved (Req 7.2)
+    # SP-354 additive, defaulted fields -- carry resolution detail back to the
+    # engine on a single return channel (Design Decision 5). Existing strategies
+    # leave these at None, so their ExitResults are unchanged in meaning.
+    stop_loss: float | None = None  # SP-354 Req 7.1
+    profit_target: float | None = None  # SP-354 Req 7.1
+    exit_reason: ExitReason | None = None  # SP-354 Req 7.1
 
 
 @dataclass(frozen=True)

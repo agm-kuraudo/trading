@@ -272,4 +272,11 @@ class BacktestEngine:
             exit_price=exit_price,
             return_pct=net,
             signal_type=entry.signal_type,
+            # SP-354 Req 7.3: thread the resolved stop/target/reason through from
+            # the ExitResult. None for fixed-hold / percentage-stop strategies
+            # (they leave the extras at None), keeping the record backward
+            # compatible (Req 7.4, 8.3).
+            stop_loss=exit_result.stop_loss,
+            profit_target=exit_result.profit_target,
+            exit_reason=exit_result.exit_reason,
         )
