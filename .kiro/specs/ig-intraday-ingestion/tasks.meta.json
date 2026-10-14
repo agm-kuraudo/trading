@@ -1,0 +1,366 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Confirm the `requests` dependency and scaffold the IG client module": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611253
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996154817
+      }
+    ],
+    "2.1 Implement `read_ig_config` and `validate_ig_env`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611386
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995623230
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995706066
+      }
+    ],
+    "2.3 Implement `IGClient.__init__` and `login`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611453
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995712058
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995890175
+      }
+    ],
+    "2.4 Implement `fetch_prices`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611525
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995909098
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996141197
+      }
+    ],
+    "3.1 Implement `_mid` and `normalise_ig_prices`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611606
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995712961
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995891084
+      }
+    ],
+    "3.6 Implement 4h native-probe + resample-from-1h (`vpa/market_data/ig_ingest.py`)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611694
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995915513
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996142583
+      }
+    ],
+    "4.1 Implement `AllowanceState` and `plan_backfill`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611757
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995713894
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995891846
+      }
+    ],
+    "5. Checkpoint — read-only client, normalisation, and allowance planning verified": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611826
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996159038
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996248890
+      }
+    ],
+    "6.1 Implement session-aware `_expected_last` for intraday": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611888
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995916815
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996143530
+      }
+    ],
+    "6.2 Wire `_drop_incomplete_final_bar` and an injectable intraday tail fetcher": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995611959
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996253346
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012880742
+      }
+    ],
+    "7.1 Implement the backfill CLI": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612019
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996254756
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012881551
+      }
+    ],
+    "8.1 Use a bounded period for intraday": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612109
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995917557
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996144208
+      }
+    ],
+    "9.1 Implement `vpa/scripts/grow_forward_intraday.py`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612186
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996255729
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012883721
+      }
+    ],
+    "9.2 Add the Rundeck shell entrypoint `vpa/scripts/start_grow_forward_intraday.sh`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612257
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012888466
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012988480
+      }
+    ],
+    "9.3 Add the Rundeck job definition `vpa/jobs/Grow_Forward_Intraday_IG.yaml`": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612331
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012889498
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012987436
+      }
+    ],
+    "10. Add the hermetic IG network guard (`vpa/tests/conftest.py` edit)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612412
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996256742
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012882961
+      }
+    ],
+    "11. Checkpoint — quality gate (lint, format, full suite)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612473
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012992753
+      },
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792013300315
+      }
+    ],
+    "12.1 Place live `IG_*` credentials in the Pi `.env` (operator action)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612544
+      }
+    ],
+    "12.2 Pull code and rebuild the container on the Pi (operator action)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612621
+      }
+    ],
+    "12.3 Install and schedule the grow-forward Rundeck job on the Pi (operator action)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612688
+      }
+    ],
+    "12.4 Verify `source=\"ig\"` bars land in the Pi store (operator action)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995612782
+      }
+    ],
+    "4. Implement allowance-aware planning (`vpa/market_data/ig_ingest.py`)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791995892004
+      }
+    ],
+    "2. Implement IG credentials + read-only IG client (`vpa/market_data/ig_client.py`)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996141355
+      }
+    ],
+    "3. Implement IG normalisation to canonical mid-price OHLCV (`vpa/market_data/ig_ingest.py`)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996142702
+      }
+    ],
+    "8. Fix the yfinance intraday baseline (`scripts/backfill_market_data.py` edit)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1791996144304
+      }
+    ],
+    "6. Make intraday read-through session-aware (`vpa/market_data/repository.py` edit)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012880902
+      }
+    ],
+    "7. Implement the allowance-aware IG backfill CLI (`scripts/ig_backfill.py`)": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012881651
+      }
+    ],
+    "9. Implement the grow-forward job and Rundeck wiring": [
+      {
+        "executionId": "5b4a1bb6-41fd-4f0d-9ac2-96bcd27fbe8c",
+        "chatSessionId": "sess_ced1b9f3-6d49-4c15-968e-10281ee33b9b",
+        "timestamp": 1792012988583
+      }
+    ]
+  }
+}

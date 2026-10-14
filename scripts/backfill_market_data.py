@@ -5,7 +5,9 @@ give us for a ticker/interval, so subsequent read-through loads only ever fetch 
 missing tail. Unlike the read-through path (which fetches bounded ranges), this
 script deliberately requests ``period="max"`` — the deepest available history — and
 idempotently upserts it. Re-running adds no duplicate bars (guaranteed by the PK
-``(ticker, interval, ts)`` in ``MarketDataRepository.upsert_bars``).
+``(ticker, interval, ts)`` in ``MarketDataRepository.upsert_bars``). The one
+exception is the intraday ``1h`` interval, which requests ``period="730d"`` because
+yfinance returns an EMPTY result for ``period="max"`` at ``1h`` (SP-342).
 
 The flow mirrors the design's "backfill (seed deepest history)" pseudocode:
 
@@ -41,8 +43,11 @@ from vpa.market_data.repository import MarketDataRepository
 def backfill(ticker: str, interval: str) -> dict:
     """Backfill the deepest available history for ``ticker``/``interval``.
 
-    Downloads the deepest history yfinance offers (``period="max"``), normalises it
-    to the canonical OHLCV shape, and idempotently upserts it into the store.
+    Downloads the deepest history yfinance offers (``period="max"``) for daily bars,
+    normalises it to the canonical OHLCV shape, and idempotently upserts it into the
+    store. For the intraday ``1h`` interval it instead requests ``period="730d"``,
+    because yfinance returns an EMPTY result for ``period="max"`` at ``1h`` (SP-342);
+    730 days is the deepest bounded window yfinance serves for hourly bars.
 
     Args:
         ticker: The instrument symbol (e.g. ``"SPY"``).
@@ -52,7 +57,8 @@ def backfill(ticker: str, interval: str) -> dict:
         The ``{"inserted": n, "updated": m}`` dict from
         :meth:`MarketDataRepository.upsert_bars`.
     """
-    raw = yf.download(ticker, period="max", auto_adjust=True, progress=False)
+    period = "730d" if interval == "1h" else "max"
+    raw = yf.download(ticker, period=period, auto_adjust=True, progress=False)
     df = normalise_yf_download(raw)
     repo = MarketDataRepository()
     return repo.upsert_bars(df, ticker, interval)
