@@ -107,6 +107,30 @@ def _allowance_state(allowance: dict) -> AllowanceState:
     )
 
 
+def _window_span(interval: str, this_batch: int) -> pd.Timedelta:
+    """Approximate the calendar time one batch of ``this_batch`` bars spans.
+
+    Converts a point budget into a dated-window width by reusing the SP-342
+    session-adjusted cadence in :data:`BARS_PER_YEAR`: a year holds
+    ``BARS_PER_YEAR[interval]`` bars, so ``this_batch`` bars span
+    ``this_batch / BARS_PER_YEAR[interval]`` of a year. Because the US 500 session is not
+    24x7, a batch of intraday bars spans more calendar time than ``this_batch`` nominal
+    bar durations — this cadence captures that so a dated window ``[cursor - span, cursor)``
+    holds roughly ``this_batch`` bars of real history.
+
+    Args:
+        interval: The interval tag (``"15m"``/``"1h"``/``"4h"``).
+        this_batch: The point budget for the batch (bars to request).
+
+    Returns:
+        The window width as a :class:`pandas.Timedelta` (at least one hour).
+    """
+    bars_per_year = BARS_PER_YEAR[interval]
+    span = pd.Timedelta(days=365.25) * (max(1, this_batch) / bars_per_year)
+    # Never collapse to a zero/negative window.
+    return max(span, pd.Timedelta(hours=1))
+
+
 def _backfill_native(
     client: IGClient,
     repo: MarketDataRepository,
@@ -116,17 +140,30 @@ def _backfill_native(
     target_points: int,
     batch_points: int,
 ) -> dict:
-    """Pull ``interval`` bars natively from IG, allowance-aware, and upsert them.
+    """Pull ``interval`` bars from IG, allowance-aware, and upsert them.
 
-    Loops ``fetch_prices`` in batches of ``batch_points``. Before each fetch it calls
-    :func:`plan_backfill` against the latest observed allowance; if the plan has no
-    budget for a batch (``this_run`` would breach ``SAFETY_FLOOR``) it stops early and
-    reports the untouched points as ``deferred``. After each batch it re-checks the live
-    ``allowance.remainingAllowance`` and stops before the next fetch if the remaining
-    minus the next batch would fall below the floor.
+    When the requested depth exceeds a single batch (``target_points > batch_points``)
+    and the client supports the dated fetch, the loop PAGES BACKWARD by date (SP-382):
+    it walks a date cursor from "now" (UTC) toward older history, fetching the dated
+    window ``[cursor - window_span, cursor)`` via :meth:`IGClient.fetch_prices_range`
+    each batch and advancing the cursor to the oldest ``snapshotTime`` seen so each
+    successive window is strictly older. A single-batch run
+    (``target_points <= batch_points``) keeps the original most-recent-N
+    :meth:`IGClient.fetch_prices` behaviour unchanged, as does a client that does not
+    expose the dated fetch (a most-recent-N fallback keeps the loop robust).
+
+    Before each fetch it calls :func:`plan_backfill` against the latest observed
+    allowance; if the plan has no budget for a batch (``this_run`` would breach
+    ``SAFETY_FLOOR``) it stops early and reports the untouched points as ``deferred``.
+    After each batch it re-checks the live ``allowance.remainingAllowance`` and stops
+    before the next fetch if the remaining minus the next batch would fall below the
+    floor. The paging path additionally stops when a dated window returns no further
+    bars (end of history) or when the cursor fails to move backward (no-progress guard,
+    preventing an infinite loop).
 
     Each batch is normalised via :func:`normalise_ig_prices` and upserted idempotently
-    via :meth:`MarketDataRepository.upsert_bars` (``source="ig"``, ``adjusted=False``).
+    via :meth:`MarketDataRepository.upsert_bars` (``source="ig"``, ``adjusted=False``),
+    so an overlapping re-pull inserts no new rows and a run stays resumable.
 
     Args:
         client: A logged-in :class:`IGClient`.
@@ -150,6 +187,15 @@ def _backfill_native(
     probe = client.fetch_prices(epic, resolution, 1)
     state = _allowance_state(probe["allowance"])
 
+    # Page backward by date only when the run needs more than one window AND the client
+    # exposes the dated fetch. A single-window run (and a most-recent-N-only client)
+    # keeps the original behaviour unchanged.
+    paging = target_points > batch_points and hasattr(client, "fetch_prices_range")
+    # Date cursor: the exclusive upper bound of the next dated window. Starts at "now"
+    # (UTC). Kept tz-naive (UTC wall-clock) because the dated-prices request formats a
+    # bare ``yyyy-MM-dd HH:mm:ss`` string anyway and ``snapshotTime`` values are UTC.
+    cursor = pd.Timestamp.now(tz="UTC").tz_localize(None)
+
     while remaining > 0:
         plan = plan_backfill(remaining, batch_points, state)
         if plan["this_run"] <= 0:
@@ -162,7 +208,19 @@ def _backfill_native(
         if state.remaining - this_batch < SAFETY_FLOOR:
             break
 
-        raw = client.fetch_prices(epic, resolution, this_batch)
+        if paging:
+            # Fetch the dated window [cursor - window_span, cursor); each batch is
+            # strictly older than the last as the cursor walks backward.
+            start = cursor - _window_span(interval, this_batch)
+            raw = client.fetch_prices_range(epic, resolution, start, cursor)
+            if not raw.get("prices"):
+                # End of history: no deeper bars exist. Report completion.
+                remaining = 0
+                break
+        else:
+            # Most-recent-N: the original single-window / fallback behaviour.
+            raw = client.fetch_prices(epic, resolution, this_batch)
+
         df = normalise_ig_prices(raw)
         if not df.empty:
             result = repo.upsert_bars(df, epic, interval, source="ig", adjusted=False)
@@ -179,11 +237,24 @@ def _backfill_native(
         if state.remaining <= SAFETY_FLOOR:
             break
 
-        # IG returns the most-recent N bars for a given num_points, so once a batch
-        # returns fewer bars than requested there is no deeper history to seed.
-        if fetched < this_batch:
-            remaining = 0
-            break
+        if paging:
+            # Advance the cursor to the oldest bar seen (parsed via the normaliser /
+            # IG_SNAPSHOT_FMTS) so the next window is strictly older.
+            if df.empty:
+                break
+            # df["Date"] is tz-aware UTC (parsed via the normaliser / IG_SNAPSHOT_FMTS);
+            # drop the tz to keep the cursor comparable to the window bounds above.
+            oldest = pd.Timestamp(df["Date"].min()).tz_localize(None)
+            if oldest >= cursor:
+                # No progress: the cursor did not move back; stop to avoid looping.
+                break
+            cursor = oldest
+        else:
+            # IG returns the most-recent N bars for a given num_points, so once a batch
+            # returns fewer bars than requested there is no deeper history to seed.
+            if fetched < this_batch:
+                remaining = 0
+                break
 
     return {
         "inserted": inserted,
