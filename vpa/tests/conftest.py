@@ -250,6 +250,37 @@ def no_network(monkeypatch):
 
 
 @pytest.fixture
+def no_ig_network(monkeypatch):
+    """Fail loudly if any code path reaches the live IG HTTP transport in a test.
+
+    Mirrors :func:`no_network` for the IG layer (SP-379). ``IGClient`` performs its
+    only two network calls -- ``POST /session`` (``login``) and ``GET /prices``
+    (``fetch_prices``) -- through its injectable ``http`` transport, which defaults to
+    the ``requests`` module imported in ``vpa.market_data.ig_client``. This fixture
+    monkeypatches that real transport's ``post``/``get`` so a client built with the
+    default transport raises ``AssertionError("IG network access attempted")`` instead
+    of reaching live IG.
+
+    This is defence-in-depth: the IG tests inject a fake transport (so no real call is
+    made anyway), but if a future test forgets to inject one it fails deterministically
+    rather than hitting the network -- the same guarantee ``no_network`` gives yfinance.
+
+    The IG test modules (``test_ig_client.py``, ``test_ig_ingest.py``,
+    ``test_repository_intraday.py``) opt in at module scope, e.g.::
+
+        pytestmark = pytest.mark.usefixtures("no_ig_network")
+
+    Serves Requirement 6.1.
+    """
+
+    def _raise_on_request(*args, **kwargs):
+        raise AssertionError("IG network access attempted")
+
+    monkeypatch.setattr("vpa.market_data.ig_client.requests.post", _raise_on_request)
+    monkeypatch.setattr("vpa.market_data.ig_client.requests.get", _raise_on_request)
+
+
+@pytest.fixture
 def null_logger(monkeypatch):
     """Replace ``DebugLog`` at its use site with a no-file, no-op stand-in.
 

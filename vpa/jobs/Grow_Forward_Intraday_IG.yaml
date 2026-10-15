@@ -1,0 +1,30 @@
+- defaultTab: nodes
+  description: Grow-forward intraday OHLCV (15m/1h) for the IG US 500 (IX.D.SPTRD.DAILY.IP)
+    into the SP-349 market-data store. Hourly across the weekday session; exact hours
+    confirmed with the operator at install (see SP-379 Task 12.3). This yaml is a versioned
+    snapshot of the Rundeck export, not a deploy source.
+  executionEnabled: true
+  id: a57490b4-1cab-45ba-9441-bbc17bf4ce04
+  loglevel: INFO
+  name: Grow_Forward_Intraday_IG
+  nodeFilterEditable: false
+  plugins:
+    ExecutionLifecycle: {}
+  schedule:
+    month: '*'
+    time:
+      hour: 13,14,15,16,17,18,19,20,21
+      minute: '0'
+      seconds: '0'
+    weekday:
+      day: '2,3,4,5,6'
+    year: '*'
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - autoSecureInput: 'false'
+      passSecureInput: 'false'
+      scriptfile: /usr/local/trading/vpa/scripts/start_grow_forward_intraday.sh
+    keepgoing: false
+    strategy: node-first
+  uuid: a57490b4-1cab-45ba-9441-bbc17bf4ce04
