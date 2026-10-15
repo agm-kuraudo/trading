@@ -258,9 +258,9 @@ class IGClient:
         Two IG shapes are tried, newest first:
 
         - **Primary (new) form**: ``GET {base}/prices/{epic}/{resolution}/{startDate}/{endDate}``
-          with dates formatted ``yyyy-MM-dd HH:mm:ss`` and ``Version: 3``.
+          with dates formatted ``yyyy-MM-dd HH:mm:ss`` and ``Version: 2``.
         - **Fallback (older) form**: ``GET {base}/prices/{epic}/{resolution}?startdate=...&enddate=...``
-          with dates formatted ``yyyy:MM:dd-HH:mm:ss`` and ``Version: 2``, used only when
+          with dates formatted ``yyyy:MM:dd-HH:mm:ss`` and ``Version: 1``, used only when
           the primary form is unavailable for the account/epic (a non-200 such as a
           404/400), keeping the client resilient without changing the caller contract.
 
@@ -303,7 +303,7 @@ class IGClient:
         new_start = start.strftime(IG_RANGE_FMT_NEW)
         new_end = end.strftime(IG_RANGE_FMT_NEW)
         new_url = f"{self._base}/prices/{epic}/{resolution}/{new_start}/{new_end}"
-        response = self._http.get(new_url, headers={**auth, "Version": "3"})
+        response = self._http.get(new_url, headers={**auth, "Version": "2"})
 
         if response.status_code != 200:
             # Fallback (older) query-string form, used only when the new form is
@@ -311,7 +311,7 @@ class IGClient:
             old_start = start.strftime(IG_RANGE_FMT_OLD)
             old_end = end.strftime(IG_RANGE_FMT_OLD)
             old_url = f"{self._base}/prices/{epic}/{resolution}?startdate={old_start}&enddate={old_end}"
-            response = self._http.get(old_url, headers={**auth, "Version": "2"})
+            response = self._http.get(old_url, headers={**auth, "Version": "1"})
             if response.status_code != 200:
                 raise IGAuthError(f"IG dated price fetch failed with status {response.status_code}")
 

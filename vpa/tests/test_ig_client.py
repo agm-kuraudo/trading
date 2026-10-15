@@ -11,10 +11,10 @@ Covers:
   URL/headers and parses ``prices`` + ``allowance``, and re-logs in on an absent/
   expired session.
 - SP-382 Task 3.2 - ``fetch_prices_range`` builds the new path form
-  (``/prices/{epic}/{resolution}/{startDate}/{endDate}``, ``Version: 3``, dates
+  (``/prices/{epic}/{resolution}/{startDate}/{endDate}``, ``Version: 2``, dates
   ``yyyy-MM-dd HH:mm:ss``), sends auth headers, parses ``prices`` + ``allowance``,
   raises ``IGAuthError`` on non-200 of both forms, falls back to the older
-  query-string form (``?startdate=...&enddate=...``, ``Version: 2``, dates
+  query-string form (``?startdate=...&enddate=...``, ``Version: 1``, dates
   ``yyyy:MM:dd-HH:mm:ss``) when the new form is unavailable, and re-logs in on an
   absent/expired session.
 - Task 2.6 / Property 7 - read-only surface: ``IGClient`` exposes only ``login``,
@@ -225,7 +225,7 @@ def _window_bounds():
 
 
 def test_fetch_prices_range_builds_new_form_url_headers_and_parses_body(tmp_path):
-    """New (path) form: /prices/{epic}/{resolution}/{startDate}/{endDate}, Version 3.
+    """New (path) form: /prices/{epic}/{resolution}/{startDate}/{endDate}, Version 2.
 
     Validates: Requirements 2.5
     """
@@ -248,13 +248,13 @@ def test_fetch_prices_range_builds_new_form_url_headers_and_parses_body(tmp_path
     assert call["headers"]["X-IG-API-KEY"] == "live-key"
     assert call["headers"]["CST"] == "cst-token"
     assert call["headers"]["X-SECURITY-TOKEN"] == "sec-token"
-    assert call["headers"]["Version"] == "3"
+    assert call["headers"]["Version"] == "2"
     assert out["prices"] == prices_body["prices"]
     assert out["allowance"] == prices_body["allowance"]
 
 
 def test_fetch_prices_range_falls_back_to_old_query_string_form(tmp_path):
-    """Old (query-string) form fallback when the new form is unavailable, Version 2.
+    """Old (query-string) form fallback when the new form is unavailable, Version 1.
 
     Validates: Requirements 2.5
     """
@@ -277,14 +277,14 @@ def test_fetch_prices_range_falls_back_to_old_query_string_form(tmp_path):
     new_start = start.strftime(IG_RANGE_FMT_NEW)
     new_end = end.strftime(IG_RANGE_FMT_NEW)
     assert new_call["url"] == f"{IG_LIVE_BASE}/prices/IX.D.SPTRD.DAILY.IP/HOUR/{new_start}/{new_end}"
-    assert new_call["headers"]["Version"] == "3"
+    assert new_call["headers"]["Version"] == "2"
 
     old_start = start.strftime(IG_RANGE_FMT_OLD)
     old_end = end.strftime(IG_RANGE_FMT_OLD)
     assert old_call["url"] == (
         f"{IG_LIVE_BASE}/prices/IX.D.SPTRD.DAILY.IP/HOUR?startdate={old_start}&enddate={old_end}"
     )
-    assert old_call["headers"]["Version"] == "2"
+    assert old_call["headers"]["Version"] == "1"
     assert old_call["headers"]["X-IG-API-KEY"] == "live-key"
     assert old_call["headers"]["CST"] == "cst-token"
     assert old_call["headers"]["X-SECURITY-TOKEN"] == "sec-token"
