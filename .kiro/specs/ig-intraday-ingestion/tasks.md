@@ -179,7 +179,7 @@ explicit operator go-ahead at execution time.
 
   - [x] 9.3 Add the Rundeck job definition `vpa/jobs/Grow_Forward_Intraday_IG.yaml`
     - Model it on the CONFIRMED-CURRENT export shape (the checked-in `vpa/jobs/*.yaml` exports have been re-exported and verified current): a single-item YAML list whose entry carries `name`, `id`, `uuid`, `description`, `loglevel`, `defaultTab: nodes`, `executionEnabled: true`, `nodeFilterEditable: false`, `plugins: {ExecutionLifecycle: {}}`, `scheduleEnabled`, a `schedule` block (`month: '*'`, `time: {hour, minute, seconds}`, `weekday: {day}`, `year: '*'`), and a `sequence.commands[].scriptfile` pointing at `/usr/local/trading/vpa/scripts/start_grow_forward_intraday.sh` with `keepgoing: false` and `strategy: node-first`.
-    - Use `weekday.day: '2,3,4,5,6'` (Mon–Fri, the observed weekday-job convention) with an hourly-across-session cadence; the exact hours are confirmed with the operator at install (Task 12.3).
+    - Use `weekday.day: '2,3,4,5,6'` (Mon–Fri, the observed weekday-job convention) with an **hourly, all-day** cadence (`hour: '*'`, `minute: '0'`) and `timeZone: UTC` pinned. All-day (not just the US cash session) is required so the IG source's out-of-hours bars stay current rather than backfilling in a burst each morning; the ~1h 21:00–22:00 UTC break just yields an empty run.
     - NOTE: the yaml is a VERSIONED SNAPSHOT committed to the repo, NOT a deploy source — Rundeck keeps jobs in its own internal DB, so the job is installed via the Rundeck UI/API (Task 12.3) and the yaml re-exported to keep the record current.
     - _Requirements: 5.3_
 
@@ -224,7 +224,7 @@ explicit operator go-ahead at execution time.
   - _Requirements: 7.2_
 
 - [~] 12.3 Install and schedule the grow-forward Rundeck job on the Pi (operator action)
-  - Rundeck is CONFIRMED live on the Pi (direct systemd install, `rundeckd` 5.10.0, HTTP port 4440 — not a container). Create/schedule `Grow_Forward_Intraday_IG` via the Rundeck UI/API (jobs live in Rundeck's own internal DB; committing the yaml does not schedule it), then re-export the job yaml into `vpa/jobs/Grow_Forward_Intraday_IG.yaml` as the versioned record. Confirm the exact session hours with the operator at install. Requires operator go-ahead.
+  - Rundeck is CONFIRMED live on the Pi (direct systemd install, `rundeckd` 5.10.0, HTTP port 4440 — not a container). Create/schedule the `Grow Forward Intraday IG` job via the Rundeck UI/API (jobs live in Rundeck's own internal DB; committing the yaml does not schedule it) on an **hourly, all-day Mon–Fri, UTC** schedule (covers out-of-hours), then re-export the job yaml into `vpa/jobs/Grow_Forward_Intraday_IG.yaml` as the versioned record. DONE: job installed with id/uuid `39c82681-9730-4105-b0f4-4293b26cc229`, `hour: '*'`, `timeZone: UTC`, and the repo yaml re-exported to match. Requires operator go-ahead.
   - _Requirements: 5.3, 7.3_
 
 - [~] 12.4 Verify `source="ig"` bars land in the Pi store (operator action)

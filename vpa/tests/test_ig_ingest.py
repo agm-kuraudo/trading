@@ -21,7 +21,9 @@ from hypothesis import strategies as st
 
 from vpa.market_data.ig_ingest import (
     IG_SNAPSHOT_FMT,
+    IG_SNAPSHOT_FMTS,
     _mid,
+    _parse_snapshot_time,
     normalise_ig_prices,
     probe_hour4,
     resample_1h_to_4h,
@@ -87,6 +89,52 @@ def test_mid_single_sided_uses_present_side():
 def test_mid_both_none_raises():
     with pytest.raises(ValueError):
         _mid(_field(None, None))
+
+
+# ---------------------------------------------------------------------------
+# snapshotTime parsing - multiple live IG formats (regression)
+# ---------------------------------------------------------------------------
+
+
+def test_parse_snapshot_time_spike_colon_dash_form():
+    # SP-342 documented form.
+    assert _parse_snapshot_time("2024:01:02-14:30:00") == pd.Timestamp("2024-01-02 14:30:00", tz="UTC")
+
+
+def test_parse_snapshot_time_live_slash_space_form():
+    # Form seen live on the Pi grow-forward job (regression for the format crash).
+    assert _parse_snapshot_time("2026/10/06 08:15:00") == pd.Timestamp("2026-10-06 08:15:00", tz="UTC")
+
+
+def test_parse_snapshot_time_unknown_format_raises():
+    with pytest.raises(ValueError):
+        _parse_snapshot_time("06-10-2026 08:15")
+
+
+def test_known_formats_tuple_includes_both_observed_forms():
+    assert IG_SNAPSHOT_FMT == "%Y:%m:%d-%H:%M:%S"
+    assert "%Y:%m:%d-%H:%M:%S" in IG_SNAPSHOT_FMTS
+    assert "%Y/%m/%d %H:%M:%S" in IG_SNAPSHOT_FMTS
+
+
+def test_normalise_handles_live_slash_space_snapshot():
+    # The exact shape that crashed the job must now normalise cleanly.
+    raw = {
+        "prices": [
+            {
+                "snapshotTime": "2026/10/06 08:15:00",
+                "openPrice": {"bid": 100.0, "ask": 101.0},
+                "highPrice": {"bid": 110.0, "ask": 111.0},
+                "lowPrice": {"bid": 90.0, "ask": 91.0},
+                "closePrice": {"bid": 105.0, "ask": 106.0},
+                "lastTradedVolume": 37_000,
+            }
+        ]
+    }
+    df = normalise_ig_prices(raw)
+    assert len(df) == 1
+    assert df.loc[0, "Date"] == pd.Timestamp("2026-10-06 08:15:00", tz="UTC")
+    assert df.loc[0, "Open"] == 100.5
 
 
 def test_normalise_maps_fields_and_parses_utc():
