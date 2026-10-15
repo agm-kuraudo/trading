@@ -42,8 +42,47 @@ from vpa.market_data import ohlcv_ingest
 # the 4h series is derived from the stored 1h bars (``resample_1h_to_4h``) instead.
 IG_RESOLUTION = {"15m": "MINUTE_15", "1h": "HOUR", "4h": "HOUR_4"}
 
-# IG ``snapshotTime`` format (UTC), e.g. "2024:01:02-14:30:00".
+# IG ``snapshotTime`` formats (UTC). IG has been observed returning more than one
+# shape across endpoints/account types: the colon-dash form documented by the SP-342
+# spike (e.g. "2024:01:02-14:30:00") and a slash-space form seen live on the grow-
+# forward job (e.g. "2026/10/06 08:15:00"). We try each KNOWN explicit format in order
+# rather than inferring, so day/month order is never guessed and an unseen third shape
+# fails loudly (``_parse_snapshot_time``). ``IG_SNAPSHOT_FMT`` is retained as the
+# primary (spike) format for back-compat.
 IG_SNAPSHOT_FMT = "%Y:%m:%d-%H:%M:%S"
+IG_SNAPSHOT_FMTS = (
+    "%Y:%m:%d-%H:%M:%S",  # SP-342 documented form, e.g. 2024:01:02-14:30:00
+    "%Y/%m/%d %H:%M:%S",  # live form seen on the Pi, e.g. 2026/10/06 08:15:00
+)
+
+
+def _parse_snapshot_time(snapshot: str) -> pd.Timestamp:
+    """Parse an IG ``snapshotTime`` into a tz-aware UTC ``pd.Timestamp``.
+
+    Tries each known explicit format in :data:`IG_SNAPSHOT_FMTS` in order (no format
+    inference, so day/month order is never guessed). Raises ``ValueError`` naming the
+    offending value if none match, so a new IG format surfaces loudly instead of being
+    silently misread.
+
+    Args:
+        snapshot: The raw IG ``snapshotTime`` string.
+
+    Returns:
+        The parsed bar-open timestamp, tz-aware in UTC.
+
+    Raises:
+        ValueError: If ``snapshot`` matches none of the known formats.
+    """
+    for fmt in IG_SNAPSHOT_FMTS:
+        try:
+            return pd.to_datetime(snapshot, format=fmt, utc=True)
+        except (ValueError, TypeError):
+            continue
+    raise ValueError(
+        f"IG snapshotTime {snapshot!r} matches none of the known formats "
+        f"{IG_SNAPSHOT_FMTS}; add the new format to IG_SNAPSHOT_FMTS."
+    )
+
 
 # IG historical-data allowance: points per week (SP-342).
 WEEKLY_ALLOWANCE = 10_000
@@ -103,7 +142,7 @@ def normalise_ig_prices(raw: dict) -> pd.DataFrame:
     """
     rows: list[dict] = []
     for bar in raw.get("prices", []):
-        ts = pd.to_datetime(bar["snapshotTime"], format=IG_SNAPSHOT_FMT, utc=True)
+        ts = _parse_snapshot_time(bar["snapshotTime"])
         volume = bar.get("lastTradedVolume")
         rows.append(
             {
