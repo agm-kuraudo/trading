@@ -332,17 +332,23 @@ Repo conventions apply before any push / PR / marking Done: `ruff check .` and
 deselects the `slow` marker). The new tests carry no `slow` marker — they are fast,
 mocked, and network-free.
 
-**Live-API smoke verification uses the IG DEMO environment first.** The hermetic
-unit/property/integration tests above never touch the network (`no_ig_network` guard), so
-they are unaffected by this note. However, any *ad-hoc* live-API smoke check of the dated
-`fetch_prices_range` — confirming the real IG endpoint accepts the dated form and returns
-the expected shape — SHOULD be run against the IG **demo** environment first by
-constructing the client with `demo=True` (`IGClient(demo=True)`), which selects the
-`IG_DEMO_*` credentials and the `IG_DEMO_BASE` (`https://demo-api.ig.com/gateway/deal`)
-base URL. The demo account carries its own historical-data allowance, separate from the
-live weekly allowance, so exploratory manual verification does not consume the live budget
-that the real Pi backfill depends on. Only the actual Pi backfill that seeds ~2 years runs
-against the live account (that is the real goal).
+**Live-API smoke verification: use the IG DEMO environment for the MECHANISM, the
+live account for the real seed.** The hermetic unit/property/integration tests above
+never touch the network (`no_ig_network` guard), so they are unaffected by this note.
+The IG **demo** environment DOES serve the historical `/prices` endpoints (most-recent-N
+and the dated from/to forms) and the demo account carries its OWN historical-data
+allowance, separate from live — so a demo smoke is ideal for proving the mechanism (the
+cursor pages backward, `points_used` ≈ distinct bars, allowance-safety/floor behaviour,
+clean stop) without spending the live weekly budget. Construct the client with
+`demo=True` (`IGClient(demo=True)`), which selects the `IG_DEMO_*` credentials and the
+`IG_DEMO_BASE` (`https://demo-api.ig.com/gateway/deal`) base URL. Two hard caveats learned
+validating SP-382: (1) demo price DATA is not the live market feed (quotes/spreads can
+diverge), so a demo backfill MUST run the real `_backfill_native` loop against a THROWAWAY
+in-memory/recording repo and MUST NOT write demo bars into the production `market_data`
+store; (2) send the CORRECT IG API Version headers when smoke-testing (dated path form is
+Version 2, old query-string form is Version 1, most-recent-N is Version 2) — a smoke with
+the wrong versions 404s and is misleading. The actual ~2-year production seed must run
+against the **live** account (demo data cannot seed the live store) and is allowance-gated.
 
 New/edited test modules:
 - `vpa/tests/test_ig_client.py` (edit) — add `fetch_prices_range` unit tests; update the
