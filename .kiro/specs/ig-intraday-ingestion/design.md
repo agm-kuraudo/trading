@@ -585,11 +585,16 @@ carries `name`, `id`, `uuid`, `description`, `loglevel`, `defaultTab: nodes`,
 `/usr/local/trading/vpa/scripts/start_grow_forward_intraday.sh` with `keepgoing: false`
 and `strategy: node-first`. Following the observed cron conventions (weekday jobs use
 `weekday.day: '2,3,4,5,6'` = Mon–Fri; the SPY job uses `'*'`), the intraday job uses the
-weekday pattern `weekday.day: '2,3,4,5,6'` with an **hourly-across-the-session** cadence
-(instead of the daily jobs' single morning fire); the exact hours are set with the
-operator at install time. The yaml is a **versioned snapshot committed to the repo** —
-the job itself is installed via the **Rundeck UI/API**, and the yaml is re-exported after
-install to keep the record current.
+weekday pattern `weekday.day: '2,3,4,5,6'` with an **hourly, all-day** cadence
+(`hour: '*'`, `minute: '0'`), with `timeZone: UTC` pinned on the job. All-day (not just
+the US cash session) is deliberate: the US 500 spread bet trades nearly 24h on weekdays
+and the whole point of the IG source is its **out-of-hours** coverage, so the job must
+run through the night to keep the overnight bars current rather than backfilling them in
+a burst each morning. (The code's session model closes only a ~1h daily break at
+21:00–22:00 UTC, so a run in that hour simply finds nothing new — harmless.) The yaml is
+a **versioned snapshot committed to the repo** — the job itself is installed via the
+**Rundeck UI/API**, and the yaml is re-exported after install to keep the record current
+(the installed job's id/uuid is `39c82681-9730-4105-b0f4-4293b26cc229`).
 
 ## Design Decisions (surfaced explicitly)
 
