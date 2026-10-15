@@ -215,20 +215,20 @@ explicit operator go-ahead at execution time.
 > backfill may run from the dev machine against the shared Pi store. Only the recurring
 > grow-forward job must run on the Pi.
 
-- [~] 12.1 Place live `IG_*` credentials in the Pi `.env` (operator action)
+- [x] 12.1 Place live `IG_*` credentials in the Pi `.env` (operator action)
   - Add `IG_API_KEY` / `IG_USER_ID` / `IG_PWD` to the Pi's gitignored `.env` (never committed). Requires operator go-ahead (write action on the Pi).
   - _Requirements: 7.1_
 
-- [~] 12.2 Pull the latest code on the Pi (operator action)
+- [x] 12.2 Pull the latest code on the Pi (operator action)
   - On the Pi: `cd /usr/local/trading && git pull` on `master`. This project is NOT containerised (unlike `bf_trader_py`): `/usr/local/trading` is a plain git checkout with a project `.venv`, and the Rundeck jobs run the venv Python scripts directly (there is no app Dockerfile/compose; the only containers on the Pi are `my_postgres`/`my_pgadmin`, which are the data store, not this app). SP-379 added no new dependencies (`requests`/`pandas`/`hypothesis`/`pytest` were already pinned), so no venv reinstall is needed — but if a future change touches `requirements.txt`, run `/usr/local/trading/.venv/bin/pip install -r requirements.txt`. Requires operator go-ahead (write action on the Pi).
   - _Requirements: 7.2_
 
-- [~] 12.3 Install and schedule the grow-forward Rundeck job on the Pi (operator action)
+- [x] 12.3 Install and schedule the grow-forward Rundeck job on the Pi (operator action)
   - Rundeck is CONFIRMED live on the Pi (direct systemd install, `rundeckd` 5.10.0, HTTP port 4440 — not a container). Create/schedule the `Grow Forward Intraday IG` job via the Rundeck UI/API (jobs live in Rundeck's own internal DB; committing the yaml does not schedule it) on an **hourly, all-day Mon–Fri, UTC** schedule (covers out-of-hours), then re-export the job yaml into `vpa/jobs/Grow_Forward_Intraday_IG.yaml` as the versioned record. DONE: job installed with id/uuid `39c82681-9730-4105-b0f4-4293b26cc229`, `hour: '*'`, `timeZone: UTC`, and the repo yaml re-exported to match. Requires operator go-ahead.
   - _Requirements: 5.3, 7.3_
 
-- [~] 12.4 Verify `source="ig"` bars land in the Pi store (operator action)
-  - After the grow-forward job runs on the Pi, confirm `15m`/`1h` rows with `source='ig'` are present in the Pi `my_postgres` store via a read-only `psql` SELECT of row counts and the latest `ts`. Add a completion comment on SP-379 noting the deploy was done and verified, then move the ticket from Mostly Done to Done.
+- [x] 12.4 Verify `source="ig"` bars land in the Pi store (operator action)
+  - After the grow-forward job runs on the Pi, confirm `15m`/`1h` rows with `source='ig'` are present in the Pi `my_postgres` store via a read-only `psql` SELECT of row counts and the latest `ts`. Add a completion comment on SP-379 noting the deploy was done and verified, then move the ticket from Mostly Done to Done. VERIFIED (15 Oct 2026): a read-only SELECT on the Pi `my_postgres` store shows `source='ig'` bars for all three intervals — 15m (475 rows, latest 2026-10-15 08:45 UTC), 1h (118 rows, latest 08:00 UTC), 4h (32 rows, derived, latest 08:00 UTC) — current to the latest completed session hour, confirming the hourly grow-forward job keeps the store current after the snapshotTime-format fix. SP-379 moved to Done.
   - _Requirements: 7.4, 7.5_
 
 ## Notes
