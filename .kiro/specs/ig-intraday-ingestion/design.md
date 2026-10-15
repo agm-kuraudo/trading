@@ -65,9 +65,12 @@ noted). They were read before writing this design:
 - `vpa/jobs/Daily_VPA_Check_-_ALL_SP500.yaml` — the existing **Rundeck** job
   definition (cron-like `schedule`, invoking a shell script at
   `/usr/local/trading/vpa/scripts/...` on the Pi). The grow-forward job mirrors this.
-- `bf_trader_py/scripts/deploy.sh` (sibling project) — the rebuild-not-repair deploy
-  pattern (`git pull` -> validate `.env` -> `docker compose up -d --build` ->
-  post-deploy verify) referenced by the ticket-standards deployment DoD.
+- Deploy mechanism (this project): a plain `git pull` of the `/usr/local/trading`
+  checkout on the Pi — this project is **not containerised**, and its Rundeck jobs run
+  the venv scripts directly. (Contrast `bf_trader_py`, the sibling project, which IS a
+  Docker stack deployed via `scripts/deploy.sh`; that container rebuild pattern does
+  **not** apply here.) The only containers on the Pi are `my_postgres` / `my_pgadmin`
+  (the SP-349 data store), not this app.
 
 > **Scheduler note (VERIFIED on the Pi).** A read-only SSH check of the live
 > Raspberry Pi (Oct 2026) confirms the scheduler facts this design relies on, so the
@@ -673,9 +676,9 @@ read-only by default; the actual deploy/write steps require explicit operator
 go-ahead):
 
 1. Live `IG_*` credentials present in the Pi's `.env` (gitignored, never committed).
-2. Ingestion code pulled onto the Pi and the container rebuilt via the project's deploy
-   mechanism (mirrors `bf_trader_py/scripts/deploy.sh`: `git pull` -> validate `.env`
-   -> `docker compose up -d --build` -> post-deploy verify).
+2. Ingestion code pulled onto the Pi via a plain `git pull` of `/usr/local/trading`
+   (this project is not containerised; the Rundeck jobs run the venv scripts directly).
+   Reinstall the venv deps only if `requirements.txt` changed — SP-379 added none.
 3. The grow-forward Rundeck job is installed and scheduled **on the Pi** (not just this
    dev machine) and runs.
 4. Verify 15m/1h bars with `source='ig'` actually land in the Pi `my_postgres` store

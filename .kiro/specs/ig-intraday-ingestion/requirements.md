@@ -207,8 +207,10 @@ developer machine.
 
 1. THE IG_Ingestion SHALL require the live `IG_*` credentials to be present in the Pi's
    gitignored `.env` before the grow-forward job runs in production.
-2. WHEN deploying, THE IG_Ingestion SHALL be pulled onto the Pi and the container rebuilt
-   via the project's deploy mechanism before the ticket moves to Done.
+2. WHEN deploying, THE IG_Ingestion SHALL be pulled onto the Pi (a plain `git pull` of
+   the `/usr/local/trading` checkout; this project is not containerised and its Rundeck
+   jobs run the venv scripts directly) before the ticket moves to Done, reinstalling the
+   venv dependencies only if `requirements.txt` changed.
 3. WHEN deployed, THE Grow_Forward_Job SHALL be installed, scheduled, and running on the
    Pi.
 4. WHEN the grow-forward job has run on the Pi, THE IG_Ingestion SHALL have landed bars

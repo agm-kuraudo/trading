@@ -207,8 +207,8 @@ explicit operator go-ahead at execution time.
 > being merged is not sufficient.
 >
 > The `pi-access` steering is **READ-ONLY by default**: SSH diagnostics are fine, but
-> the write/deploy actions below (editing the Pi `.env`, pulling + rebuilding the
-> container, installing/scheduling the Rundeck job) require **explicit operator
+> the write/deploy actions below (editing the Pi `.env`, pulling the latest code on
+> the Pi, installing/scheduling the Rundeck job) require **explicit operator
 > go-ahead at execution time**. Do not perform them without it.
 >
 > **Dev-vs-prod split (allowed):** development, the test suite, and the initial deep 1h
@@ -219,8 +219,8 @@ explicit operator go-ahead at execution time.
   - Add `IG_API_KEY` / `IG_USER_ID` / `IG_PWD` to the Pi's gitignored `.env` (never committed). Requires operator go-ahead (write action on the Pi).
   - _Requirements: 7.1_
 
-- [~] 12.2 Pull code and rebuild the container on the Pi (operator action)
-  - On the Pi: pull the latest code and rebuild/recreate the container via the project's deploy mechanism (mirrors `bf_trader_py/scripts/deploy.sh`: `git pull` -> validate `.env` -> `docker compose up -d --build` -> post-deploy verify). Requires operator go-ahead.
+- [~] 12.2 Pull the latest code on the Pi (operator action)
+  - On the Pi: `cd /usr/local/trading && git pull` on `master`. This project is NOT containerised (unlike `bf_trader_py`): `/usr/local/trading` is a plain git checkout with a project `.venv`, and the Rundeck jobs run the venv Python scripts directly (there is no app Dockerfile/compose; the only containers on the Pi are `my_postgres`/`my_pgadmin`, which are the data store, not this app). SP-379 added no new dependencies (`requests`/`pandas`/`hypothesis`/`pytest` were already pinned), so no venv reinstall is needed — but if a future change touches `requirements.txt`, run `/usr/local/trading/.venv/bin/pip install -r requirements.txt`. Requires operator go-ahead (write action on the Pi).
   - _Requirements: 7.2_
 
 - [~] 12.3 Install and schedule the grow-forward Rundeck job on the Pi (operator action)
