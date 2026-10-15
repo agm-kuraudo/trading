@@ -60,13 +60,34 @@ from vpa.market_data.ig_ingest import (
 from vpa.market_data.repository import MarketDataRepository
 
 # Approximate bars-per-year by interval for the US 500 session (~weekday, nearly 24x5,
-# excluding the ~1h daily break). SP-342 observed ~3,500 1h points for ~2 years, i.e.
-# ~1,750 1h bars/year; 15m is ~4x that, and native 4h is ~1/4 of 1h.
+# excluding the ~1h daily break). MEASURED live on demo IG (SP-382) for epic
+# IX.D.SPTRD.DAILY.IP at HOUR resolution: a 7-calendar-day dated window returned 120
+# bars => ~17.1 bars/CALENDAR day => 120 / 7 * 365.25 ~= 6,260 1h bars/YEAR. (The earlier
+# SP-342 estimate of ~1,750 1h bars/yr undershot true session density by ~3.6x, which
+# oversized each dated window and overspent the weekly allowance - see SP-382.) 15m is
+# ~4x the 1h density and native 4h is ~1/4 of 1h, scaled consistently from the measured
+# 1h figure.
 BARS_PER_YEAR = {
-    "1h": 1_750,
-    "15m": 7_000,
-    "4h": 440,
+    "1h": 6_260,
+    "15m": 25_040,
+    "4h": 1_565,
 }
+
+# Safety headroom for the per-batch floor guard. A dated window is SIZED to return
+# ~this_batch bars at the measured density, but real session density varies around the
+# average, so a window can return somewhat MORE bars than budgeted - and IG debits one
+# allowance point per bar RETURNED. The pre-fetch guard therefore reserves this multiple
+# of this_batch (not a bare this_batch) when checking the floor, so even a heavier-than-
+# expected window cannot drive the live remaining allowance below SAFETY_FLOOR. The loop
+# additionally debits the ACTUAL bars returned and re-reads the live allowance after each
+# fetch, so this factor only has to cover a single over-dense window, not a run-long drift.
+#
+# The value is calibrated to the SP-382 measurement: the previous ``BARS_PER_YEAR``
+# undercounted true density by ~3.6x (1,750 vs the measured 6,260), so a single window
+# could overspend by that factor. Reserving 4x this_batch covers that full historical
+# mismatch with margin; now that ``BARS_PER_YEAR`` matches the measurement, residual
+# over-run is only ordinary session-density variance, well inside this headroom.
+WINDOW_COST_SAFETY_FACTOR = 4.0
 
 # Points fetched per IG /prices request. Keeps each request modest so the live
 # allowance can be re-checked between batches and the loop can stop before breaching
@@ -77,9 +98,10 @@ DEFAULT_BATCH_POINTS = 500
 def _target_points(interval: str, years: int) -> int:
     """Approximate the number of IG points needed to seed ``years`` of ``interval``.
 
-    Uses the per-year bar estimates in :data:`BARS_PER_YEAR` (session-adjusted from the
-    SP-342 observation of ~3,500 ``1h`` points over ~2 years). A point corresponds to one
-    fetched bar, so this is also the ideal points to spend.
+    Uses the per-year bar estimates in :data:`BARS_PER_YEAR` (SP-382: measured ~6,260
+    ``1h`` bars/yr live on demo IG, 7d -> 120 bars). A point corresponds to one fetched
+    bar, so this is also the ideal points to spend; e.g. 2 years of ``1h`` is ~12,520
+    bars (not the ~3,500 the earlier undersized estimate implied).
 
     Args:
         interval: One of ``"15m"``, ``"1h"``, ``"4h"``.
@@ -110,13 +132,16 @@ def _allowance_state(allowance: dict) -> AllowanceState:
 def _window_span(interval: str, this_batch: int) -> pd.Timedelta:
     """Approximate the calendar time one batch of ``this_batch`` bars spans.
 
-    Converts a point budget into a dated-window width by reusing the SP-342
-    session-adjusted cadence in :data:`BARS_PER_YEAR`: a year holds
-    ``BARS_PER_YEAR[interval]`` bars, so ``this_batch`` bars span
-    ``this_batch / BARS_PER_YEAR[interval]`` of a year. Because the US 500 session is not
-    24x7, a batch of intraday bars spans more calendar time than ``this_batch`` nominal
-    bar durations — this cadence captures that so a dated window ``[cursor - span, cursor)``
-    holds roughly ``this_batch`` bars of real history.
+    Converts a point budget into a dated-window width by reusing the SP-382
+    measured density in :data:`BARS_PER_YEAR`: a year holds ``BARS_PER_YEAR[interval]``
+    bars, so ``this_batch`` bars span ``this_batch / BARS_PER_YEAR[interval]`` of a year.
+    Because the US 500 session is not 24x7, a batch of intraday bars spans more calendar
+    time than ``this_batch`` nominal bar durations — this cadence captures that so a dated
+    window ``[cursor - span, cursor)`` is EXPECTED to hold roughly ``this_batch`` bars of
+    real history (and therefore cost ~``this_batch`` allowance points). With the measured
+    ~6,260 ``1h`` bars/yr, a 500-bar ``1h`` window spans ~29 calendar days, which at the
+    measured ~17 bars/day returns ~500 bars - so one window costs ~one batch, not ~3.6x
+    (the overspend the SP-342 undercount caused).
 
     Args:
         interval: The interval tag (``"15m"``/``"1h"``/``"4h"``).
@@ -204,9 +229,16 @@ def _backfill_native(
 
         this_batch = min(batch_points, plan["this_run"])
 
-        # Stop before a fetch that would drive the live remaining below the floor.
-        if state.remaining - this_batch < SAFETY_FLOOR:
+        # Floor-safe sizing (SP-382): IG debits ONE allowance point per bar RETURNED, and
+        # a dated window SIZED for ``this_batch`` bars can return somewhat MORE than that
+        # when real session density runs above average. Bound this_batch so that even a
+        # realistic worst-case window (``WINDOW_COST_SAFETY_FACTOR * this_batch`` bars)
+        # leaves the live remaining allowance at or above SAFETY_FLOOR. Clamp (never grow)
+        # this_batch to that affordable size; if nothing is affordable, defer the rest.
+        affordable = int((state.remaining - SAFETY_FLOOR) / WINDOW_COST_SAFETY_FACTOR)
+        if affordable <= 0:
             break
+        this_batch = min(this_batch, affordable)
 
         if paging:
             # Fetch the dated window [cursor - window_span, cursor); each batch is
@@ -222,14 +254,29 @@ def _backfill_native(
             raw = client.fetch_prices(epic, resolution, this_batch)
 
         df = normalise_ig_prices(raw)
+        inserted_this_batch = 0
         if not df.empty:
             result = repo.upsert_bars(df, epic, interval, source="ig", adjusted=False)
             inserted += result["inserted"]
             updated += result["updated"]
+            inserted_this_batch = result["inserted"]
 
         fetched = len(raw.get("prices", []))
         points_used += fetched
-        remaining -= this_batch
+        if paging:
+            # Track progress toward TARGET DEPTH by the DISTINCT (newly inserted) bars
+            # this window seeded, not a flat this_batch (SP-382): re-pulled overlaps
+            # (updates) do not deepen history, and a dense window may seed many more
+            # distinct bars than this_batch. This keeps ``remaining`` an honest "distinct
+            # bars still to seed", so ``deferred`` is meaningful and ``deferred == 0``
+            # genuinely means target depth (or the end-of-history break below) was reached
+            # rather than merely "spent the planned points". A no-progress window (zero new
+            # inserts) is caught by the cursor no-progress guard below, so this cannot spin.
+            remaining -= inserted_this_batch
+        else:
+            # Most-recent-N single-window / fallback: the original flat decrement. Each
+            # batch is a full most-recent-N window, so step by this_batch as before.
+            remaining -= this_batch
 
         # Re-check the LIVE allowance after the batch (it may have cost more than
         # projected) and stop early if it has reached the floor.

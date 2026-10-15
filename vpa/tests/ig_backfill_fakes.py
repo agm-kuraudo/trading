@@ -26,6 +26,21 @@ from scripts.ig_backfill import BARS_PER_YEAR
 # client's dated-window fetch compares against this universe, not the wall clock.
 UNIVERSE_END = pd.Timestamp("2026-10-15 00:00:00", tz="UTC")
 
+# GROUND-TRUTH session density, MEASURED live on demo IG (SP-382): a 7-calendar-day
+# dated window for epic IX.D.SPTRD.DAILY.IP at HOUR resolution returned 120 bars, i.e.
+# ~17.14 1h bars per CALENDAR day. This is deliberately anchored to the MEASUREMENT and
+# is NOT derived from the production ``BARS_PER_YEAR`` constant: a realistic-density fake
+# universe must reflect how many bars IG really packs into a calendar window regardless
+# of what the loop THINKS the density is. If ``BARS_PER_YEAR`` ever drifts away from this
+# measured truth, a window the loop sizes for ``this_batch`` points will return a
+# different (realistic) number of bars - which is exactly the allowance-safety regression
+# the SP-382 density-mismatch bug was (an undersized constant oversized every window and
+# overspent the weekly allowance). ``density_step`` below spaces a fake universe at this
+# true cadence; ``cadence_step`` (loop-matched) is retained for the preservation/coverage
+# tests that intentionally line the fake up with the loop's own budgeting.
+TRUE_BARS_PER_7_DAYS = 120
+TRUE_BARS_PER_DAY = TRUE_BARS_PER_7_DAYS / 7
+
 # Default per-bar spacing for ``universe_newest_first`` (module-level singleton so the
 # default is not a function call in the signature, which ruff B008 flags).
 _DEFAULT_STEP = pd.Timedelta(hours=1)
@@ -51,6 +66,31 @@ def cadence_step(interval: str) -> pd.Timedelta:
         The per-bar calendar spacing as a :class:`pandas.Timedelta`.
     """
     return pd.Timedelta(days=365.25) / BARS_PER_YEAR[interval]
+
+
+def density_step(interval: str = "1h") -> pd.Timedelta:
+    """Return the TRUE calendar spacing between bars from the MEASURED demo-IG density.
+
+    Unlike :func:`cadence_step` (which spaces bars at ``365.25 / BARS_PER_YEAR`` so a
+    fake universe lines up with the LOOP's own budgeting), this spaces bars at the
+    ground-truth session density measured live on demo IG (SP-382: ~17.14 1h bars per
+    calendar day, from 7d -> 120 bars) and is NOT a function of the production
+    ``BARS_PER_YEAR`` constant. A universe spaced this way returns a REALISTIC number of
+    bars for whatever calendar window the loop requests - so if ``BARS_PER_YEAR`` is
+    wrong, the loop's ``_window_span`` oversizes/undersizes the window and the fake
+    returns more/fewer bars than the loop budgeted for, exercising the allowance-safety
+    guard exactly as the real demo run did. The 15m / 4h steps scale from the 1h truth
+    (15m ~4x denser, 4h ~1/4 as dense), matching the ``BARS_PER_YEAR`` ratios.
+
+    Args:
+        interval: The interval tag (``"15m"``/``"1h"``/``"4h"``).
+
+    Returns:
+        The per-bar calendar spacing as a :class:`pandas.Timedelta`.
+    """
+    scale = {"1h": 1.0, "15m": 4.0, "4h": 0.25}[interval]
+    bars_per_day = TRUE_BARS_PER_DAY * scale
+    return pd.Timedelta(days=1) / bars_per_day
 
 
 def bar_at(ts: pd.Timestamp) -> dict:

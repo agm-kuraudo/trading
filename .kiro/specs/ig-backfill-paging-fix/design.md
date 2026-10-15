@@ -260,6 +260,59 @@ Assuming the root cause analysis is correct, two files change.
    untouched** except for the loop internals of `_backfill_native` (the `4h` derive path
    and grow-forward are explicitly preserved).
 
+### Allowance-Safe Windowing (SP-382 demo-validation follow-up)
+
+A demo-environment validation run proved the backward-paging mechanism itself is correct
+(`points_used` ~= distinct bars seeded, ratio ~1.0), but exposed a second, independent
+defect: the loop was **not allowance-safe**. It overspent and breached `SAFETY_FLOOR`
+(observed: live `remaining` driven to 147, below the 500 floor; an earlier live run hit a
+`403 exceeded-account-historical-data-allowance`). Three linked causes and their fixes:
+
+1. **Corrected per-year bar density (`BARS_PER_YEAR`)**. Ground truth measured live on
+   demo IG for epic `IX.D.SPTRD.DAILY.IP` at `HOUR` resolution: a **7-calendar-day dated
+   window returned 120 bars** => ~17.1 bars/calendar day => `120 / 7 * 365.25` ≈ **6,260
+   1h bars/year** (the session is nearly 24x5). The old `BARS_PER_YEAR["1h"] = 1,750`
+   undercounted true density by ~3.6x. `BARS_PER_YEAR` is corrected to the measured values
+   — `1h = 6,260`, `15m = 25,040` (~4x), `4h = 1,565` (~1/4) — scaled consistently, with
+   the `7d -> 120 bars` measurement documented in a code comment so the basis is traceable.
+   Because `_target_points` also uses `BARS_PER_YEAR`, this intentionally changes the
+   target-points for a given `years`: 2 years of `1h` is now ~12,520 bars, not ~3,500. That
+   is correct — the earlier figure reflected the undercount, not real history depth.
+
+2. **Window sized so EXPECTED bars ≈ `this_batch`**. `_window_span` converts a point
+   budget to a calendar width via `365.25d * (this_batch / BARS_PER_YEAR[interval])`. With
+   the corrected density a 500-bar `1h` window spans ~29 calendar days, which at the
+   measured ~17 bars/day returns ~500 bars — so one window costs ~`this_batch` allowance
+   points (IG debits one point per bar RETURNED), instead of the ~3.6x overspend the old
+   constant caused (a ~104-day window returning ~1,700–3,000+ bars).
+
+3. **Floor-safe guard on ACTUAL bars, with worst-case headroom**. The old pre-fetch guard
+   `if state.remaining - this_batch < SAFETY_FLOOR: break` only subtracted the budgeted
+   `this_batch`, so it could not see a heavier real window coming. The fixed loop instead:
+   - **Before each fetch**, clamps `this_batch` to the largest size whose realistic
+     worst-case cost still protects the floor:
+     `affordable = (state.remaining - SAFETY_FLOOR) / WINDOW_COST_SAFETY_FACTOR`; if
+     `affordable <= 0` it defers the rest. `WINDOW_COST_SAFETY_FACTOR = 4.0` is calibrated
+     to the measured ~3.6x historical mismatch (covers it with margin); now that
+     `BARS_PER_YEAR` matches reality, residual over-run is only ordinary session-density
+     variance, well inside this headroom.
+   - **After each fetch**, debits `points_used` by the ACTUAL bars returned and re-reads
+     the live `allowance.remainingAllowance`, breaking if it has reached the floor. So the
+     guard never relies on the estimate alone — the live allowance is the authority and
+     `plan_backfill` / `SAFETY_FLOOR` remain the budget authority.
+
+4. **Corrected deferred/remaining accounting**. `remaining` tracks progress toward target
+   DEPTH by the DISTINCT (newly inserted) bars each window seeds, not a flat `this_batch`.
+   Re-pulled overlaps (updates) do not deepen history and a dense window may seed many more
+   distinct bars than `this_batch`, so decrementing by `result["inserted"]` keeps
+   `remaining` an honest "distinct bars still to seed". Consequently `deferred` is
+   meaningful and `deferred == 0` genuinely means target depth (or the end-of-history
+   break) was reached rather than merely "spent the planned points". The single-window /
+   most-recent-N fallback path keeps the original flat `remaining -= this_batch` step
+   (each most-recent-N batch is a full window), preserving that path's pinned behaviour.
+   The summary dict keys are unchanged: `{inserted, updated, points_used,
+   remaining_allowance, deferred}`.
+
 ## Testing Strategy
 
 ### Validation Approach
@@ -402,6 +455,43 @@ property-based) that pin that behavior and re-run them against the fixed code.
   below `SAFETY_FLOOR` and reports a consistent `deferred` remainder (`plan_backfill`
   invariants preserved).
 - Generate overlapping window re-pulls and assert idempotency (no new inserts on overlap).
+
+### Allowance-Safety Regression — Realistic-Density Windows (SP-382)
+
+The demo-validation bug slipped through because the hermetic fakes spaced the universe at
+the loop-matched `cadence_step` (`365.25 / BARS_PER_YEAR`), so a window the loop sized for
+`this_batch` points returned EXACTLY `this_batch` bars — masking the density mismatch and
+the overspend. The fakes are strengthened so this cannot recur:
+
+- A ground-truth density anchor `TRUE_BARS_PER_DAY` (= `120 / 7`, the measured demo
+  figure) and a `density_step` generator space a fake universe at the REAL session
+  density, INDEPENDENT of the production `BARS_PER_YEAR` constant. A window the loop sizes
+  from `BARS_PER_YEAR` therefore returns a realistic bar count; if `BARS_PER_YEAR` ever
+  drifts from the measurement, the fake returns more/fewer bars than the loop budgeted —
+  reproducing the exact allowance-safety failure rather than hiding it. A guard test
+  (`test_fake_universe_density_matches_measured_ground_truth`) asserts a 7-day slice holds
+  ~120 bars so the fake cannot silently revert to the bug-masking cadence.
+- A deterministic regression (`test_regression_dense_windows_never_breach_floor_...`)
+  drives `_backfill_native` against a universe ~3.6x denser than the loop assumes (the
+  measured undercount ratio) with a budget tight enough that the OLD flat-`this_batch`
+  guard would have breached the floor, and asserts `remaining_allowance >= SAFETY_FLOOR`
+  while still fetching a genuinely dense window (`points_used > batch_points`).
+- A Hypothesis property (`test_property_realistic_density_never_breaches_floor`) sweeps the
+  oversize factor across `[1.0, 3.6]`, starting allowance, and batch size, asserting the
+  in-loop fetches never drive the live `remaining_allowance` below `SAFETY_FLOOR` (the sole
+  sub-floor case being the one-time 1-point allowance probe at the exact
+  `remaining == SAFETY_FLOOR` boundary, the same bound pinned by the preservation suite).
+
+**Pinned-value changes.** No existing test pinned the old `BARS_PER_YEAR` numbers directly,
+so no numeric assertion needed weakening. One integration test
+(`test_integration_resumability_second_run_inserts_no_new_rows`) previously used a universe
+DEEPER than the target (`depth = target + 400`); with the density correction the loop now
+stops precisely at target depth, so a deeper universe would leave an un-seeded gap below
+target that the second run would correctly fill as new inserts. The test's universe is
+resized to `depth = target` so the first run seeds the whole universe (reaching both target
+depth and end-of-history) and the second run is a pure overlap re-pull inserting nothing —
+preserving the idempotent-resumability guarantee the test exists to pin, without masking the
+(correct) new stop-at-target-depth behaviour.
 
 ### Integration Tests
 

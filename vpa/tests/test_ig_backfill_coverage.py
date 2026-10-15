@@ -50,11 +50,13 @@ from scripts.ig_backfill import (
 )
 from vpa.market_data.ig_ingest import SAFETY_FLOOR, resample_1h_to_4h
 from vpa.tests.ig_backfill_fakes import (
+    TRUE_BARS_PER_DAY,
     UNIVERSE_END,
     FakeDatedClient,
     RecordingRepo,
     bar_at,
     cadence_step,
+    density_step,
     universe_newest_first,
 )
 
@@ -308,6 +310,119 @@ def test_property_overlapping_re_pull_is_idempotent(depth, batch_points):
 
 
 # ---------------------------------------------------------------------------
+# Allowance-safety regression (SP-382): REALISTIC-density windows
+# ---------------------------------------------------------------------------
+#
+# These are the KEY regression tests. The earlier hermetic fakes spaced the universe at
+# ``cadence_step`` (``365.25 / BARS_PER_YEAR``), so a window the loop sized for
+# ``this_batch`` points returned EXACTLY ``this_batch`` bars - which masked the real bug
+# (an undersized ``BARS_PER_YEAR`` oversized every dated window, and because IG debits one
+# allowance point per bar RETURNED, each window cost far more than ``this_batch`` points,
+# breaching the floor). Here the fake universe is spaced at the MEASURED demo-IG density
+# (``density_step`` / ``TRUE_BARS_PER_DAY``), INDEPENDENT of ``BARS_PER_YEAR``, so a
+# mismatch between the loop's assumed density and reality makes a window return MORE bars
+# than the loop budgeted - exactly the live failure - and we assert the floor is never
+# breached regardless.
+
+
+def _oversized_universe(depth: int, oversize: float) -> list[dict]:
+    """Return a universe whose density is ``oversize``x what the loop's window math assumes.
+
+    The loop sizes a window from ``BARS_PER_YEAR`` expecting ~``this_batch`` bars; spacing
+    the fake universe ``oversize`` times DENSER than that assumption means a window the loop
+    thinks holds ``this_batch`` bars actually returns ~``oversize * this_batch`` bars - the
+    density-undercount failure mode. Spaced from the loop-matched ``cadence_step`` divided
+    by ``oversize`` so the oversize factor is explicit and does not depend on the measured
+    constant staying equal to ``BARS_PER_YEAR``.
+    """
+    return universe_newest_first(depth, step=cadence_step("1h") / oversize)
+
+
+def test_regression_dense_windows_never_breach_floor_even_when_oversized():
+    """Regression (SP-382): windows returning MANY more bars than this_batch stay above floor.
+
+    This is the exact failure that slipped through: a dated window sized for ``this_batch``
+    points returns far MORE bars (because real density outran the loop's assumption), and IG
+    debits one point per returned bar, so the window overspends. With a universe spaced ~3.6x
+    DENSER than the loop assumes (the measured undercount ratio) and a budget tight enough
+    that the OLD guard - which only reserved a flat ``this_batch`` - would have breached the
+    floor, the fixed loop MUST still leave ``remaining_allowance >= SAFETY_FLOOR``.
+
+    _Validates: Requirements 2.6_
+    """
+    oversize = 3.6  # the measured density undercount ratio (6260 / 1750)
+    # Budget tight enough that one flat-this_batch step looks affordable but a 3.6x-dense
+    # window would blow past the floor under the OLD guard (which reserved only this_batch).
+    allowance = SAFETY_FLOOR + 1_200
+    client = FakeDatedClient(_oversized_universe(5_000, oversize), allowance_remaining=allowance)
+    repo = RecordingRepo()
+
+    summary = _backfill_native(client, repo, _EPIC, "1h", _RESOLUTION, 4_000, _BATCH_POINTS)
+
+    # The core guarantee: the floor is never breached, even though each window returned
+    # ~3.6x the bars the loop budgeted for (the fixed guard reserves a worst-case window
+    # cost and debits the ACTUAL bars returned).
+    assert summary["remaining_allowance"] >= SAFETY_FLOOR
+    # And it genuinely fetched a dense window (more bars than a single budgeted batch),
+    # proving the assertion is not vacuous.
+    assert summary["points_used"] > _BATCH_POINTS
+
+
+@settings(max_examples=40, deadline=None)
+@given(
+    oversize=st.floats(min_value=1.0, max_value=3.6),
+    remaining=st.integers(min_value=SAFETY_FLOOR, max_value=6_000),
+    batch_points=st.sampled_from([100, 250, 500, 1_000]),
+)
+def test_property_realistic_density_never_breaches_floor(oversize, remaining, batch_points):
+    """Property (SP-382): for any density over-run, the loop never drops below the floor.
+
+    Generates universes spaced from 1x up to 3.6x DENSER than the loop's window math assumes
+    (so each dated window returns up to the measured-undercount ratio more bars than the loop
+    budgeted, and IG debits one point per returned bar) across a range of starting allowances
+    and batch sizes. The fixed floor-safe guard - which reserves a realistic worst-case window
+    cost (``WINDOW_COST_SAFETY_FACTOR`` x ``this_batch``, calibrated to that 3.6x measured
+    mismatch) before each fetch and debits the ACTUAL bars returned - must keep the live
+    ``remaining_allowance`` at or above ``SAFETY_FLOOR`` for every IN-LOOP fetch. This is the
+    universal form of the exact failure the demo run hit (remaining driven to 147, below the
+    500 floor).
+
+    The sole sub-floor case is the one-time 1-point allowance probe before the loop: when the
+    run STARTS at exactly ``remaining == SAFETY_FLOOR`` the probe spends the single point,
+    leaving ``SAFETY_FLOOR - 1`` (the same boundary pinned in the task-2 preservation suite).
+    So the general lower bound is ``SAFETY_FLOOR - 1``, tightening to ``SAFETY_FLOOR`` whenever
+    a real in-loop fetch actually ran (``points_used > 0``).
+
+    _Validates: Requirements 2.6_
+    """
+    universe = _oversized_universe(8_000, oversize)
+    client = FakeDatedClient(universe, allowance_remaining=remaining)
+    repo = RecordingRepo()
+
+    summary = _backfill_native(client, repo, _EPIC, "1h", _RESOLUTION, 4_000, batch_points)
+
+    assert summary["remaining_allowance"] >= SAFETY_FLOOR - 1
+    if summary["points_used"] > 0:
+        assert summary["remaining_allowance"] >= SAFETY_FLOOR
+
+
+def test_fake_universe_density_matches_measured_ground_truth():
+    """Guard: the realistic-density fake really packs ~17 bars per calendar day.
+
+    Anchors the regression fakes to the SP-382 measurement (120 bars over 7 calendar days
+    ~= 17.14 bars/day). A 7-day slice of a ``density_step`` universe must contain ~120 bars,
+    so if the fake ever silently drifts back to the loop-matched (bug-masking) cadence this
+    guard fails loudly.
+    """
+    universe = universe_newest_first(1_000, step=density_step("1h"))
+    end = UNIVERSE_END
+    start = end - pd.Timedelta(days=7)
+    in_window = [b for b in universe if start <= pd.Timestamp(b["snapshotTime"].replace("/", "-"), tz="UTC") < end]
+    # ~17.14 bars/day * 7 days = ~120; allow a small rounding band.
+    assert abs(len(in_window) - round(TRUE_BARS_PER_DAY * 7)) <= 2
+
+
+# ---------------------------------------------------------------------------
 # Integration: full backfill(epic, interval, years) with injected fakes
 # ---------------------------------------------------------------------------
 
@@ -437,7 +552,14 @@ def test_integration_resumability_second_run_inserts_no_new_rows(monkeypatch):
     """
     years = 1
     target = ig_backfill.BARS_PER_YEAR["1h"] * years
-    depth = target + 400
+    # Universe == target depth so the first run seeds the WHOLE universe (reaching both
+    # target depth and end-of-history), making the second run a pure overlap re-pull.
+    # (With the SP-382 density correction a window now costs ~this_batch, so the loop
+    # stops precisely at target depth; a universe DEEPER than target would leave an
+    # un-seeded gap below target that a second run would legitimately fill as new inserts,
+    # which is correct resume-to-depth behaviour but not the pure-overlap idempotency this
+    # test pins. Sizing the universe to the target keeps the overlap exact.)
+    depth = target
     step = cadence_step("1h")
     repo = RecordingRepo()
 
