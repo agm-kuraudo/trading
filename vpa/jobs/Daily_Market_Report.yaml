@@ -1,0 +1,28 @@
+- defaultTab: nodes
+  description: 'Daily Market Report orchestrator (SP-356). Subsumes the SPY VPA check
+    and the all-shares SP500 scan, producing a consolidated report and JSON snapshot.'
+  executionEnabled: true
+  id: c1891a87-437e-4c1b-a3d1-125cfdfd4100
+  loglevel: INFO
+  name: Daily Market Report
+  nodeFilterEditable: false
+  plugins:
+    ExecutionLifecycle: {}
+  schedule:
+    month: '*'
+    time:
+      hour: '08'
+      minute: '30'
+      seconds: '0'
+    weekday:
+      day: '*'
+    year: '*'
+  scheduleEnabled: true
+  sequence:
+    commands:
+    - autoSecureInput: 'false'
+      passSecureInput: 'false'
+      scriptfile: /usr/local/trading/vpa/scripts/start_daily_market_report.sh
+    keepgoing: false
+    strategy: node-first
+  uuid: c1891a87-437e-4c1b-a3d1-125cfdfd4100

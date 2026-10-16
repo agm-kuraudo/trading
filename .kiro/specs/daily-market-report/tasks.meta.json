@@ -1,0 +1,422 @@
+{
+  "pbtResults": {
+    "1.3 Write property test for snapshot round-trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1792166272171
+    },
+    "2.6 Write property test for graceful degradation": {
+      "status": "passed",
+      "lastRunTimestamp": 1792166474834
+    }
+  },
+  "executionHistory": {
+    "1.1 Define the frozen dataclasses and section models": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166018694
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166026317
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166071799
+      }
+    ],
+    "1.2 Implement `to_dict` / `from_dict` and JSON round-trip helpers": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166018884
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166075478
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166151920
+      }
+    ],
+    "1.3 Write property test for snapshot round-trip": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166018981
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166156414
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166323124
+      }
+    ],
+    "2.1 Implement `build_consolidated_report`": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019074
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166157280
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166324054
+      }
+    ],
+    "2.2 Write property test for Top VPA Signals ordering and cap": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019172
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166346157
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166491298
+      }
+    ],
+    "2.3 Write property test for Opportunities ordering": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019279
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166351243
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166492703
+      }
+    ],
+    "2.4 Write property test for the four-sections invariant": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019387
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166352582
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166493657
+      }
+    ],
+    "2.5 Write property test for Daily Summary consistency": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019490
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166353587
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166494623
+      }
+    ],
+    "2.6 Write property test for graceful degradation": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019588
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166354222
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166495374
+      }
+    ],
+    "3. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019689
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166593105
+      }
+    ],
+    "4.1 Implement `render_consolidated_text`": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019791
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166500695
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166580748
+      }
+    ],
+    "5.1 Implement snapshot path, write, and read-back": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019895
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166501317
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166581557
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166019997
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166593975
+      }
+    ],
+    "7.1 Implement `collect_regime` with per-asset isolation": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020081
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166076287
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166152703
+      }
+    ],
+    "7.2 Write property test for Market Regime per-asset shape": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020182
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166158275
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166324924
+      }
+    ],
+    "8.1 Implement config resolution and input acquisition": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020275
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166597237
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166732570
+      }
+    ],
+    "8.2 Wire build -> render -> write outputs and emit terminal status": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020377
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166737285
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166962248
+      }
+    ],
+    "8.3 Write orchestrator unit tests with injected fakes": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020490
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166965924
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792167117709
+      }
+    ],
+    "9. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020589
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792167122966
+      }
+    ],
+    "10.1 Create the shell launcher": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020689
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166738165
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166961517
+      }
+    ],
+    "10.2 Create the Rundeck job definition": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020790
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166738927
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166960633
+      }
+    ],
+    "11. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166020892
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792167127732
+      },
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792167516329
+      }
+    ],
+    "1. Create consolidated data models and JSON serialization": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166323237
+      }
+    ],
+    "7. Implement the asset-neutral regime wrapper": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166325022
+      }
+    ],
+    "2. Implement the pure consolidated builder": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166495481
+      }
+    ],
+    "4. Implement the consolidated renderer": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166580894
+      }
+    ],
+    "5. Implement the JSON snapshot writer": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166581667
+      }
+    ],
+    "10. Add the delivery launcher and Rundeck job": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792166961627
+      }
+    ],
+    "8. Implement the orchestrator entrypoint and wire everything together": [
+      {
+        "executionId": "73b29cc4-c0ac-4bf6-b7d3-c32ec3d35f9c",
+        "chatSessionId": "sess_aebf9b08-422d-41ac-ae54-d550319054cb",
+        "timestamp": 1792167117844
+      }
+    ]
+  }
+}

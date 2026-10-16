@@ -10,6 +10,10 @@
   "PERCENTILE_INCREMENTS": 5,
   "ticker_symbol": "SPY",
   "log_tail_size": 3,
+  "daily_market_report": {
+    "configured_assets": ["SPY"],
+    "regime_lookback_days": 200
+  },
   "ma_crossover": {
     "enabled": true,
     "ma_periods": {
