@@ -1,0 +1,159 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test": {
+      "status": "passed",
+      "failingExample": "The three bug-condition exploration cases FAILED on the unfixed code, confirming the bug (the exploration test correctly detected it). Each asserted the derived action should be \"SELL\" but unfixed build_ticker_config returned \"BUY\":\n\n1. DOWN strong-signal (distribution, hit_rate=0.62, p_value=0.01): expected adjusted_direction==\"SELL\", got \"BUY\" (Req 2.1).\n2. DOWN weak-edge (strong_bearish, hit_rate=0.57, p_value=0.02): expected \"SELL\", got \"BUY\" (Req 2.5).\n3. UP contrarian (accumulation, hit_rate=0.40, p_value=0.01): expected \"SELL\" (invert UP->DOWN), got \"BUY\" (Req 2.2).\n\nAssertionError: assert 'BUY' == 'SELL' for all three. Root cause confirmed: get_rule hardcodes \"BUY\" for every actionable band, independent of SIGNAL_DIRECTIONS.",
+      "lastRunTimestamp": 1792159469407
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180057
+      },
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159188217
+      },
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159496535
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180209
+      },
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159499900
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160372115
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160596934
+      }
+    ],
+    "3.1 Implement the derivation and helpers": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180323
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160600307
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160731077
+      }
+    ],
+    "3.2 Migrate the two existing single-argument `get_rule(row)` call sites": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180422
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160734300
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160896400
+      }
+    ],
+    "3.3 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180590
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160901191
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160974777
+      }
+    ],
+    "3.4 Verify preservation tests still pass": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180718
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792160978754
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161016944
+      }
+    ],
+    "4. Update README ticker-config documentation (ticket DoD)": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180825
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161020430
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161096701
+      }
+    ],
+    "5. Checkpoint - final verification gate (run ONCE, at the end)": [
+      {
+        "executionId": "2b49a328-e84d-4e84-b67a-80d4b6916f56",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792159180919
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161100180
+      },
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161571390
+      }
+    ],
+    "3. Fix: derive adjusted_direction from base direction and band in `scripts/import_ticker_signals.py`": [
+      {
+        "executionId": "962d1702-80e4-4682-8e25-3f41a6a80b28",
+        "chatSessionId": "sess_7d2aa952-8399-4c3f-b5e9-c503e27a1b62",
+        "timestamp": 1792161017048
+      }
+    ]
+  }
+}
