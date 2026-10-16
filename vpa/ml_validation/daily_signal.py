@@ -26,6 +26,7 @@ from vpa.ml_validation.feature_extractor import (
     compute_price_vs_sma_feature,
 )
 from vpa.ml_validation.signal_analysis import (
+    _COMBO_COLUMN_TO_TYPE,
     SIGNAL_DIRECTIONS,
     SignalConditionalAnalyzer,
     SignalType,
@@ -68,6 +69,22 @@ CONFIDENCE_MAP: dict[SignalType, str] = {
     # accumulation/distribution signals in the daily output.
     SignalType.PRICE_ABOVE_SMA: "Low",
     SignalType.PRICE_BELOW_SMA: "Low",
+    # SP-359: DSS Bressert crossover signals default to a higher-conviction band
+    # than the positional price-vs-SMA signals.
+    SignalType.DSS_BULLISH: "Medium-High",
+    SignalType.DSS_BEARISH: "Medium-High",
+    # SP-359: the ten DSS/SMA combo (confluence) signals are multi-condition and
+    # default to "Medium-High" so they rank above single-condition signals.
+    SignalType.COMBO_DSS_CROSS_SMA_POS_BULL: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_SMA_POS_BEAR: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_SMA_CROSS_BULL: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_SMA_CROSS_BEAR: "Medium-High",
+    SignalType.COMBO_DSS_ZONE_SMA_CROSS_BULL: "Medium-High",
+    SignalType.COMBO_DSS_ZONE_SMA_CROSS_BEAR: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_FROM_ZONE_BULL: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_FROM_ZONE_BEAR: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BULL: "Medium-High",
+    SignalType.COMBO_DSS_CROSS_SMA_NOT_OB_BEAR: "Medium-High",
 }
 
 CONFIDENCE_ORDER: list[str] = ["High", "Medium-High", "Low-Medium", "Low"]
@@ -232,6 +249,26 @@ def classify_last_row(df: pd.DataFrame) -> set[SignalType]:
             signals.add(SignalType.PRICE_ABOVE_SMA)
         elif pvs < 0:
             signals.add(SignalType.PRICE_BELOW_SMA)
+
+    # --- DSS crossovers (SP-359, Req 3) ---
+    # Column-present guard + not-NaN/numeric + equals-1 test, mirroring the
+    # pattern classify_signals uses so behaviour matches column-for-column.
+    for col, sig in (
+        ("dss_bullish_cross", SignalType.DSS_BULLISH),
+        ("dss_bearish_cross", SignalType.DSS_BEARISH),
+    ):
+        if col in df.columns:
+            val = last_row.get(col)
+            if _is_valid_numeric(val) and float(val) == 1:
+                signals.add(sig)
+
+    # --- DSS/SMA combo columns (SP-359, Req 4) ---
+    # Single source of truth: _COMBO_COLUMN_TO_TYPE from signal_analysis.py.
+    for combo_col, combo_type in _COMBO_COLUMN_TO_TYPE.items():
+        if combo_col in df.columns:
+            val = last_row.get(combo_col)
+            if _is_valid_numeric(val) and float(val) == 1:
+                signals.add(combo_type)
 
     return signals
 
@@ -403,6 +440,47 @@ class DailySignalGenerator:
         if pvs_enabled:
             pvs_sma_series = df["Close"].rolling(window=pvs_cfg.period, min_periods=pvs_cfg.period).mean().tolist()
 
+        # --- DSS Bressert precompute (SP-359, mirrors generate_dataset Step 3b) ---
+        # Compute the DSS oscillator/trigger series once over the whole frame,
+        # gated on the same validity checks the feature extractor uses: only
+        # enabled when the flag is true AND periods are ints in 1..500 AND
+        # thresholds are numbers in 0..100 with oversold < overbought. When not
+        # valid, dss_osc/dss_trig stay None and the crossover columns are 0 for
+        # every row.
+        dss_osc: list[float] | None = None
+        dss_trig: list[float] | None = None
+        dss_warmup = 0
+        dss_cfg = extractor._config.dss_bressert
+
+        def _valid_period(value: object) -> bool:
+            return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 500
+
+        def _valid_threshold(value: object) -> bool:
+            return isinstance(value, int | float) and not isinstance(value, bool) and 0 <= value <= 100
+
+        dss_enabled = (
+            bool(dss_cfg.enabled)
+            and _valid_period(dss_cfg.stochastic_period)
+            and _valid_period(dss_cfg.smoothing_period)
+            and _valid_period(dss_cfg.trigger_period)
+            and _valid_threshold(dss_cfg.oversold_threshold)
+            and _valid_threshold(dss_cfg.overbought_threshold)
+            and dss_cfg.oversold_threshold < dss_cfg.overbought_threshold
+        )
+
+        if dss_enabled:
+            from vpa.dss_bressert import calculate_dss_bressert
+
+            dss_osc, dss_trig = calculate_dss_bressert(
+                df["High"].tolist(),
+                df["Low"].tolist(),
+                df["Close"].tolist(),
+                dss_cfg.stochastic_period,
+                dss_cfg.smoothing_period,
+                dss_cfg.trigger_period,
+            )
+            dss_warmup = dss_cfg.stochastic_period + dss_cfg.smoothing_period + dss_cfg.trigger_period - 2
+
         for pos, (_, row) in enumerate(df.iterrows()):
             # Create Candle (matching MarketAnalyzer open-price logic)
             if previous_close != 0:
@@ -483,13 +561,101 @@ class DailySignalGenerator:
                 price_vs_sma_value = 50.0
                 price_vs_sma_signal_score = 0.0
 
-            # Extract feature vector
+            # Price-vs-SMA position + cross flags (SP-359, mirrors generate_dataset
+            # Step 9c). From close vs SMA (and prev-vs-curr for the crosses),
+            # guarded by the same pvs_enabled / NaN checks the extractor uses. NaN
+            # is detected with the ``v != v`` idiom (works on plain and numpy
+            # floats), matching feature_extractor._pvs_isnan.
+            price_above_sma = 0
+            price_below_sma = 0
+            price_crossed_above_sma = 0
+            price_crossed_below_sma = 0
+            if pvs_enabled and pvs_sma_series is not None:
+                sma = pvs_sma_series[pos]
+                close = pvs_closes[pos]
+                if not (sma != sma or close != close):
+                    price_above_sma = int(close > sma)
+                    price_below_sma = int(close < sma)
+                    if pos > 0:
+                        prev_sma = pvs_sma_series[pos - 1]
+                        prev_close = pvs_closes[pos - 1]
+                        if not (prev_sma != prev_sma or prev_close != prev_close):
+                            price_crossed_above_sma = int(prev_close <= prev_sma and close > sma)
+                            price_crossed_below_sma = int(prev_close >= prev_sma and close < sma)
+
+            # DSS crossover flags (SP-359, mirrors generate_dataset Step 9).
+            # Gated by dss_enabled, the warm-up boundary, pos > 0 (previous-row
+            # dependency), and finite oscillator/trigger values at pos and
+            # pos - 1; 0 otherwise. Copied verbatim from the feature extractor so
+            # the two paths cannot drift.
+            dss_bullish_cross = 0
+            dss_bearish_cross = 0
+            if dss_enabled and dss_osc is not None and dss_trig is not None and pos >= dss_warmup and pos > 0:
+                current_dss = dss_osc[pos]
+                current_trigger = dss_trig[pos]
+                previous_dss = dss_osc[pos - 1]
+                previous_trigger = dss_trig[pos - 1]
+                if all(np.isfinite(value) for value in (current_dss, current_trigger, previous_dss, previous_trigger)):
+                    dss_bullish_cross = int(previous_dss <= previous_trigger and current_dss > current_trigger)
+                    dss_bearish_cross = int(previous_dss >= previous_trigger and current_dss < current_trigger)
+
+            # DSS zone flags (SP-359, mirrors generate_dataset Step 9a).
+            # From the oscillator vs the configured thresholds, guarded by the
+            # same dss_enabled / warm-up / finite checks as the cross block
+            # above. Zone flags do not need pos > 0 (no previous-row dependency).
+            # Copied verbatim from the feature extractor so the two paths cannot
+            # drift.
+            dss_oversold = 0
+            dss_overbought = 0
+            if dss_enabled and dss_osc is not None and pos >= dss_warmup:
+                osc = dss_osc[pos]
+                if np.isfinite(osc):
+                    dss_oversold = int(osc <= dss_cfg.oversold_threshold)
+                    dss_overbought = int(osc >= dss_cfg.overbought_threshold)
+
+            # Combo (confluence) columns (SP-359, mirrors generate_dataset Step
+            # 9d). Each is int(<AND expression>) of the crossover, zone, and
+            # price-vs-SMA flags per the Combo_Expressions; the two three-way
+            # columns include the negation of the opposing DSS zone flag. Copied
+            # verbatim from the feature extractor so the two paths cannot drift.
+            combo_dss_cross_sma_pos_bull = int(dss_bullish_cross and price_above_sma)
+            combo_dss_cross_sma_pos_bear = int(dss_bearish_cross and price_below_sma)
+            combo_dss_cross_sma_cross_bull = int(dss_bullish_cross and price_crossed_above_sma)
+            combo_dss_cross_sma_cross_bear = int(dss_bearish_cross and price_crossed_below_sma)
+            combo_dss_zone_sma_cross_bull = int(dss_oversold and price_crossed_above_sma)
+            combo_dss_zone_sma_cross_bear = int(dss_overbought and price_crossed_below_sma)
+            combo_dss_cross_from_zone_bull = int(dss_bullish_cross and dss_oversold)
+            combo_dss_cross_from_zone_bear = int(dss_bearish_cross and dss_overbought)
+            combo_dss_cross_sma_not_ob_bull = int(dss_bullish_cross and price_above_sma and not dss_overbought)
+            combo_dss_cross_sma_not_ob_bear = int(dss_bearish_cross and price_below_sma and not dss_oversold)
+
+            # Extract feature vector (SP-359: pass the eighteen DSS crossover,
+            # zone, price-vs-SMA, and combo flags so they surface as columns in
+            # result_df, mirroring generate_dataset).
             feature_vector = extractor._extract_feature_vector(
                 candle=this_candle,
                 signals=signals,
                 adx_values=adx_values,
                 acc_dist_result=acc_dist_result,
                 deque_dictionary=deque_dictionary,
+                dss_bullish_cross=dss_bullish_cross,
+                dss_bearish_cross=dss_bearish_cross,
+                dss_oversold=dss_oversold,
+                dss_overbought=dss_overbought,
+                price_above_sma=price_above_sma,
+                price_below_sma=price_below_sma,
+                price_crossed_above_sma=price_crossed_above_sma,
+                price_crossed_below_sma=price_crossed_below_sma,
+                combo_dss_cross_sma_pos_bull=combo_dss_cross_sma_pos_bull,
+                combo_dss_cross_sma_pos_bear=combo_dss_cross_sma_pos_bear,
+                combo_dss_cross_sma_cross_bull=combo_dss_cross_sma_cross_bull,
+                combo_dss_cross_sma_cross_bear=combo_dss_cross_sma_cross_bear,
+                combo_dss_zone_sma_cross_bull=combo_dss_zone_sma_cross_bull,
+                combo_dss_zone_sma_cross_bear=combo_dss_zone_sma_cross_bear,
+                combo_dss_cross_from_zone_bull=combo_dss_cross_from_zone_bull,
+                combo_dss_cross_from_zone_bear=combo_dss_cross_from_zone_bear,
+                combo_dss_cross_sma_not_ob_bull=combo_dss_cross_sma_not_ob_bull,
+                combo_dss_cross_sma_not_ob_bear=combo_dss_cross_sma_not_ob_bear,
                 price_vs_sma_value=price_vs_sma_value,
                 price_vs_sma_signal_score=price_vs_sma_signal_score,
             )

@@ -1,0 +1,265 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Add DSS precompute to the daily run": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146099944
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146108419
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146235633
+      }
+    ],
+    "2.1 Surface the four price-vs-SMA integer flags in the per-row loop": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101270
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146239596
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146368253
+      }
+    ],
+    "2.2 Compute DSS crossover flags per row": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101412
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146374442
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146470539
+      }
+    ],
+    "2.3 Compute DSS zone flags per row": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101517
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146473442
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146575391
+      }
+    ],
+    "2.4 Compute the ten combo columns per row": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101693
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146593145
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146835555
+      }
+    ],
+    "2.5 Pass the eighteen flags into the feature vector": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101807
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146838373
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146964125
+      }
+    ],
+    "3. Checkpoint - daily-run feature columns": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101883
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146973517
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147010672
+      }
+    ],
+    "4.1 Extend `classify_last_row` with DSS crossover and combo classification": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146101962
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147013731
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147109142
+      }
+    ],
+    "5. Checkpoint - classification": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146102054
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147112401
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147148358
+      }
+    ],
+    "6.1 Extend `CONFIDENCE_MAP`": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146102181
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146240990
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146369647
+      }
+    ],
+    "7.1 Add DSS and combo rules to the SPY entry in `ticker_signals.json`": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146102257
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146241709
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146370375
+      }
+    ],
+    "8. Final checkpoint - full suite, lint, and format": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146102330
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147151181
+      },
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147495128
+      }
+    ],
+    "6. Add default confidence levels for DSS and combo types": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146369725
+      }
+    ],
+    "7. Regenerate SPY config entry with DSS and combo rules": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146370474
+      }
+    ],
+    "2. Derive per-row DSS crossover, zone, and combo columns in the daily run": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792146964228
+      }
+    ],
+    "4. Classify DSS and combo columns on the latest candle": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147109251
+      }
+    ],
+    "2.6 Write property test: daily run reproduces the feature extractor's columns": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147569511
+      }
+    ],
+    "4.2 Write property test: type classified iff final-row column equals 1": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147570297
+      }
+    ],
+    "6.2 Write unit tests for `CONFIDENCE_MAP` contents": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147571740
+      }
+    ],
+    "7.2 Write SPY config schema and regression tests": [
+      {
+        "executionId": "5133eea5-dbef-405a-8a96-0d16daf70bb7",
+        "chatSessionId": "sess_76e00743-ca8e-42a0-aaff-8e637e36673e",
+        "timestamp": 1792147572407
+      }
+    ]
+  }
+}
