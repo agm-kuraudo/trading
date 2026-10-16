@@ -432,3 +432,45 @@ def test_property_preservation_non_buggy_region(base_is_up, hit_rate, p_value, h
     rule = _single_row_config(signal_type, hit_rate, p_value, horizon_days=horizon_days)
     expected = _expected_original_action(base_is_up, hit_rate, p_value)
     assert rule["adjusted_direction"] == expected
+
+
+# ---------------------------------------------------------------------------
+# SP-360 Fix-Checking unit tests (Property 1: Expected Behavior).
+#
+# Direct get_rule calls with an explicit SignalDirection (the design's Fix
+# Checking section). These complement the task-1 build_ticker_config-level
+# bug-condition tests by exercising the derivation at the get_rule boundary:
+# contrarian inverts the base direction, strong-signal and weak-edge keep it,
+# then action maps UP -> "BUY", DOWN -> "SELL". Every buggy (base, band) pair
+# here resolves to "SELL".
+#
+# Validates: Property 1 / Requirements 2.1 (DOWN strong-signal),
+# 2.5 (DOWN weak-edge), 2.2 (UP contrarian).
+# ---------------------------------------------------------------------------
+
+
+def test_fix_checking_down_strong_signal_sell():
+    # DOWN-base strong-signal (hit_rate >= 0.60, significant): keep DOWN -> SELL. (Req 2.1)
+    row = pd.Series({"hit_rate": 0.62, "p_value": 0.01, "horizon_days": 10})
+    rule = get_rule(row, SignalDirection.DOWN)
+    assert rule["adjusted_direction"] == "SELL"
+    assert rule["confidence_level"] == "High"
+    assert rule["suggested_hold_days"] == 10
+
+
+def test_fix_checking_down_weak_edge_sell():
+    # DOWN-base weak-edge (0.55 < hit_rate < 0.60, significant): keep DOWN -> SELL. (Req 2.5)
+    row = pd.Series({"hit_rate": 0.57, "p_value": 0.02, "horizon_days": 5})
+    rule = get_rule(row, SignalDirection.DOWN)
+    assert rule["adjusted_direction"] == "SELL"
+    assert rule["confidence_level"] == "Low-Medium"
+    assert rule["suggested_hold_days"] == 5
+
+
+def test_fix_checking_up_contrarian_sell():
+    # UP-base contrarian (hit_rate < 0.45, significant): invert UP -> DOWN -> SELL. (Req 2.2)
+    row = pd.Series({"hit_rate": 0.40, "p_value": 0.01, "horizon_days": 3})
+    rule = get_rule(row, SignalDirection.UP)
+    assert rule["adjusted_direction"] == "SELL"
+    assert rule["confidence_level"] == "Medium-High"
+    assert rule["suggested_hold_days"] == 3
