@@ -3,12 +3,15 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from vpa.ml_validation.daily_signal import SignalType, build_signal_records
+from vpa.ml_validation.signal_analysis import SIGNAL_DIRECTIONS, SignalDirection
 
 # scripts/ is not a package; add it to the path so the importer can be tested.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
-from import_ticker_signals import build_ticker_config, get_rule, select_row  # noqa: E402
+from import_ticker_signals import SIGNIFICANCE, build_ticker_config, get_rule, select_row  # noqa: E402
 
 
 @pytest.fixture
@@ -205,3 +208,206 @@ def test_bug_condition_up_contrarian_derives_sell():
     )
     config = build_ticker_config(df)
     assert config["accumulation"]["adjusted_direction"] == "SELL"
+
+
+# ---------------------------------------------------------------------------
+# SP-360 preservation tests (Property 2: Preservation).
+#
+# Observation-first: these assertions were anchored to the OBSERVED behaviour of
+# the UNFIXED code and MUST PASS on it. They capture the baseline the fix must
+# preserve -- the non-buggy region (isBugCondition false), where the derived
+# (post-fix) action equals the old hardcoded result.
+#
+# Base directions (per SIGNAL_DIRECTIONS in vpa/ml_validation/signal_analysis.py):
+# distribution -> DOWN, strong_bearish -> DOWN, accumulation -> UP.
+# action(UP)="BUY", action(DOWN)="SELL".
+#
+# Non-buggy actionable bands resolve to "BUY" (DOWN contrarian inverts to UP;
+# UP strong-signal/weak-edge keep UP), which equals the old hardcoded "BUY".
+# Noise / not-significant / missing-field inputs resolve to NONE under both.
+#
+# NOTE on the unknown-type case: on the UNFIXED code an unknown signal_type does
+# NOT reach the NONE path -- it still emits "BUY" (the old code never consults
+# SIGNAL_DIRECTIONS). The post-fix NONE value is therefore asserted in task 1's
+# sibling (fix-checking) scope, not here. The preservation-safe invariant that
+# holds on BOTH old and new code is that an unknown type never RAISES, so that
+# is what this task asserts (Req 2.6 / 3.6 "rather than raising an exception").
+# ---------------------------------------------------------------------------
+
+
+def _single_row_config(signal_type, hit_rate, p_value, horizon_days=10, event_count=20):
+    """Build a one-row analysis frame and return that signal type's rule.
+
+    Supplies every column select_row / build_ticker_config require:
+    signal_type, horizon_days, event_count, hit_rate, p_value.
+    """
+    df = pd.DataFrame(
+        {
+            "signal_type": [signal_type],
+            "horizon_days": [horizon_days],
+            "event_count": [event_count],
+            "hit_rate": [hit_rate],
+            "p_value": [p_value],
+        }
+    )
+    return build_ticker_config(df)[signal_type]
+
+
+def test_preserve_down_contrarian_still_buy():
+    # DOWN-base contrarian (hit_rate < 0.45, significant): invert DOWN -> UP -> BUY.
+    # The AAPL case. (Req 2.4, 3.3)
+    rule = _single_row_config("distribution", 0.40, 0.01)
+    assert rule["adjusted_direction"] == "BUY"
+
+
+def test_preserve_up_strong_signal_still_buy():
+    # UP-base strong-signal (hit_rate >= 0.60, significant): keep UP -> BUY. (Req 2.3)
+    rule = _single_row_config("accumulation", 0.62, 0.01)
+    assert rule["adjusted_direction"] == "BUY"
+
+
+def test_preserve_up_weak_edge_still_buy():
+    # UP-base weak-edge (0.55 < hit_rate < 0.60, significant): keep UP -> BUY.
+    rule = _single_row_config("accumulation", 0.57, 0.02)
+    assert rule["adjusted_direction"] == "BUY"
+
+
+def test_preserve_noise_band_still_none():
+    # 0.45 <= hit_rate <= 0.55 noise band -> NONE. (Req 3.1)
+    rule = _single_row_config("distribution", 0.50, 0.01)
+    assert rule == {"adjusted_direction": "NONE"}
+
+
+def test_preserve_not_significant_still_none():
+    # p_value >= SIGNIFICANCE -> NONE. (Req 3.2)
+    rule = _single_row_config("distribution", 0.40, 0.20)
+    assert rule == {"adjusted_direction": "NONE"}
+
+
+def test_preserve_missing_hit_rate_still_none():
+    # Missing hit_rate -> NONE (select_row drops NaN hit_rate rows; the sole row
+    # is dropped, so build_ticker_config assigns the NONE fallback). (Req 3.2)
+    rule = _single_row_config("distribution", float("nan"), 0.01)
+    assert rule == {"adjusted_direction": "NONE"}
+
+
+def test_preserve_unknown_signal_type_does_not_raise():
+    # Unknown signal_type must not raise under either old or new code. The NONE
+    # VALUE is a post-fix behaviour (old code emits "BUY" here), so this task only
+    # asserts the preservation-safe invariant: no exception. (Req 2.6, 3.6)
+    df = pd.DataFrame(
+        {
+            "signal_type": ["mystery_signal"],
+            "horizon_days": [10],
+            "event_count": [20],
+            "hit_rate": [0.62],
+            "p_value": [0.01],
+        }
+    )
+    config = build_ticker_config(df)  # must not raise
+    assert "mystery_signal" in config
+
+
+def test_preserve_contrarian_confidence_and_hold_days():
+    # Contrarian band confidence thresholds and hold-days from horizon_days. (Req 3.4)
+    # 0.35 <= hit_rate < 0.45 -> "Medium-High"; hold_days from horizon_days.
+    rule = _single_row_config("distribution", 0.40, 0.01, horizon_days=10)
+    assert rule["confidence_level"] == "Medium-High"
+    assert rule["suggested_hold_days"] == 10
+    # hit_rate < 0.35 -> "High".
+    rule_high = _single_row_config("distribution", 0.30, 0.01, horizon_days=7)
+    assert rule_high["confidence_level"] == "High"
+    assert rule_high["suggested_hold_days"] == 7
+
+
+def test_preserve_strong_signal_confidence_and_hold_days():
+    # Strong-signal band: "High"; hold-days from horizon_days. (Req 3.4)
+    rule = _single_row_config("accumulation", 0.62, 0.01, horizon_days=5)
+    assert rule["confidence_level"] == "High"
+    assert rule["suggested_hold_days"] == 5
+
+
+def test_preserve_weak_edge_confidence_and_hold_days():
+    # Weak-edge band: "Low-Medium"; hold-days from horizon_days. (Req 3.4)
+    rule = _single_row_config("accumulation", 0.57, 0.02, horizon_days=3)
+    assert rule["confidence_level"] == "Low-Medium"
+    assert rule["suggested_hold_days"] == 3
+
+
+def test_preserve_build_ticker_config_none_fallback_when_select_row_none():
+    # When every row for a signal type has NaN hit_rate, select_row returns None
+    # and build_ticker_config assigns the NONE fallback for that type. (Req 3.6)
+    df = pd.DataFrame(
+        {
+            "signal_type": ["distribution", "distribution"],
+            "horizon_days": [3, 10],
+            "event_count": [20, 20],
+            "hit_rate": [float("nan"), float("nan")],
+            "p_value": [0.01, 0.02],
+        }
+    )
+    config = build_ticker_config(df)
+    assert config["distribution"] == {"adjusted_direction": "NONE"}
+
+
+# ---------------------------------------------------------------------------
+# SP-360 preservation property test (hypothesis) over the NON-buggy region.
+#
+# Generate (base_direction, hit_rate, p_value, horizon_days) closed over the
+# SIGNAL_DIRECTIONS keys, restricted to the complement of the bug condition, and
+# assert the derived action equals the ORIGINAL hardcoded result: "BUY" for
+# non-buggy actionable bands, "NONE" otherwise. On UNFIXED code this holds
+# because the old code always emits "BUY"/"NONE".
+#
+# The non-buggy actionable region is exactly: UP-base contrarian/strong/weak
+# (all keep/invert to UP -> BUY) and DOWN-base contrarian (invert to UP -> BUY).
+# Excluded (buggy): DOWN strong-signal, DOWN weak-edge, UP contrarian -> SELL.
+# ---------------------------------------------------------------------------
+
+
+# One signal_type per base direction, drawn from SIGNAL_DIRECTIONS.
+_UP_TYPES = [t.value for t, d in SIGNAL_DIRECTIONS.items() if d == SignalDirection.UP]
+_DOWN_TYPES = [t.value for t, d in SIGNAL_DIRECTIONS.items() if d == SignalDirection.DOWN]
+
+
+def _expected_original_action(base_is_up, hit_rate, p_value):
+    """The ORIGINAL hardcoded result for a non-buggy input.
+
+    Old code: NONE for missing/not-significant/noise; "BUY" for every actionable
+    band. Restricted to the non-buggy region this also equals the derived action.
+    """
+    if p_value >= SIGNIFICANCE:
+        return "NONE"
+    if hit_rate < 0.45 or hit_rate >= 0.60 or (0.55 < hit_rate < 0.60):
+        return "BUY"
+    return "NONE"  # 0.45 <= hit_rate <= 0.55 noise band
+
+
+@settings(max_examples=100, deadline=None)
+@given(
+    base_is_up=st.booleans(),
+    # Bands spanning contrarian / noise / weak-edge / strong-signal boundaries.
+    hit_rate=st.sampled_from([0.20, 0.34, 0.40, 0.44, 0.45, 0.50, 0.55, 0.56, 0.57, 0.59, 0.60, 0.65, 0.80]),
+    p_value=st.sampled_from([0.001, 0.01, 0.04, 0.05, 0.20]),
+    horizon_days=st.integers(min_value=1, max_value=30),
+)
+def test_property_preservation_non_buggy_region(base_is_up, hit_rate, p_value, horizon_days):
+    """Property 2: non-buggy inputs match the original hardcoded action.
+
+    Validates: Requirements 2.3, 2.4, 3.1, 3.2, 3.3
+    """
+    # Restrict to the complement of the bug condition. The buggy cases are
+    # DOWN strong-signal, DOWN weak-edge, and UP contrarian (all SELL).
+    significant = p_value < SIGNIFICANCE
+    is_contrarian = significant and hit_rate < 0.45
+    is_strong = significant and hit_rate >= 0.60
+    is_weak = significant and (0.55 < hit_rate < 0.60)
+    if base_is_up and is_contrarian:
+        return  # buggy region -> belongs to Property 1
+    if (not base_is_up) and (is_strong or is_weak):
+        return  # buggy region -> belongs to Property 1
+
+    signal_type = _UP_TYPES[0] if base_is_up else _DOWN_TYPES[0]
+    rule = _single_row_config(signal_type, hit_rate, p_value, horizon_days=horizon_days)
+    expected = _expected_original_action(base_is_up, hit_rate, p_value)
+    assert rule["adjusted_direction"] == expected
