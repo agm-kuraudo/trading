@@ -140,3 +140,68 @@ def test_build_ticker_config_collapses_horizons():
     assert config["distribution"]["suggested_hold_days"] == 10
     # accumulation: nothing significant and noise-band hit_rate -> NONE
     assert config["accumulation"] == {"adjusted_direction": "NONE"}
+
+
+# ---------------------------------------------------------------------------
+# SP-360 bug condition exploration tests (Property 1: Bug Condition).
+#
+# These assert that adjusted_direction is DERIVED from the signal's base
+# direction (SIGNAL_DIRECTIONS in vpa/ml_validation/signal_analysis.py) and the
+# interpretation band, rather than hardcoded to "BUY". They are expressed at the
+# build_ticker_config level (which carries the signal_type string) so they run
+# against both the unfixed get_rule(row) and the fixed get_rule(row, base_dir).
+#
+# Base directions (per SIGNAL_DIRECTIONS): distribution -> DOWN,
+# strong_bearish -> DOWN, accumulation -> UP. action(UP)="BUY", action(DOWN)="SELL".
+#
+# EXPECTED on UNFIXED code: all three FAIL because the unfixed code emits "BUY".
+# That failure confirms the bug.
+# ---------------------------------------------------------------------------
+
+
+def test_bug_condition_down_strong_signal_derives_sell():
+    # DOWN-base strong-signal band (hit_rate >= 0.60, significant): keep DOWN -> SELL.
+    # distribution has base direction DOWN. (Req 2.1)
+    df = pd.DataFrame(
+        {
+            "signal_type": ["distribution"],
+            "horizon_days": [10],
+            "event_count": [20],
+            "hit_rate": [0.62],
+            "p_value": [0.01],
+        }
+    )
+    config = build_ticker_config(df)
+    assert config["distribution"]["adjusted_direction"] == "SELL"
+
+
+def test_bug_condition_down_weak_edge_derives_sell():
+    # DOWN-base weak-edge band (0.55 < hit_rate < 0.60, significant): keep DOWN -> SELL.
+    # strong_bearish has base direction DOWN. (Req 2.5)
+    df = pd.DataFrame(
+        {
+            "signal_type": ["strong_bearish"],
+            "horizon_days": [5],
+            "event_count": [20],
+            "hit_rate": [0.57],
+            "p_value": [0.02],
+        }
+    )
+    config = build_ticker_config(df)
+    assert config["strong_bearish"]["adjusted_direction"] == "SELL"
+
+
+def test_bug_condition_up_contrarian_derives_sell():
+    # UP-base contrarian band (hit_rate < 0.45, significant): invert UP -> DOWN -> SELL.
+    # accumulation has base direction UP. (Req 2.2)
+    df = pd.DataFrame(
+        {
+            "signal_type": ["accumulation"],
+            "horizon_days": [3],
+            "event_count": [20],
+            "hit_rate": [0.40],
+            "p_value": [0.01],
+        }
+    )
+    config = build_ticker_config(df)
+    assert config["accumulation"]["adjusted_direction"] == "SELL"
