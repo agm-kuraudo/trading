@@ -112,37 +112,58 @@ def test_select_row_falls_back_when_none_significant():
 
 
 def test_get_rule_hold_days_from_horizon():
+    # Contrarian band (hit_rate 0.40, significant) with a DOWN base direction:
+    # invert DOWN -> UP -> "BUY". The action is now DERIVED (base direction +
+    # band), so DOWN-base is passed explicitly to keep the "BUY" expectation
+    # meaningful. confidence_level/hold_days are unchanged by the fix.
     row = pd.Series({"hit_rate": 0.40, "p_value": 0.01, "horizon_days": 10})
-    rule = get_rule(row)
-    assert rule["adjusted_direction"] == "BUY"
+    rule = get_rule(row, SignalDirection.DOWN)
+    assert rule["adjusted_direction"] == "BUY"  # contrarian inverts DOWN -> UP
     assert rule["confidence_level"] == "Medium-High"  # 0.35 <= hr < 0.45
     assert rule["suggested_hold_days"] == 10
 
 
 def test_get_rule_noise_band_is_none():
+    # Noise band (0.45 <= hit_rate <= 0.55) returns NONE before the base
+    # direction is consulted, so any base_direction works here.
     row = pd.Series({"hit_rate": 0.50, "p_value": 0.01, "horizon_days": 5})
-    assert get_rule(row) == {"adjusted_direction": "NONE"}
+    assert get_rule(row, SignalDirection.UP) == {"adjusted_direction": "NONE"}
 
 
 def test_build_ticker_config_collapses_horizons():
-    # Two signal types, each with multiple horizons -> one rule per type.
+    # Three signal types, each with multiple horizons -> one rule per type.
+    # distribution (DOWN-base contrarian) still resolves to BUY (preserved);
+    # strong_bearish (DOWN-base strong-signal) exercises the derived SELL path
+    # end-to-end; accumulation collapses to NONE (nothing significant / noise).
     df = pd.DataFrame(
         {
-            "signal_type": ["distribution", "distribution", "accumulation", "accumulation"],
-            "horizon_days": [3, 10, 3, 5],
-            "event_count": [20, 20, 15, 15],
-            "hit_rate": [0.62, 0.40, 0.50, 0.50],
-            "p_value": [0.30, 0.01, 0.80, 0.90],
+            "signal_type": [
+                "distribution",
+                "distribution",
+                "accumulation",
+                "accumulation",
+                "strong_bearish",
+                "strong_bearish",
+            ],
+            "horizon_days": [3, 10, 3, 5, 3, 7],
+            "event_count": [20, 20, 15, 15, 20, 20],
+            "hit_rate": [0.62, 0.40, 0.50, 0.50, 0.50, 0.65],
+            "p_value": [0.30, 0.01, 0.80, 0.90, 0.80, 0.01],
         }
     )
     config = build_ticker_config(df)
 
-    assert set(config.keys()) == {"distribution", "accumulation"}
-    # distribution: only horizon 10 is significant -> contrarian, hold 10
+    assert set(config.keys()) == {"distribution", "accumulation", "strong_bearish"}
+    # distribution: only horizon 10 is significant -> contrarian; DOWN inverts
+    # to UP -> BUY (preserved behaviour), hold 10.
     assert config["distribution"]["adjusted_direction"] == "BUY"
     assert config["distribution"]["suggested_hold_days"] == 10
     # accumulation: nothing significant and noise-band hit_rate -> NONE
     assert config["accumulation"] == {"adjusted_direction": "NONE"}
+    # strong_bearish: only horizon 7 is significant -> strong-signal band; DOWN
+    # base is kept -> SELL (derived SELL path), hold 7.
+    assert config["strong_bearish"]["adjusted_direction"] == "SELL"
+    assert config["strong_bearish"]["suggested_hold_days"] == 7
 
 
 # ---------------------------------------------------------------------------
