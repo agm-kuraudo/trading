@@ -19,6 +19,66 @@
       "confidence_level": "Low",
       "adjusted_direction": "BUY",
       "suggested_hold_days": 10
+    },
+    "dss_bullish": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "dss_bearish": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_pos_bull": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_pos_bear": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_cross_bull": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_cross_bear": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_zone_sma_cross_bull": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_zone_sma_cross_bear": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_from_zone_bull": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_from_zone_bear": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_not_ob_bull": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
+    },
+    "combo_dss_cross_sma_not_ob_bear": {
+      "confidence_level": "Medium-High",
+      "adjusted_direction": "BUY",
+      "suggested_hold_days": 10
     }
   },
   "AAPL": {
