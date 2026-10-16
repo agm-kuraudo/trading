@@ -4,8 +4,36 @@ from pathlib import Path
 
 import pandas as pd
 
+from vpa.ml_validation.signal_analysis import SIGNAL_DIRECTIONS, SignalDirection, SignalType
+
 SIGNIFICANCE = 0.05
 CONFIG_PATH = Path("vpa/config/ticker_signals.json")
+
+
+def _base_direction(signal_type_string: str) -> SignalDirection | None:
+    """Resolve a signal_type string to its base direction, or None.
+
+    Mirrors the ``direction_for`` precedent in ``vpa/backtesting/pnl.py`` but
+    adds a string-to-enum guard: an unrecognised string raises ``ValueError``
+    from ``SignalType(...)`` (caught here), and a recognised type may still be
+    absent from ``SIGNAL_DIRECTIONS`` (``.get`` returns None). Kept local so the
+    importer script stays decoupled from the backtesting package.
+    """
+    try:
+        sig_type = SignalType(signal_type_string)
+    except ValueError:
+        return None
+    return SIGNAL_DIRECTIONS.get(sig_type)
+
+
+def _action(direction: SignalDirection) -> str:
+    """Map a direction to an action string: UP -> BUY, DOWN -> SELL."""
+    return "BUY" if direction == SignalDirection.UP else "SELL"
+
+
+def _invert(direction: SignalDirection) -> SignalDirection:
+    """Invert a direction: UP <-> DOWN."""
+    return SignalDirection.DOWN if direction == SignalDirection.UP else SignalDirection.UP
 
 
 def select_row(rows: pd.DataFrame) -> pd.Series | None:
@@ -33,15 +61,22 @@ def select_row(rows: pd.DataFrame) -> pd.Series | None:
     return pool.iloc[0]
 
 
-def get_rule(row: pd.Series) -> dict:
+def get_rule(row: pd.Series, base_direction: SignalDirection | None) -> dict:
     """Map a single analysis row to a ticker-signal rule.
 
-    Mirrors the interpretation bands used by SignalConditionalAnalyzer:
-      - hit_rate < 0.45 (significant): reliable contrarian -> invert to BUY
-      - hit_rate >= 0.60 (significant): strong signal -> BUY
-      - 0.55 < hit_rate < 0.60 (significant): weak edge -> BUY (filter only)
+    The action is DERIVED from the signal's base direction (passed in) combined
+    with the interpretation band, then mapped UP -> "BUY" / DOWN -> "SELL" (via
+    ``_action``). It is no longer hardcoded to "BUY". Mirrors the interpretation
+    bands used by SignalConditionalAnalyzer:
+      - hit_rate < 0.45 (significant): reliable contrarian -> invert the base
+        direction (``_invert``), then map to an action
+      - hit_rate >= 0.60 (significant): strong signal -> keep the base direction
+      - 0.55 < hit_rate < 0.60 (significant): weak edge -> keep the base
+        direction (filter only)
       - otherwise (incl. 0.45-0.55 noise band or not significant): no signal
-    suggested_hold_days is taken from the horizon that produced the row.
+    An unknown signal type (base_direction is None) falls back to NONE rather
+    than raising. suggested_hold_days is taken from the horizon that produced
+    the row.
     """
     hit_rate = row.get("hit_rate")
     p_value = row.get("p_value")
@@ -52,23 +87,29 @@ def get_rule(row: pd.Series) -> dict:
     if pd.isna(hit_rate) or pd.isna(p_value) or p_value >= SIGNIFICANCE:
         return none_rule
 
+    if base_direction is None:
+        # Unknown signal type / no base direction -> no actionable signal.
+        return none_rule
+
     if hit_rate < 0.45:
         # Contrarian: the raw signal is wrong often enough to invert.
         return {
             "confidence_level": "High" if hit_rate < 0.35 else "Medium-High",
-            "adjusted_direction": "BUY",
+            "adjusted_direction": _action(_invert(base_direction)),
             "suggested_hold_days": hold_days,
         }
     if hit_rate >= 0.60:
+        # Strong signal: keep the base direction.
         return {
             "confidence_level": "High",
-            "adjusted_direction": "BUY",
+            "adjusted_direction": _action(base_direction),
             "suggested_hold_days": hold_days,
         }
     if 0.55 < hit_rate < 0.60:
+        # Weak edge: keep the base direction (filter only).
         return {
             "confidence_level": "Low-Medium",
-            "adjusted_direction": "BUY",
+            "adjusted_direction": _action(base_direction),
             "suggested_hold_days": hold_days,
         }
 
@@ -84,7 +125,8 @@ def build_ticker_config(df: pd.DataFrame) -> dict:
         if chosen is None:
             ticker_config[sig_type] = {"adjusted_direction": "NONE"}
         else:
-            ticker_config[sig_type] = get_rule(chosen)
+            base_direction = _base_direction(sig_type)
+            ticker_config[sig_type] = get_rule(chosen, base_direction)
     return ticker_config
 
 
