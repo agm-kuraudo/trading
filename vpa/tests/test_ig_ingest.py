@@ -179,6 +179,67 @@ def test_normalise_drops_partial_bars_and_sorts():
     assert df["Date"].is_monotonic_increasing
 
 
+def test_normalise_skips_all_null_placeholder_bar():
+    """A whole no-price placeholder bar (all OHLC bid/ask null) is dropped, not fatal.
+
+    IG emits these at illiquid/closed-market moments (e.g. session-boundary 22:00)
+    sometimes still carrying a tiny lastTradedVolume. They must be skipped so the
+    backfill can reach deep history instead of aborting on a ValueError.
+    """
+    raw = {
+        "prices": [
+            _bar("2024:01:02-14:00:00", 100.0, 110.0, 90.0, 105.0, 37_000),
+            # Real no-price placeholder (verified live): all four OHLC fields null,
+            # but a tiny lastTradedVolume present.
+            {
+                "snapshotTime": "2024:01:02-22:00:00",
+                "openPrice": {"bid": None, "ask": None, "lastTraded": None},
+                "closePrice": {"bid": None, "ask": None, "lastTraded": None},
+                "highPrice": {"bid": None, "ask": None, "lastTraded": None},
+                "lowPrice": {"bid": None, "ask": None, "lastTraded": None},
+                "lastTradedVolume": 3,
+            },
+            _bar("2024:01:02-15:00:00", 106.0, 112.0, 95.0, 108.0, 42_000),
+        ]
+    }
+
+    df = normalise_ig_prices(raw)
+
+    # Only the two real bars survive; the placeholder is dropped without raising.
+    assert len(df) == 2
+    assert list(df["Date"]) == [
+        pd.Timestamp("2024-01-02 14:00:00", tz="UTC"),
+        pd.Timestamp("2024-01-02 15:00:00", tz="UTC"),
+    ]
+    # The placeholder's snapshotTime instant is absent from the result.
+    assert pd.Timestamp("2024-01-02 22:00:00", tz="UTC") not in list(df["Date"])
+
+
+def test_normalise_partial_null_bar_still_fails_loud():
+    """A bar with SOME priced fields and SOME fully-null fields still raises.
+
+    The skip rule is narrow: only WHOLE no-price bars (all four OHLC fields null) are
+    dropped. A partial bar is anomalous/corrupt data, so fail-loud is preserved rather
+    than fabricating a bar.
+    """
+    raw = {
+        "prices": [
+            {
+                "snapshotTime": "2024:01:02-14:00:00",
+                "openPrice": _field(100.0, 101.0),
+                "highPrice": _field(110.0, 111.0),
+                # Fully-null field alongside priced ones -> anomalous.
+                "lowPrice": {"bid": None, "ask": None, "lastTraded": None},
+                "closePrice": _field(105.0, 106.0),
+                "lastTradedVolume": 37_000,
+            }
+        ]
+    }
+
+    with pytest.raises(ValueError):
+        normalise_ig_prices(raw)
+
+
 # ---------------------------------------------------------------------------
 # Task 3.3 / Property 1 - mid is bracketed
 # ---------------------------------------------------------------------------

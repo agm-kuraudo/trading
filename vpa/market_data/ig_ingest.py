@@ -115,6 +115,33 @@ def _mid(field: dict) -> float:
     return (float(bid) + float(ask)) / 2
 
 
+# IG OHLC field names on a /prices bar, in canonical order.
+_OHLC_FIELDS = ("openPrice", "highPrice", "lowPrice", "closePrice")
+
+
+def _is_priceless_bar(bar: dict) -> bool:
+    """Return ``True`` iff a bar carries no usable price on ANY OHLC field.
+
+    A bar is treated as a no-data placeholder only when every one of its
+    ``openPrice`` / ``highPrice`` / ``lowPrice`` / ``closePrice`` fields has both
+    ``bid`` and ``ask`` ``None``. IG emits such bars at illiquid/closed-market moments
+    (e.g. session-boundary 22:00 bars) sometimes still carrying a tiny
+    ``lastTradedVolume``; they hold no price and must be skipped rather than aborting
+    the run.
+
+    A bar with *some* priced fields and *some* fully-null fields is NOT price-less
+    here: that is anomalous/partial data, so this returns ``False`` and the normal
+    ``_mid`` path is allowed to fail loud on it (we never fabricate a bar).
+
+    Args:
+        bar: An IG ``/prices`` bar object.
+
+    Returns:
+        ``True`` iff all four OHLC fields have ``bid is None`` and ``ask is None``.
+    """
+    return all(bar[field].get("bid") is None and bar[field].get("ask") is None for field in _OHLC_FIELDS)
+
+
 def normalise_ig_prices(raw: dict) -> pd.DataFrame:
     """Normalise an IG ``/prices`` payload into the canonical OHLCV shape.
 
@@ -125,6 +152,16 @@ def normalise_ig_prices(raw: dict) -> pd.DataFrame:
     - ``Low``    <- ``_mid(lowPrice)``;   ``Close`` <- ``_mid(closePrice)``.
     - ``Volume`` <- ``lastTradedVolume`` (``None`` -> NaN, dropped by the canonical
       dropna).
+
+    Whole no-price **placeholder** bars are skipped (not appended, not fatal): IG
+    returns occasional bars at illiquid/closed-market moments where ALL FOUR OHLC
+    fields have both ``bid`` and ``ask`` ``None`` (sometimes still carrying a tiny
+    ``lastTradedVolume``). Such a bar holds no price, so it is dropped up front rather
+    than letting ``_mid`` raise and abort the entire run — consistent with the
+    normaliser's existing drop-no-data philosophy. The skip rule is deliberately
+    narrow: a bar is only skipped when *every* OHLC field is fully null. A bar with
+    *some* priced fields and *some* fully-null fields is anomalous/partial data and is
+    left to ``_mid`` to fail loud on (we never fabricate a bar from corrupt input).
 
     Then ``dropna`` on the OHLCV columns, ``sort_values("Date")`` ascending, and return
     exactly ``ohlcv_ingest.CANONICAL_COLUMNS`` in order. Pure (no network). Mirrors
@@ -142,6 +179,9 @@ def normalise_ig_prices(raw: dict) -> pd.DataFrame:
     """
     rows: list[dict] = []
     for bar in raw.get("prices", []):
+        # No-data placeholder bar (all OHLC fields fully null) -> skip, don't abort.
+        if _is_priceless_bar(bar):
+            continue
         ts = _parse_snapshot_time(bar["snapshotTime"])
         volume = bar.get("lastTradedVolume")
         rows.append(

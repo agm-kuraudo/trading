@@ -33,6 +33,14 @@ IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal"
 # IG session lifetime: ~12 hours, reset-on-use (Req 1.1).
 SESSION_TTL_S = 12 * 60 * 60
 
+# Dated-prices request date formats (SP-382). These are REQUEST-side formatting strings
+# for the from/to window endpoints; they coincide 1:1 with the two response-side
+# ``IG_SNAPSHOT_FMTS`` the SP-379 parser already handles, so no new timestamp format is
+# introduced for parsing. The new path form uses dashes + a space; the older
+# query-string form uses the colon-dash shape that equals ``IG_SNAPSHOT_FMTS[0]``.
+IG_RANGE_FMT_NEW = "%Y-%m-%d %H:%M:%S"  # new path form, e.g. 2024-01-02 14:30:00
+IG_RANGE_FMT_OLD = "%Y:%m:%d-%H:%M:%S"  # old query-string form, e.g. 2024:01:02-14:30:00
+
 
 def read_ig_config(demo: bool, env_path: str | None = None) -> dict:
     """Read the IG credentials from the project ``.env``.
@@ -225,6 +233,87 @@ class IGClient:
         response = self._http.get(url, headers=headers)
         if response.status_code != 200:
             raise IGAuthError(f"IG price fetch failed with status {response.status_code}")
+
+        # Reset-on-use: a successful fetch extends the session lifetime (Req 1.1).
+        self._session_expiry = time.monotonic() + SESSION_TTL_S
+
+        body = response.json()
+        return {
+            "prices": body.get("prices", []),
+            "allowance": body.get("allowance", {}),
+        }
+
+    def fetch_prices_range(self, epic: str, resolution: str, start, end) -> dict:
+        """Fetch a dated from/to window of price bars (read-only, ``GET /prices``).
+
+        The dated counterpart to :meth:`fetch_prices` (SP-382): instead of IG's
+        most-recent-N endpoint, this requests the bars between ``start`` and ``end`` so
+        the backfill loop can page backward through successively older windows. Like
+        :meth:`fetch_prices` it ensures a valid (non-expired) session first, re-logging
+        in via :meth:`login` when the session is absent or expired (reset-on-use,
+        Req 1.1), and sends the auth headers (``X-IG-API-KEY`` / ``CST`` /
+        ``X-SECURITY-TOKEN``). On a successful fetch the session expiry is reset
+        (reset-on-use).
+
+        Two IG shapes are tried, newest first:
+
+        - **Primary (new) form**: ``GET {base}/prices/{epic}/{resolution}/{startDate}/{endDate}``
+          with dates formatted ``yyyy-MM-dd HH:mm:ss`` and ``Version: 2``.
+        - **Fallback (older) form**: ``GET {base}/prices/{epic}/{resolution}?startdate=...&enddate=...``
+          with dates formatted ``yyyy:MM:dd-HH:mm:ss`` and ``Version: 1``, used only when
+          the primary form is unavailable for the account/epic (a non-200 such as a
+          404/400), keeping the client resilient without changing the caller contract.
+
+        The base URL is the client's already-configured ``self._base`` (``IG_DEMO_BASE``
+        when constructed with ``demo=True``, otherwise ``IG_LIVE_BASE``); the demo/live
+        choice is made once at construction and is not re-decided here. The two request
+        date forms coincide 1:1 with the two response-side ``IG_SNAPSHOT_FMTS``, so no new
+        timestamp format is introduced anywhere.
+
+        This remains a ``GET /prices`` read; no deal/order/position endpoint is called, so
+        the read-only guarantee is preserved structurally (Req 1.3).
+
+        Args:
+            epic: The IG instrument identifier (e.g. ``IX.D.SPTRD.DAILY.IP``).
+            resolution: The IG resolution tag; ``MINUTE_15``, ``HOUR`` or ``HOUR_4``.
+            start: Inclusive lower bound of the window as a tz-aware UTC ``pd.Timestamp``.
+            end: Upper bound of the window as a tz-aware UTC ``pd.Timestamp``.
+
+        Returns:
+            A dict ``{"prices": [...], "allowance": {...}}`` parsed from the IG JSON
+            response — the same shape as :meth:`fetch_prices`.
+
+        Raises:
+            IGAuthError: If a required ``login`` re-attempt fails, or if both the primary
+                and fallback price requests return a non-200 response.
+        """
+        if not self._session_valid():
+            self.login()
+
+        config = read_ig_config(self._demo, self._env_path)
+        api_key = self._keys[0]
+        auth = {
+            "X-IG-API-KEY": config[api_key],
+            "CST": self._cst,
+            "X-SECURITY-TOKEN": self._security_token,
+            "Accept": "application/json; charset=UTF-8",
+        }
+
+        # Primary (new) path form: /prices/{epic}/{resolution}/{startDate}/{endDate}.
+        new_start = start.strftime(IG_RANGE_FMT_NEW)
+        new_end = end.strftime(IG_RANGE_FMT_NEW)
+        new_url = f"{self._base}/prices/{epic}/{resolution}/{new_start}/{new_end}"
+        response = self._http.get(new_url, headers={**auth, "Version": "2"})
+
+        if response.status_code != 200:
+            # Fallback (older) query-string form, used only when the new form is
+            # unavailable for this account/epic (e.g. 404/400).
+            old_start = start.strftime(IG_RANGE_FMT_OLD)
+            old_end = end.strftime(IG_RANGE_FMT_OLD)
+            old_url = f"{self._base}/prices/{epic}/{resolution}?startdate={old_start}&enddate={old_end}"
+            response = self._http.get(old_url, headers={**auth, "Version": "1"})
+            if response.status_code != 200:
+                raise IGAuthError(f"IG dated price fetch failed with status {response.status_code}")
 
         # Reset-on-use: a successful fetch extends the session lifetime (Req 1.1).
         self._session_expiry = time.monotonic() + SESSION_TTL_S

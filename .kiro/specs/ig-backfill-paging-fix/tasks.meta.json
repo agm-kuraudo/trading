@@ -1,0 +1,180 @@
+{
+  "pbtResults": {
+    "1. Write bug condition exploration test (BEFORE implementing the fix)": {
+      "status": "passed",
+      "failingExample": "Bug-condition exploration test correctly FAILED on the unfixed `_backfill_native` (expected outcome — proves the bug). 4 of 5 Property-1 tests failed; the sanity test (scenario IS a bug condition) passed.\n\nScenario (isBugCondition=true): target_points=1500, batch_points=500, allowance_remaining=9900 (budget 9400 > one batch); universe = 1500 distinct 1h bars newest-first.\n\nCounterexamples captured (map 1:1 to design cases a-d):\n(b) No cursor advance / dated windows never requested:\n    range_calls=[]; fetch_calls=[num_points=1 (probe), 500, 500, 500] — the unfixed loop re-issues the same most-recent-N fetch_prices every batch and never calls fetch_prices_range. assert 0 >= 2.\n(a) Duplicate-fetch allowance waste:\n    points_used=1500 while distinct bars seeded=500 — the identical newest 500-bar window was upserted 3x. assert 1500 <= (500+500) fails.\n(c) False deferred=0 while depth short:\n    oldest stored bar 2026-09-24 05:00:00+00:00 vs requested depth 2026-08-13 13:00:00+00:00, yet summary deferred=0. Store ~1 batch deep, not ~target depth.\n(d) End-of-history unreachable:\n    only 500 distinct bars seeded of 1500 available — fetched < this_batch never trips for most-recent-N, so the loop only ends on budget/floor and never pages backward to exhaust history. assert 500 >= (1500-500) fails.\n\nThis same test will PASS once the fix (IGClient.fetch_prices_range + date-cursor _backfill_native) lands (task 3.4).",
+      "lastRunTimestamp": 1792057772594
+    },
+    "3.4 Verify bug condition exploration test now passes": {
+      "status": "passed",
+      "lastRunTimestamp": 1792061726124
+    }
+  },
+  "executionHistory": {
+    "1. Write bug condition exploration test (BEFORE implementing the fix)": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057592744
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057601479
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057795524
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing the fix)": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593069
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057799457
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792058913961
+      }
+    ],
+    "3.1 Add `IGClient.fetch_prices_range` dated-window fetch": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593196
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792058917889
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792059145531
+      }
+    ],
+    "3.2 Update the read-only-surface assertion in `test_ig_client.py`": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593314
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792059153930
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792059281646
+      }
+    ],
+    "3.3 Change `_backfill_native` to page backward by date cursor": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593421
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792059285375
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061685728
+      }
+    ],
+    "3.4 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593578
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061693054
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061740885
+      }
+    ],
+    "3.5 Verify preservation tests still pass": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593706
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061744011
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061791762
+      }
+    ],
+    "4. Add unit, property-based, and integration coverage": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593812
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061795850
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792062700136
+      }
+    ],
+    "5. Checkpoint - verification, repo gates, and Pi deployment": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792057593919
+      },
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792062704323
+      },
+      {
+        "executionId": "d0951a2c-91a9-4c7b-b1cf-318620551b67",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792063665915
+      },
+      {
+        "executionId": "46b45835-aa15-41b4-a49a-2c6c25f27e64",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792065249061
+      }
+    ],
+    "3. Fix the backward-paging IG backfill": [
+      {
+        "executionId": "cfd2395e-edb9-4d2a-89b4-888205affdbc",
+        "chatSessionId": "sess_51573cb9-4f08-41e2-a5e3-31f88edecb99",
+        "timestamp": 1792061791956
+      }
+    ]
+  }
+}
