@@ -162,6 +162,28 @@ To run the steps individually:
    `suggested_hold_days` from that horizon. Signal types whose best horizon is
    insignificant or sits in the 45-55% noise band are marked `NONE`.
 
+#### How `adjusted_direction` is derived
+
+`adjusted_direction` is **derived**, not hardcoded (SP-360 — previously the
+importer assumed every actionable signal was `"BUY"`). For the representative
+horizon chosen above, the importer combines the signal's **base direction**
+with its **interpretation band**:
+
+- **Base direction** comes from `SIGNAL_DIRECTIONS` in
+  `vpa/ml_validation/signal_analysis.py`, which maps each signal type to
+  `SignalDirection.UP` or `SignalDirection.DOWN`.
+- **Interpretation band** (from `hit_rate` / `p_value`) decides whether the base
+  direction is kept or inverted:
+  - **Contrarian** (`hit_rate < 0.45`, significant): **invert** the base direction.
+  - **Strong-signal** (`hit_rate >= 0.60`, significant): **keep** the base direction.
+  - **Weak-edge** (`0.55 < hit_rate < 0.60`, significant): **keep** the base direction.
+  - **Noise** (`0.45-0.55`) or not significant / missing: `NONE` (no actionable signal).
+
+The resolved direction then maps to an action: `SignalDirection.UP -> "BUY"`,
+`SignalDirection.DOWN -> "SELL"`. Unknown signal types (no `SignalType` or no
+`SIGNAL_DIRECTIONS` entry) fall back to `{"adjusted_direction": "NONE"}` rather
+than raising.
+
 ### Output
 
 **Console:** Prints signal summary or "No high-conviction signal today" with the date.
